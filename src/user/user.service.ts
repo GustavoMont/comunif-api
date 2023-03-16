@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Get, Injectable } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { UserRepository } from './user-repository.service';
 
