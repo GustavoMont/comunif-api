@@ -1,6 +1,6 @@
-import { Controller, Get, Param, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Request, Res } from '@nestjs/common';
 import { User } from '@prisma/client';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+
 import { UserService } from './user.service';
 
 @Controller('users')
@@ -12,9 +12,8 @@ export class UserController {
     return await this.service.findAll();
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('bloqueado')
-  async test(@Request() req): Promise<string> {
-    return req.user;
+  @Post('test')
+  create() {
+    return 'A';
   }
 }
