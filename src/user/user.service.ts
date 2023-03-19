@@ -1,17 +1,17 @@
-import { Injectable, Request, UseGuards } from '@nestjs/common';
-import { User } from '@prisma/client';
-import { LocalAuthGuard } from 'src/auth/guards/local-auth.guard';
-import { LocalStrategy } from 'src/auth/strategies/local.strategy';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { plainToClass } from 'class-transformer';
+import { UserResponse } from './dto/user-response.dto';
 import { UserRepository } from './user-repository.service';
 
 @Injectable()
 export class UserService {
   constructor(private readonly repository: UserRepository) {}
-  async findAll(): Promise<User[]> {
-    return await this.repository.findAll();
-  }
 
-  test() {
-    return 'testando';
+  async findById(id: number): Promise<UserResponse> {
+    const user = await this.repository.findById(id);
+    if (!user) {
+      throw new HttpException('Usuário não encontrado', HttpStatus.NOT_FOUND);
+    }
+    return plainToClass(UserResponse, user);
   }
 }

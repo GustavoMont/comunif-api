@@ -7,6 +7,15 @@ export class UserRepository {
   async findAll(): Promise<User[]> {
     return await this.db.user.findMany();
   }
+
+  async findById(id: number): Promise<User> {
+    return await this.db.user.findUnique({
+      where: {
+        id,
+      },
+    });
+  }
+
   async findByUsername(username: string): Promise<User> {
     const user = await this.db.user.findUnique({
       where: {

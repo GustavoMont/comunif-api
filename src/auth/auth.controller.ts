@@ -4,7 +4,7 @@ import { SignupDto } from './dto/sign-up.dto';
 import { TokenDto } from './dto/token-dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 
-@Controller('auth')
+@Controller('api/auth')
 export class AuthController {
   constructor(private service: AuthService) {}
 
