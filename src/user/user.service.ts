@@ -1,10 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { plainToClass } from 'class-transformer';
 import { UserResponse } from './dto/user-response.dto';
+import { IUserService } from './interfaces/IUserService';
 import { UserRepository } from './user-repository.service';
 
 @Injectable()
-export class UserService {
+export class UserService implements IUserService {
   constructor(private readonly repository: UserRepository) {}
 
   async findById(id: number): Promise<UserResponse> {
