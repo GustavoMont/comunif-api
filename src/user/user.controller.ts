@@ -11,6 +11,11 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   async findById(@Param('id') id: number): Promise<UserResponse> {
-    return this.service.findById(id);
+    return this.service.findById(+id);
+  }
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  async findAll(): Promise<UserResponse[]> {
+    return await this.service.findAll();
   }
 }

@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaClient, User } from '@prisma/client';
+import { IUserRepository } from './interfaces/IUserRepository';
 
 @Injectable()
-export class UserRepository {
+export class UserRepository implements IUserRepository {
   constructor(private readonly db: PrismaClient) {}
   async findAll(): Promise<User[]> {
     return await this.db.user.findMany();
