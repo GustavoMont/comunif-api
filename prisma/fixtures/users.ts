@@ -28,4 +28,13 @@ export default [
     password: '$2b$10$xKPmgW6ttwFAFFB5g60ihu3wNpB2XVlIZpkXMvhAdKoazw5r/Bk0m',
     birthday: new Date('2000-06-27T00:00:00.000Z'),
   },
+  {
+    id: 4,
+    name: 'Editável',
+    lastName: 'Usuario',
+    email: 'editavel@editavel.com',
+    username: 'editavel',
+    password: '$2b$10$xKPmgW6ttwFAFFB5g60ihu3wNpB2XVlIZpkXMvhAdKoazw5r/Bk0m',
+    birthday: new Date('2000-06-27T00:00:00.000Z'),
+  },
 ] as User[];

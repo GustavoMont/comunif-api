@@ -58,4 +58,35 @@ describe('Users', () => {
       });
     });
   });
+  describe('/PATCH', () => {
+    it('should throw unauthorized', async () => {
+      return request(app.getHttpServer())
+        .get('/api/users/1')
+        .expect(401)
+        .expect({
+          statusCode: 401,
+          message: 'Unauthorized',
+        });
+    });
+    // it('should throw forbidden', async () => {
+    //   return request(app.getHttpServer())
+    //     .get('/api/users/10')
+    //     .set('Authorization', 'Bearer ' + token)
+    //     .expect(403)
+    //     .expect({
+    //       statusCode: 403,
+    //       message: 'Você não tem permissão para isso',
+    //     });
+    // });
+    // it('should update user', async () => {
+    //   return request(app.getHttpServer())
+    //     .get('/api/users/1')
+    //     .set('Authorization', 'Bearer ' + token)
+    //     .expect(403)
+    //     .expect({
+    //       statusCode: 403,
+    //       message: 'Você não tem permissão para isso',
+    //     });
+    // });
+  });
 });
