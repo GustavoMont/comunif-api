@@ -11,4 +11,6 @@ export class UserResponse implements User {
   password: string;
   @Exclude()
   birthday: Date;
+  bio: string;
+  avatar: string;
 }

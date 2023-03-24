@@ -8,5 +8,7 @@ export const userGenerator = (change?: Partial<User>): User => ({
   name: 'Name',
   password: 'password',
   username: 'username',
+  avatar: null,
+  bio: null,
   ...change,
 });

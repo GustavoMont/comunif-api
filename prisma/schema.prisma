@@ -15,4 +15,6 @@ model User {
   username String   @unique
   password String
   birthday DateTime
+  bio      String?
+  avatar   String?
 }
