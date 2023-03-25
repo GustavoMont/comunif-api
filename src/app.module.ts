@@ -4,6 +4,7 @@ import { AuthModule } from './auth/auth.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { PublicController } from './public/public.controller';
+import { CommunityModule } from './community/community.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { PublicController } from './public/public.controller';
     MulterModule.register({
       storage: memoryStorage(),
     }),
+    CommunityModule,
   ],
   controllers: [PublicController],
 })

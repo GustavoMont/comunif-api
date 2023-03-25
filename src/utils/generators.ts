@@ -1,6 +1,8 @@
-import { User } from '@prisma/client';
+import { Community, User } from '@prisma/client';
 
-export const userGenerator = (change?: Partial<User>): User => ({
+type generator<T> = (change?: Partial<T>) => T;
+
+export const userGenerator: generator<User> = (change) => ({
   birthday: new Date('11-11-00'),
   email: 'email@email.com',
   id: 1,
@@ -10,5 +12,12 @@ export const userGenerator = (change?: Partial<User>): User => ({
   username: 'username',
   avatar: null,
   bio: null,
+  ...change,
+});
+
+export const communityGenerator: generator<Community> = (change) => ({
+  id: 1,
+  name: 'comunidade',
+  subjectId: 1,
   ...change,
 });

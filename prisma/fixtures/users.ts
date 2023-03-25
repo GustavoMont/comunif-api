@@ -9,6 +9,8 @@ export default [
     username: 'user1',
     password: '$2b$10$V1yjE4B.m1oeZnxELGIoOO06Qqv/CIcsm5llsMP8/a84Op1oGoT/i',
     birthday: new Date('2000-06-27T00:00:00.000Z'),
+    avatar: null,
+    bio: null,
   },
   {
     id: 2,
@@ -18,6 +20,8 @@ export default [
     username: 'user2',
     password: '$2b$10$/6XanOMawWiDBwtuigl9JOnPEN0BfDa/Xrck28zHtAJrAY8ooPyWS',
     birthday: new Date('2000-06-27T00:00:00.000Z'),
+    avatar: null,
+    bio: null,
   },
   {
     id: 3,
@@ -27,6 +31,8 @@ export default [
     username: 'user3',
     password: '$2b$10$xKPmgW6ttwFAFFB5g60ihu3wNpB2XVlIZpkXMvhAdKoazw5r/Bk0m',
     birthday: new Date('2000-06-27T00:00:00.000Z'),
+    avatar: null,
+    bio: null,
   },
   {
     id: 4,
@@ -36,5 +42,18 @@ export default [
     username: 'editavel',
     password: '$2b$10$xKPmgW6ttwFAFFB5g60ihu3wNpB2XVlIZpkXMvhAdKoazw5r/Bk0m',
     birthday: new Date('2000-06-27T00:00:00.000Z'),
+    avatar: null,
+    bio: null,
+  },
+  {
+    id: 5,
+    name: 'Comunite',
+    lastName: 'Test',
+    email: 'comunity@test.com',
+    username: 'community',
+    password: '$2b$10$xKPmgW6ttwFAFFB5g60ihu3wNpB2XVlIZpkXMvhAdKoazw5r/Bk0m',
+    birthday: new Date('2000-06-27T00:00:00.000Z'),
+    avatar: null,
+    bio: null,
   },
 ] as User[];

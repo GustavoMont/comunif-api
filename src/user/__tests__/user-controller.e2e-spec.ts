@@ -32,7 +32,6 @@ describe('Users', () => {
 
       return request(app.getHttpServer())
         .get(`/api/users/${userId}`)
-
         .set('Authorization', 'Bearer ' + token)
         .expect(200)
         .expect(instanceToPlain(plainToInstance(UserResponse, users[0])));
