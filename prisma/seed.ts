@@ -7,27 +7,27 @@ import users from './fixtures/users';
 const db = new PrismaClient();
 
 const main = async () => {
+  for (const data of channelTypes) {
+    await db.channelType.create({
+      data,
+    });
+  }
   if (process.env.ENVIROMENT === 'development') {
     for (const data of users) {
       await db.user.create({
         data,
       });
     }
-  }
-  for (const data of channelTypes) {
-    await db.channelType.create({
-      data,
-    });
-  }
-  for (const data of subjects) {
-    await db.subject.create({
-      data,
-    });
-  }
-  for (const data of communities) {
-    await db.community.create({
-      data,
-    });
+    for (const data of subjects) {
+      await db.subject.create({
+        data,
+      });
+    }
+    for (const data of communities) {
+      await db.community.create({
+        data,
+      });
+    }
   }
 };
 

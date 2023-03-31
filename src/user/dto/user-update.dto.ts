@@ -14,4 +14,6 @@ export class UserUpdate implements User {
   birthday: Date;
   bio: string;
   avatar: string;
+  @Exclude()
+  role: string;
 }

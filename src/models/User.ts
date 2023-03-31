@@ -1,18 +1,19 @@
-import { Exclude } from 'class-transformer';
-import { RoleEnum, User } from 'src/models/User';
+import { User as UserType } from '@prisma/client';
 
-export class UserResponse implements User {
+export enum RoleEnum {
+  user = 'user',
+  admin = 'admin',
+}
+
+export class User implements UserType {
   id: number;
   name: string;
   lastName: string;
   email: string;
   username: string;
-  @Exclude()
   password: string;
-  @Exclude()
   birthday: Date;
   bio: string;
   avatar: string;
-  @Exclude()
   role: RoleEnum;
 }

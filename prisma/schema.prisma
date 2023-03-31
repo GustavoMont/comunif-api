@@ -19,6 +19,7 @@ model User {
   avatar      String?
   communities CommunityHasUsers[]
   messages    Message[]
+  role        String              @default(dbgenerated("user"))
 }
 
 model Message {

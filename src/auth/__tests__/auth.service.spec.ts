@@ -95,6 +95,7 @@ describe('AuthService', () => {
       const mockUser: any = {
         id: 1,
         username: 'testuser',
+        role: 'user',
       };
       const mockToken = 'mock-token';
       jest.spyOn(jwtService, 'sign').mockReturnValue(mockToken);
@@ -104,6 +105,7 @@ describe('AuthService', () => {
       expect(jwtService.sign).toHaveBeenCalledWith({
         username: 'testuser',
         sub: 1,
+        roles: ['user'],
       });
       expect(result.access).toEqual(mockToken);
     });
@@ -194,6 +196,7 @@ describe('AuthService', () => {
         email: 'test@example.com',
         password: await bcrypt.hash('testpassword', 10),
         birthday: new Date('1990-01-01'),
+        role: 'user',
       };
       jest.spyOn(userRepository, 'findByUsername').mockResolvedValue(null);
       jest.spyOn(userRepository, 'findByEmail').mockResolvedValue(null);
@@ -205,6 +208,7 @@ describe('AuthService', () => {
       expect(sign).toBeCalledWith({
         username: mockUser.username,
         sub: mockUser.id,
+        roles: ['user'],
       });
     });
   });

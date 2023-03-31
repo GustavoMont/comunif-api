@@ -1,4 +1,5 @@
-import { Community, User } from '@prisma/client';
+import { Community } from '@prisma/client';
+import { RoleEnum, User } from 'src/models/User';
 
 type generator<T> = (change?: Partial<T>) => T;
 
@@ -12,6 +13,7 @@ export const userGenerator: generator<User> = (change) => ({
   username: 'username',
   avatar: null,
   bio: null,
+  role: RoleEnum.user,
   ...change,
 });
 
