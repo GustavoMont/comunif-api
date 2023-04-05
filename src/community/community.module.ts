@@ -9,5 +9,6 @@ import { CommunityRepository } from './community-repository.service';
   imports: [UserModule],
   controllers: [CommunityController],
   providers: [CommunityService, CommunityRepository, PrismaClient],
+  exports: [CommunityService],
 })
 export class CommunityModule {}

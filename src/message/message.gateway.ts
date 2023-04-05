@@ -9,24 +9,44 @@ import {
 import { MessageService } from './message.service';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
+import { Community, Message } from '@prisma/client';
+import { CommunityService } from 'src/community/community.service';
+
+interface JoinRoomsPayload {
+  communities: Community[];
+}
 
 @WebSocketGateway()
 export class MessageGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
-  constructor(private readonly messageService: MessageService) {}
+  constructor(
+    private readonly messageService: MessageService,
+    private communityService: CommunityService,
+  ) {}
+  @WebSocketServer() server: Server;
   private logger: Logger = new Logger('MessageLogger');
   afterInit() {
     this.logger.log(`Tamo no ar`);
   }
   handleConnection(client: Socket) {
-    this.server.emit('msgToClient', 'a');
     this.logger.log(`Usuário ${client.id} conectado`);
   }
   handleDisconnect(client: Socket) {
     this.logger.log(`Usuário ${client.id} saiu`);
   }
-  @WebSocketServer() server: Server;
+
+  @SubscribeMessage('joinRooms')
+  async joinRooms(client: Socket, payload: any) {
+    const communities = this.communityService;
+    this.server.emit('msgToClient', 'recebakkkkkkkk');
+  }
+
+  @SubscribeMessage('messageToCommunity')
+  chat(client: Socket, payload: Message) {
+    const { communityChannelId: room, content } = payload;
+    this.server.to(`${room}`).emit('message', content);
+  }
 
   @SubscribeMessage('messageToServer')
   handleMessage(client: Socket, payload: any) {

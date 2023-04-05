@@ -11,6 +11,14 @@ export class CommunityService implements ICommunityService {
     private readonly repository: CommunityRepository,
     private readonly userRepository: UserRepository,
   ) {}
+  async findUserCommunities(userId: number): Promise<CommunityResponse[]> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new HttpException('Usuário não encontrado', HttpStatus.BAD_REQUEST);
+    }
+    const communities = await this.repository.findUserCommunities(userId);
+    return plainToInstance(CommunityResponse, communities);
+  }
   async findById(id: number): Promise<CommunityResponse> {
     const community = await this.repository.findById(id);
     if (!community) {

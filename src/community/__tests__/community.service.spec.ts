@@ -3,11 +3,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { plainToInstance } from 'class-transformer';
 import { IUserRepository } from 'src/user/interfaces/IUserRepository';
 import { UserRepository } from 'src/user/user-repository.service';
-import { communityGenerator, userGenerator } from 'src/utils/generators';
+import {
+  arrayGenerator,
+  communityGenerator,
+  userGenerator,
+} from 'src/utils/generators';
 import { CommunityRepository } from '../community-repository.service';
 import { CommunityService } from '../community.service';
 import { CommunityResponse } from '../dto/community-response.dto';
 import { ICommunityRepository } from '../interfaces/ICommunityRepository';
+import { Community } from '@prisma/client';
 
 describe('Community Service', () => {
   let repository: CommunityRepository;
@@ -24,6 +29,7 @@ describe('Community Service', () => {
             addUser: jest.fn(),
             findUser: jest.fn(),
             findById: jest.fn(),
+            findUserCommunities: jest.fn(),
           } as ICommunityRepository,
         },
         {
@@ -118,6 +124,29 @@ describe('Community Service', () => {
       // Assert
       expect(plainToInstance(CommunityResponse, result)).toEqual(
         plainToInstance(CommunityResponse, community),
+      );
+    });
+  });
+  describe('get user communities', () => {
+    it('should throw user does not exist', async () => {
+      jest.spyOn(userRepository, 'findById').mockResolvedValue(null);
+
+      await expect(
+        communityService.findUserCommunities(1),
+      ).rejects.toThrowError(
+        new HttpException('Usuário não encontrado', HttpStatus.BAD_REQUEST),
+      );
+      expect(repository.findUserCommunities).not.toBeCalled();
+    });
+    it('should return all user communities', async () => {
+      jest.spyOn(userRepository, 'findById').mockResolvedValue(userGenerator());
+      const communities = arrayGenerator<Community>(3, communityGenerator);
+      jest
+        .spyOn(repository, 'findUserCommunities')
+        .mockResolvedValue(communities);
+      const result = await communityService.findUserCommunities(1);
+      expect(plainToInstance(CommunityResponse, result)).toEqual(
+        plainToInstance(CommunityResponse, communities),
       );
     });
   });

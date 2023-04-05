@@ -31,4 +31,12 @@ export class CommunityController {
   ): Promise<CommunityResponse> {
     return await this.service.addUser(req.user.id, body.communityId);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('users/:userId')
+  async findUserCommunities(
+    @Param('userId', ParseIntPipe) userId: number,
+  ): Promise<CommunityResponse[]> {
+    return await this.service.findUserCommunities(+userId);
+  }
 }

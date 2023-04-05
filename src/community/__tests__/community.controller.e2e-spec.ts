@@ -6,10 +6,13 @@ import * as request from 'supertest';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { CommunityResponse } from '../dto/community-response.dto';
 import communities from '../../../prisma/fixtures/communities';
+import users from '../../../prisma/fixtures/users';
+import { User } from '@prisma/client';
 
 describe('Community controller', () => {
   let app: INestApplication;
   let token: string;
+  let user: User;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -23,10 +26,13 @@ describe('Community controller', () => {
       }),
     );
     await app.init();
-
+    user = users.find(({ username }) => username === 'community');
+    if (!user) {
+      throw new Error('No user');
+    }
     const loginRes = await request(app.getHttpServer())
       .post('/api/auth/login')
-      .send({ username: 'community', password: '12345678S' })
+      .send({ username: user.username, password: '12345678S' })
       .expect(201);
     token = loginRes.body.access;
   });
@@ -62,6 +68,39 @@ describe('Community controller', () => {
         .expect(
           instanceToPlain(plainToInstance(CommunityResponse, communities[0])),
         );
+    });
+  });
+  describe('/GET', () => {
+    describe('find user communities', () => {
+      it('should throw unauthorizated exception', async () => {
+        return request(app.getHttpServer())
+          .get('/api/communities/users/1')
+          .expect(401)
+          .expect({
+            statusCode: 401,
+            message: 'Unauthorized',
+          });
+      });
+      it('should return user communities', async () => {
+        return request(app.getHttpServer())
+          .get(`/api/communities/users/${user.id}`)
+          .set('Authorization', 'Bearer ' + token)
+          .expect(200)
+          .expect([
+            {
+              id: 1,
+              name: 'Topinar',
+              subjectId: 1,
+              communityChannels: [
+                {
+                  id: 1,
+                  communityId: 1,
+                  channelTypeId: 1,
+                },
+              ],
+            },
+          ]);
+      });
     });
   });
 });

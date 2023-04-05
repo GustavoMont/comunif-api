@@ -5,10 +5,25 @@ import { ICommunityRepository } from './interfaces/ICommunityRepository';
 @Injectable()
 export class CommunityRepository implements ICommunityRepository {
   constructor(private readonly db: PrismaClient) {}
+  async findUserCommunities(userId: number): Promise<Community[]> {
+    return this.db.community.findMany({
+      where: {
+        users: {
+          some: { userId },
+        },
+      },
+      include: {
+        communityChannels: true,
+      },
+    });
+  }
   async findById(id: number): Promise<Community> {
     return await this.db.community.findUnique({
       where: {
         id,
+      },
+      include: {
+        communityChannels: true,
       },
     });
   }
