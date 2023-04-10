@@ -37,9 +37,11 @@ export class MessageGateway
   }
 
   @SubscribeMessage('joinRooms')
-  async joinRooms(client: Socket, payload: any) {
-    const communities = this.communityService;
-    this.server.emit('msgToClient', 'recebakkkkkkkk');
+  async joinRooms(client: Socket, { userId }: { userId: number }) {
+    const communities = await this.communityService.findUserCommunities(userId);
+    communities.forEach(({ communityChannels }) => {
+      communityChannels.forEach(({ id }) => client.join(`channel${id}`));
+    });
   }
 
   @SubscribeMessage('messageToCommunity')
