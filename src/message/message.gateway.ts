@@ -9,12 +9,8 @@ import {
 import { MessageService } from './message.service';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
-import { Community, Message } from '@prisma/client';
+import { Message } from '@prisma/client';
 import { CommunityService } from 'src/community/community.service';
-
-interface JoinRoomsPayload {
-  communities: Community[];
-}
 
 @WebSocketGateway()
 export class MessageGateway
