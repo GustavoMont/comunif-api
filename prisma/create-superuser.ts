@@ -1,6 +1,7 @@
 import { PrismaClient, User } from '@prisma/client';
 import { hashSync } from 'bcrypt';
 import * as prompt from 'prompt-sync';
+import { RoleEnum } from '../src/models/User';
 
 const question = prompt();
 
@@ -19,12 +20,28 @@ Object.keys(superUser).forEach((key) => {
 const db = new PrismaClient();
 
 db.user
-  .create({
-    data: {
-      ...superUser,
-      birthday: new Date(),
-      password: hashSync(superUser.password, 10),
+  .findMany({
+    where: {
+      role: 'admin',
     },
   })
-  .then(() => console.log('SUCESSO'))
-  .catch((err) => console.error(err));
+  .then((user) => {
+    if (user && !user.length) {
+      db.user
+        .create({
+          data: {
+            ...superUser,
+            birthday: new Date(),
+            password: hashSync(superUser.password, 10),
+            role: RoleEnum.admin,
+          },
+        })
+        .then(() => console.log('SUCESSO'))
+        .catch((err) => console.error(err));
+    } else {
+      throw new Error('VOCÊ NÃO PODE ADICIONAR UM ADMIN');
+    }
+  })
+  .catch((err) => {
+    console.error(err.message);
+  });
