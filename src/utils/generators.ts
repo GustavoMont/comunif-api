@@ -40,5 +40,7 @@ export const communityGenerator: generator<Community> = (change) => ({
     3,
     communityChannelGenerator,
   ),
+  banner: 'banner',
+  isActive: true,
   ...change,
 });

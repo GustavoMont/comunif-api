@@ -1,9 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
+import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { UserRepository } from 'src/user/user-repository.service';
 import { CommunityRepository } from './community-repository.service';
 import { CommunityResponse } from './dto/community-response.dto';
 import { ICommunityService } from './interfaces/ICommunityService';
+import { CommunityUpdate } from './dto/community-update.dto';
 
 @Injectable()
 export class CommunityService implements ICommunityService {
@@ -53,5 +54,20 @@ export class CommunityService implements ICommunityService {
     }
     const response = await this.repository.addUser(communityId, userId);
     return plainToInstance(CommunityResponse, response);
+  }
+  async findAll(): Promise<CommunityResponse[]> {
+    return plainToInstance(CommunityResponse, await this.repository.findAll());
+  }
+  async update(
+    id: number,
+    changes: CommunityUpdate,
+  ): Promise<CommunityResponse> {
+    await this.findById(id);
+    const updatedCommunity = await this.repository.update(
+      id,
+      instanceToPlain(changes),
+    );
+
+    return plainToInstance(CommunityResponse, updatedCommunity);
   }
 }

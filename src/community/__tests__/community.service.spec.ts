@@ -13,6 +13,7 @@ import { CommunityService } from '../community.service';
 import { CommunityResponse } from '../dto/community-response.dto';
 import { ICommunityRepository } from '../interfaces/ICommunityRepository';
 import { Community } from '@prisma/client';
+import { CommunityUpdate } from '../dto/community-update.dto';
 
 describe('Community Service', () => {
   let repository: CommunityRepository;
@@ -30,12 +31,15 @@ describe('Community Service', () => {
             findUser: jest.fn(),
             findById: jest.fn(),
             findUserCommunities: jest.fn(),
+            findAll: jest.fn(),
+            update: jest.fn(),
           } as ICommunityRepository,
         },
         {
           provide: UserRepository,
           useValue: {
             findById: jest.fn(),
+            findAll: jest.fn(),
           } as Partial<IUserRepository>,
         },
       ],
@@ -148,6 +152,46 @@ describe('Community Service', () => {
       expect(plainToInstance(CommunityResponse, result)).toEqual(
         plainToInstance(CommunityResponse, communities),
       );
+    });
+  });
+  describe('get all communities', () => {
+    it('should return all communities', async () => {
+      const communities = arrayGenerator<Community>(3, communityGenerator);
+      jest.spyOn(repository, 'findAll').mockResolvedValue(communities);
+      const result = await communityService.findAll();
+      expect(plainToInstance(CommunityResponse, result)).toEqual(
+        plainToInstance(CommunityResponse, communities),
+      );
+    });
+  });
+  describe('update community', () => {
+    const changes = plainToInstance(CommunityUpdate, {
+      name: 'comunidade',
+      banner: 'bannerUrl',
+    });
+    it('should throw community not found', async () => {
+      const id = 1;
+      jest.spyOn(repository, 'findById').mockResolvedValue(null);
+      await expect(communityService.update(id, changes)).rejects.toThrowError(
+        new HttpException('Comunidade não encontrada', HttpStatus.NOT_FOUND),
+      );
+      expect(repository.update).not.toBeCalled();
+    });
+    it('should update community', async () => {
+      const id = 1;
+      const community = communityGenerator();
+      const updatedCommunity = {
+        ...community,
+        ...changes,
+      };
+      jest.spyOn(repository, 'findById').mockResolvedValue(community);
+      jest.spyOn(repository, 'update').mockResolvedValue(updatedCommunity);
+
+      const result = await communityService.update(id, changes);
+      expect(result).toEqual(
+        plainToInstance(CommunityResponse, updatedCommunity),
+      );
+      expect(repository.update).toBeCalledWith(id, changes);
     });
   });
 });

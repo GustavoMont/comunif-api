@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Req,
   UseGuards,
@@ -13,10 +14,21 @@ import { RequestWithUser } from 'src/types/RequestWithUser';
 import { CommunityService } from './community.service';
 import { CommunityAddUser } from './dto/community-add-user.dto';
 import { CommunityResponse } from './dto/community-response.dto';
+import { CommunityUpdate } from './dto/community-update.dto';
+import { RolesGuard } from 'src/auth/guards/role.guard';
+import { Roles } from 'src/decorators/roles.decorator';
+import { RoleEnum } from 'src/models/User';
 
 @Controller('api/communities')
 export class CommunityController {
   constructor(private readonly service: CommunityService) {}
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  async findALl(): Promise<CommunityResponse[]> {
+    return await this.service.findAll();
+  }
+
   @Get(':id')
   async findById(
     @Param('id', ParseIntPipe) id: number,
@@ -38,5 +50,15 @@ export class CommunityController {
     @Param('userId', ParseIntPipe) userId: number,
   ): Promise<CommunityResponse[]> {
     return await this.service.findUserCommunities(+userId);
+  }
+
+  @Roles(RoleEnum.admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Patch(':id')
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: CommunityUpdate,
+  ): Promise<CommunityResponse> {
+    return await this.service.update(id, body);
   }
 }

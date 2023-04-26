@@ -6,7 +6,7 @@ import { ICommunityRepository } from './interfaces/ICommunityRepository';
 export class CommunityRepository implements ICommunityRepository {
   constructor(private readonly db: PrismaClient) {}
   async findUserCommunities(userId: number): Promise<Community[]> {
-    return this.db.community.findMany({
+    return await this.db.community.findMany({
       where: {
         users: {
           some: { userId },
@@ -37,7 +37,7 @@ export class CommunityRepository implements ICommunityRepository {
         user: true,
       },
     });
-    return result ? result.user : null;
+    return result?.user || null;
   }
   async addUser(communityId: number, userId: number): Promise<Community> {
     return await this.db.community.update({
@@ -54,6 +54,24 @@ export class CommunityRepository implements ICommunityRepository {
             },
           ],
         },
+      },
+      include: {
+        communityChannels: true,
+      },
+    });
+  }
+  async findAll(): Promise<Community[]> {
+    return await this.db.community.findMany({
+      include: {
+        communityChannels: true,
+      },
+    });
+  }
+  async update(id: number, changes: Partial<Community>): Promise<Community> {
+    return await this.db.community.update({
+      where: { id },
+      data: {
+        ...changes,
       },
     });
   }

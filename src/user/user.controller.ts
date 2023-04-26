@@ -66,6 +66,6 @@ export class UserController {
     update: UserUpdate,
     @Param('id', ParseIntPipe) id: number,
   ): Promise<UserResponse> {
-    return this.service.update(id, update);
+    return this.service.update(+id, update);
   }
 }

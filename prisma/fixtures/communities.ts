@@ -6,4 +6,9 @@ export default [
     name: 'Topinar',
     subjectId: 1,
   },
+  {
+    id: 2,
+    name: 'Editores',
+    subjectId: 2,
+  },
 ] as Community[];

@@ -54,13 +54,14 @@ model Community {
   subjectId         Int                 @unique
   users             CommunityHasUsers[]
   communityChannels CommunityChannel[]
+  banner            String?
+  isActive          Boolean             @default(false)
 }
 
 model Subject {
   id          Int        @id @default(autoincrement())
   name        String
   description String
-  banner      String?
   community   Community?
 }
 
