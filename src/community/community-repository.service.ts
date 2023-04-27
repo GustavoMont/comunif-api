@@ -60,8 +60,13 @@ export class CommunityRepository implements ICommunityRepository {
       },
     });
   }
-  async findAll(): Promise<Community[]> {
+  async findAll(getInactive = false): Promise<Community[]> {
     return await this.db.community.findMany({
+      where: getInactive
+        ? undefined
+        : {
+            isActive: true,
+          },
       include: {
         communityChannels: true,
       },

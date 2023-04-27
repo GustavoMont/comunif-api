@@ -158,10 +158,19 @@ describe('Community Service', () => {
     it('should return all communities', async () => {
       const communities = arrayGenerator<Community>(3, communityGenerator);
       jest.spyOn(repository, 'findAll').mockResolvedValue(communities);
+      const result = await communityService.findAll(true);
+      expect(plainToInstance(CommunityResponse, result)).toEqual(
+        plainToInstance(CommunityResponse, communities),
+      );
+    });
+    it('should return only active communities', async () => {
+      const communities = arrayGenerator<Community>(3, communityGenerator);
+      jest.spyOn(repository, 'findAll').mockResolvedValue(communities);
       const result = await communityService.findAll();
       expect(plainToInstance(CommunityResponse, result)).toEqual(
         plainToInstance(CommunityResponse, communities),
       );
+      expect(repository.findAll).toBeCalledWith(false);
     });
   });
   describe('update community', () => {

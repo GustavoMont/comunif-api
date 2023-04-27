@@ -25,7 +25,7 @@ describe('Community controller', () => {
       ),
     } as CommunityResponse),
   );
-
+  const activeCommunities = allComunities.filter(({ isActive }) => isActive);
   const editableCommunity = communities.find(({ name }) => name === 'Editores');
   let adminToken: string;
 
@@ -114,16 +114,22 @@ describe('Community controller', () => {
         return request(app.getHttpServer())
           .get('/api/communities')
           .expect(401)
-          .send({ communityId: 1 })
           .expect({
             statusCode: 401,
             message: 'Unauthorized',
           });
       });
-      it('should return all communities', async () => {
+      it('should return only active communities', async () => {
         return request(app.getHttpServer())
           .get('/api/communities')
           .set('Authorization', 'Bearer ' + token)
+          .expect(200)
+          .expect(instanceToPlain(activeCommunities));
+      });
+      it('should return all communities', async () => {
+        return request(app.getHttpServer())
+          .get('/api/communities')
+          .set('Authorization', 'Bearer ' + adminToken)
           .expect(200)
           .expect(instanceToPlain(allComunities));
       });
@@ -156,6 +162,7 @@ describe('Community controller', () => {
       return request(app.getHttpServer())
         .patch(`/api/communities/1000`)
         .set('Authorization', 'Bearer ' + adminToken)
+        .send({ name: 'nome' })
         .expect(404);
     });
     it('should update community', async () => {

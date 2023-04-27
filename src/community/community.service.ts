@@ -55,8 +55,11 @@ export class CommunityService implements ICommunityService {
     const response = await this.repository.addUser(communityId, userId);
     return plainToInstance(CommunityResponse, response);
   }
-  async findAll(): Promise<CommunityResponse[]> {
-    return plainToInstance(CommunityResponse, await this.repository.findAll());
+  async findAll(isAdmin = false): Promise<CommunityResponse[]> {
+    return plainToInstance(
+      CommunityResponse,
+      await this.repository.findAll(isAdmin),
+    );
   }
   async update(
     id: number,

@@ -25,8 +25,9 @@ export class CommunityController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  async findALl(): Promise<CommunityResponse[]> {
-    return await this.service.findAll();
+  async findALl(@Req() req: RequestWithUser): Promise<CommunityResponse[]> {
+    const isAdmin = req.user.roles.includes(RoleEnum.admin);
+    return await this.service.findAll(isAdmin);
   }
 
   @Get(':id')
