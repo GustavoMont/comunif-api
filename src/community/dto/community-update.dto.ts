@@ -1,5 +1,5 @@
 import { Community } from '@prisma/client';
-import { Exclude } from 'class-transformer';
+import { Exclude, Transform } from 'class-transformer';
 import { MinLength } from 'class-validator';
 
 export class CommunityUpdate implements Community {
@@ -12,5 +12,8 @@ export class CommunityUpdate implements Community {
   })
   name: string;
   banner: string;
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value === 'true' : value,
+  )
   isActive: boolean;
 }

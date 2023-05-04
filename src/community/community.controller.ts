@@ -3,11 +3,14 @@ import {
   Controller,
   Get,
   Param,
+  ParseFilePipe,
   ParseIntPipe,
   Patch,
   Post,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RequestWithUser } from 'src/types/RequestWithUser';
@@ -18,6 +21,10 @@ import { CommunityUpdate } from './dto/community-update.dto';
 import { RolesGuard } from 'src/auth/guards/role.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RoleEnum } from 'src/models/User';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { bannerUploadOptions, validators } from 'src/config/image-uploads';
+import { PathPipe } from 'src/pipes/image-path.pipe';
+import { SharpPipe } from 'src/pipes/sharp-image.pipe';
 
 @Controller('api/communities')
 export class CommunityController {
@@ -56,10 +63,24 @@ export class CommunityController {
   @Roles(RoleEnum.admin)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id')
+  @UseInterceptors(FileInterceptor('banner', bannerUploadOptions))
   async update(
-    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile(
+      new ParseFilePipe({
+        fileIsRequired: false,
+        validators,
+      }),
+      SharpPipe,
+      PathPipe,
+    )
+    banner: string,
+    @Param('id', ParseIntPipe)
+    id: number,
     @Body() body: CommunityUpdate,
   ): Promise<CommunityResponse> {
+    if (banner) {
+      body.banner = banner;
+    }
     return await this.service.update(id, body);
   }
 }

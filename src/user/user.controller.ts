@@ -1,9 +1,7 @@
 import {
   Body,
   Controller,
-  FileTypeValidator,
   Get,
-  MaxFileSizeValidator,
   Param,
   ParseFilePipe,
   ParseIntPipe,
@@ -15,18 +13,14 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { OwnerGuard } from 'src/auth/guards/owner-auth.guard';
-import { avatarUploadOptions } from './config/multer';
 import { UserResponse } from './dto/user-response.dto';
 import { UserUpdate } from './dto/user-update.dto';
-import { SharpPipe } from './pipes/avatar-image.pipe';
-import { PathPipe } from './pipes/path-avatar.pipe';
+import { SharpPipe } from '../pipes/sharp-image.pipe';
 
 import { UserService } from './user.service';
-
-const validators = [
-  new MaxFileSizeValidator({ maxSize: 1000 * 800 }),
-  new FileTypeValidator({ fileType: 'image/*' }),
-];
+import { avatarUploadOptions, validators } from 'src/config/image-uploads';
+import { UserUpdatePipe } from './pipes/user-update.pipe';
+import { PathPipe } from 'src/pipes/image-path.pipe';
 
 @Controller('/api/users')
 export class UserController {
@@ -62,6 +56,7 @@ export class UserController {
       }),
       SharpPipe,
       PathPipe,
+      UserUpdatePipe,
     )
     update: UserUpdate,
     @Param('id', ParseIntPipe) id: number,

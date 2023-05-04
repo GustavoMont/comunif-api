@@ -66,6 +66,7 @@ export class CommunityService implements ICommunityService {
     changes: CommunityUpdate,
   ): Promise<CommunityResponse> {
     await this.findById(id);
+
     const updatedCommunity = await this.repository.update(
       id,
       instanceToPlain(changes),
