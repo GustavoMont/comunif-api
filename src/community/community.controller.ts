@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   Req,
   UploadedFile,
   UseGuards,
@@ -25,6 +26,12 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { bannerUploadOptions, validators } from 'src/config/image-uploads';
 import { PathPipe } from 'src/pipes/image-path.pipe';
 import { SharpPipe } from 'src/pipes/sharp-image.pipe';
+import { ListResponse } from 'src/dtos/list.dto';
+import { User } from 'src/decorators/request-user.decorator';
+import { RequestUser } from 'src/types/RequestUser';
+import { ParseIntUndefinedPipe } from 'src/pipes/parse-int-undefined.pipe';
+import { CommunityQueryDto } from './dto/community-query.dto';
+import { CamelizePipe } from './pipes/camelize.pipe';
 
 @Controller('api/communities')
 export class CommunityController {
@@ -32,9 +39,13 @@ export class CommunityController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  async findALl(@Req() req: RequestWithUser): Promise<CommunityResponse[]> {
-    const isAdmin = req.user.roles.includes(RoleEnum.admin);
-    return await this.service.findAll(isAdmin);
+  async findALl(
+    @User() user: RequestUser,
+    @Query('take', ParseIntUndefinedPipe) take: number,
+    @Query('page', ParseIntUndefinedPipe) page: number,
+    @Query(CamelizePipe) query: CommunityQueryDto,
+  ): Promise<ListResponse<CommunityResponse>> {
+    return await this.service.findAll(user, query, take, page);
   }
 
   @Get(':id')

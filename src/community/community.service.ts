@@ -5,13 +5,18 @@ import { CommunityRepository } from './community-repository.service';
 import { CommunityResponse } from './dto/community-response.dto';
 import { ICommunityService } from './interfaces/ICommunityService';
 import { CommunityUpdate } from './dto/community-update.dto';
+import { CommunityFilters } from './interfaces/ICommunityRepository';
+import { ListResponse } from 'src/dtos/list.dto';
+import { RequestUser } from 'src/types/RequestUser';
 
 @Injectable()
-export class CommunityService implements ICommunityService {
+export class CommunityService extends ICommunityService {
   constructor(
     private readonly repository: CommunityRepository,
     private readonly userRepository: UserRepository,
-  ) {}
+  ) {
+    super();
+  }
   async findUserCommunities(userId: number): Promise<CommunityResponse[]> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
@@ -55,11 +60,25 @@ export class CommunityService implements ICommunityService {
     const response = await this.repository.addUser(communityId, userId);
     return plainToInstance(CommunityResponse, response);
   }
-  async findAll(isAdmin = false): Promise<CommunityResponse[]> {
-    return plainToInstance(
+
+  async findAll(
+    user?: RequestUser,
+    filters?: CommunityFilters,
+    take = 20,
+    page = 1,
+  ): Promise<ListResponse<CommunityResponse>> {
+    if (!this.isAdmin(user.roles[0])) {
+      filters = { ...filters, isActive: true };
+    }
+    const total = await this.repository.count(filters);
+    const skip = this.generateSkip(page, take);
+
+    const communities = plainToInstance(
       CommunityResponse,
-      await this.repository.findAll(isAdmin),
+      await this.repository.findAll(filters, take, skip),
     );
+
+    return new ListResponse<CommunityResponse>(communities, total, page, take);
   }
   async update(
     id: number,

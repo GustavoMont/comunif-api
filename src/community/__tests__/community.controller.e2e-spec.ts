@@ -10,6 +10,7 @@ import communities from '../../../prisma/fixtures/communities';
 import users from '../../../prisma/fixtures/users';
 import { User } from '@prisma/client';
 import communitiesChannels from '../../../prisma/fixtures/community-channels';
+import { ListResponse } from 'src/dtos/list.dto';
 
 describe('Community controller', () => {
   let app: INestApplication;
@@ -120,18 +121,56 @@ describe('Community controller', () => {
           });
       });
       it('should return only active communities', async () => {
+        const expectedResponse = new ListResponse<CommunityResponse>(
+          activeCommunities,
+          activeCommunities.length,
+          1,
+          20,
+        );
         return request(app.getHttpServer())
           .get('/api/communities')
           .set('Authorization', 'Bearer ' + token)
           .expect(200)
-          .expect(instanceToPlain(activeCommunities));
+          .expect(instanceToPlain(expectedResponse));
       });
       it('should return all communities', async () => {
+        const expectedResponse = new ListResponse<CommunityResponse>(
+          allComunities,
+          allComunities.length,
+          1,
+          20,
+        );
+
         return request(app.getHttpServer())
           .get('/api/communities')
           .set('Authorization', 'Bearer ' + adminToken)
           .expect(200)
-          .expect(instanceToPlain(allComunities));
+          .expect(instanceToPlain(expectedResponse));
+      });
+      it('should return just one community', async () => {
+        let expectedResponse = new ListResponse<CommunityResponse>(
+          [allComunities[0]],
+          allComunities.length,
+          1,
+          1,
+        );
+
+        await request(app.getHttpServer())
+          .get('/api/communities?take=1')
+          .set('Authorization', 'Bearer ' + adminToken)
+          .expect(200)
+          .expect(instanceToPlain(expectedResponse));
+        expectedResponse = new ListResponse<CommunityResponse>(
+          [allComunities[1]],
+          allComunities.length,
+          2,
+          1,
+        );
+        return request(app.getHttpServer())
+          .get('/api/communities?take=1&page=2')
+          .set('Authorization', 'Bearer ' + adminToken)
+          .expect(200)
+          .expect(instanceToPlain(expectedResponse));
       });
     });
   });

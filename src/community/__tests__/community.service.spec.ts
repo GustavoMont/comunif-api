@@ -14,6 +14,8 @@ import { CommunityResponse } from '../dto/community-response.dto';
 import { ICommunityRepository } from '../interfaces/ICommunityRepository';
 import { Community } from '@prisma/client';
 import { CommunityUpdate } from '../dto/community-update.dto';
+import { ListResponse } from 'src/dtos/list.dto';
+import { RoleEnum } from 'src/models/User';
 
 describe('Community Service', () => {
   let repository: CommunityRepository;
@@ -33,6 +35,7 @@ describe('Community Service', () => {
             findUserCommunities: jest.fn(),
             findAll: jest.fn(),
             update: jest.fn(),
+            count: jest.fn(),
           } as ICommunityRepository,
         },
         {
@@ -155,22 +158,48 @@ describe('Community Service', () => {
     });
   });
   describe('get all communities', () => {
-    it('should return all communities', async () => {
-      const communities = arrayGenerator<Community>(3, communityGenerator);
+    const take = 3;
+    const total = 6;
+    const communities = arrayGenerator<Community>(take, communityGenerator);
+    const admin = { id: 1, roles: [RoleEnum.admin], username: 'test' };
+    const user = { id: 1, roles: [RoleEnum.user], username: 'test' };
+
+    beforeEach(() => {
+      jest.spyOn(repository, 'count').mockResolvedValue(total);
       jest.spyOn(repository, 'findAll').mockResolvedValue(communities);
-      const result = await communityService.findAll(true);
-      expect(plainToInstance(CommunityResponse, result)).toEqual(
-        plainToInstance(CommunityResponse, communities),
+    });
+    it('should return all communities when admin', async () => {
+      const result = await communityService.findAll(admin, undefined, take);
+      expect(result).toEqual(
+        new ListResponse<Community>(communities, total, 1, take),
       );
+      expect(repository.findAll).toBeCalledWith(undefined, take, 0);
+    });
+    it('should return only active when user request', async () => {
+      const result = await communityService.findAll(user, undefined, take);
+      expect(result).toEqual(
+        new ListResponse<Community>(communities, total, 1, take),
+      );
+      expect(repository.findAll).toBeCalledWith({ isActive: true }, take, 0);
     });
     it('should return only active communities', async () => {
-      const communities = arrayGenerator<Community>(3, communityGenerator);
+      const communities = arrayGenerator<Community>(take, communityGenerator);
       jest.spyOn(repository, 'findAll').mockResolvedValue(communities);
-      const result = await communityService.findAll();
-      expect(plainToInstance(CommunityResponse, result)).toEqual(
-        plainToInstance(CommunityResponse, communities),
+      jest.spyOn(repository, 'count').mockResolvedValue(total);
+      const result = await communityService.findAll(
+        admin,
+        { isActive: false },
+        3,
       );
-      expect(repository.findAll).toBeCalledWith(false);
+      expect(result).toEqual(
+        new ListResponse<Community>(
+          plainToInstance(CommunityResponse, communities),
+          total,
+          1,
+          take,
+        ),
+      );
+      expect(repository.findAll).toBeCalledWith({ isActive: false }, take, 0);
     });
   });
   describe('update community', () => {

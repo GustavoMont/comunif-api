@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Community, PrismaClient, User } from '@prisma/client';
-import { ICommunityRepository } from './interfaces/ICommunityRepository';
+import {
+  CommunityFilters,
+  ICommunityRepository,
+} from './interfaces/ICommunityRepository';
 
 @Injectable()
 export class CommunityRepository implements ICommunityRepository {
@@ -60,16 +63,18 @@ export class CommunityRepository implements ICommunityRepository {
       },
     });
   }
-  async findAll(getInactive = false): Promise<Community[]> {
+  async findAll(
+    filters: CommunityFilters,
+    take = 20,
+    skip = 0,
+  ): Promise<Community[]> {
     return await this.db.community.findMany({
-      where: getInactive
-        ? undefined
-        : {
-            isActive: true,
-          },
+      where: filters,
       include: {
         communityChannels: true,
       },
+      take,
+      skip,
     });
   }
   async update(id: number, changes: Partial<Community>): Promise<Community> {
@@ -78,6 +83,11 @@ export class CommunityRepository implements ICommunityRepository {
       data: {
         ...changes,
       },
+    });
+  }
+  async count(filters?: CommunityFilters): Promise<number> {
+    return await this.db.community.count({
+      where: filters,
     });
   }
 }

@@ -16,12 +16,13 @@ import { CommunityService } from 'src/community/community.service';
 export class MessageGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
+  private logger: Logger = new Logger('MessageLogger');
   constructor(
     private readonly messageService: MessageService,
     private communityService: CommunityService,
   ) {}
   @WebSocketServer() server: Server;
-  private logger: Logger = new Logger('MessageLogger');
+
   afterInit() {
     this.logger.log(`Tamo no ar`);
   }
