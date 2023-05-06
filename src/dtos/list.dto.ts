@@ -1,4 +1,14 @@
-export class ListResponse<T> {
+interface ListDto<T> {
+  results: T[];
+  meta: {
+    total: number;
+    page: number;
+    pageCount: number;
+    pages: number;
+  };
+}
+
+export class ListResponse<T> implements ListDto<T> {
   constructor(list: T[], total: number, page: number, take: number) {
     this.results = list;
 
