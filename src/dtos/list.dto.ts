@@ -16,7 +16,7 @@ export class ListResponse<T> implements ListDto<T> {
       total,
       page,
       pageCount: list.length,
-      pages: Math.round(total / take),
+      pages: Math.round(total / take) || 1,
     };
   }
   results: T[];
