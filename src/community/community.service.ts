@@ -5,9 +5,9 @@ import { CommunityRepository } from './community-repository.service';
 import { CommunityResponse } from './dto/community-response.dto';
 import { ICommunityService } from './interfaces/ICommunityService';
 import { CommunityUpdate } from './dto/community-update.dto';
-import { CommunityFilters } from './interfaces/ICommunityRepository';
 import { ListResponse } from 'src/dtos/list.dto';
 import { RequestUser } from 'src/types/RequestUser';
+import { CommunityQueryDto } from './dto/community-query.dto';
 
 @Injectable()
 export class CommunityService extends ICommunityService {
@@ -63,7 +63,7 @@ export class CommunityService extends ICommunityService {
 
   async findAll(
     user?: RequestUser,
-    filters?: CommunityFilters,
+    filters?: CommunityQueryDto,
     take = 20,
     page = 1,
   ): Promise<ListResponse<CommunityResponse>> {

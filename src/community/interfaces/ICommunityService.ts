@@ -1,9 +1,9 @@
 import { Service } from 'src/utils/services';
 import { CommunityResponse } from '../dto/community-response.dto';
 import { CommunityUpdate } from '../dto/community-update.dto';
-import { CommunityFilters } from './ICommunityRepository';
 import { ListResponse } from 'src/dtos/list.dto';
 import { RequestUser } from 'src/types/RequestUser';
+import { CommunityQueryDto } from '../dto/community-query.dto';
 
 export abstract class ICommunityService extends Service {
   abstract addUser(
@@ -14,7 +14,7 @@ export abstract class ICommunityService extends Service {
   abstract findUserCommunities(userId: number): Promise<CommunityResponse[]>;
   abstract findAll(
     user: RequestUser,
-    filters?: CommunityFilters,
+    filters?: CommunityQueryDto,
     take?: number,
     page?: number,
   ): Promise<ListResponse<CommunityResponse>>;

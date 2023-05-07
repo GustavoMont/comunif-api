@@ -1,10 +1,6 @@
 import { Exclude, Transform } from 'class-transformer';
 import { IsNotEmpty, IsOptional } from 'class-validator';
 
-export class CommunityQueryCamelized {
-  isActive: boolean;
-}
-
 export class CommunityQueryDto {
   @Exclude()
   page: number;
@@ -17,4 +13,9 @@ export class CommunityQueryDto {
   )
   is_active: boolean;
   isActive: boolean;
+  @IsOptional()
+  @Transform(({ value: name }) => ({ contains: name }))
+  name: {
+    contains: string;
+  };
 }

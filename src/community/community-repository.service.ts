@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Community, PrismaClient, User } from '@prisma/client';
-import {
-  CommunityFilters,
-  ICommunityRepository,
-} from './interfaces/ICommunityRepository';
+import { ICommunityRepository } from './interfaces/ICommunityRepository';
+import { CommunityQueryDto } from './dto/community-query.dto';
 
 @Injectable()
 export class CommunityRepository implements ICommunityRepository {
@@ -64,12 +62,14 @@ export class CommunityRepository implements ICommunityRepository {
     });
   }
   async findAll(
-    filters: CommunityFilters,
+    filters: CommunityQueryDto,
     take = 20,
     skip = 0,
   ): Promise<Community[]> {
     return await this.db.community.findMany({
-      where: filters,
+      where: {
+        ...filters,
+      },
       include: {
         communityChannels: true,
       },
@@ -85,7 +85,7 @@ export class CommunityRepository implements ICommunityRepository {
       },
     });
   }
-  async count(filters?: CommunityFilters): Promise<number> {
+  async count(filters?: CommunityQueryDto): Promise<number> {
     return await this.db.community.count({
       where: filters,
     });

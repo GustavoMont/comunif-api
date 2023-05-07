@@ -16,6 +16,7 @@ import { Community } from '@prisma/client';
 import { CommunityUpdate } from '../dto/community-update.dto';
 import { ListResponse } from 'src/dtos/list.dto';
 import { RoleEnum } from 'src/models/User';
+import { CommunityQueryDto } from '../dto/community-query.dto';
 
 describe('Community Service', () => {
   let repository: CommunityRepository;
@@ -182,13 +183,13 @@ describe('Community Service', () => {
       );
       expect(repository.findAll).toBeCalledWith({ isActive: true }, take, 0);
     });
-    it('should return only active communities', async () => {
+    it('should return filtered communities', async () => {
       const communities = arrayGenerator<Community>(take, communityGenerator);
       jest.spyOn(repository, 'findAll').mockResolvedValue(communities);
       jest.spyOn(repository, 'count').mockResolvedValue(total);
       const result = await communityService.findAll(
         admin,
-        { isActive: false },
+        plainToInstance(CommunityQueryDto, { isActive: false, name: 'sim' }),
         3,
       );
       expect(result).toEqual(
@@ -199,7 +200,11 @@ describe('Community Service', () => {
           take,
         ),
       );
-      expect(repository.findAll).toBeCalledWith({ isActive: false }, take, 0);
+      expect(repository.findAll).toBeCalledWith(
+        { isActive: false, name: { contains: 'sim' } },
+        take,
+        0,
+      );
     });
   });
   describe('update community', () => {
