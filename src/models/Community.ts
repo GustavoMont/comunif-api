@@ -5,6 +5,6 @@ export class Community implements CommunityType {
   isActive: boolean;
   id: number;
   name: string;
-  subjectId: number;
+  subject: string;
   communityChannels: CommunityChannel[];
 }

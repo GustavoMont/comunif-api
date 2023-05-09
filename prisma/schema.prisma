@@ -50,20 +50,14 @@ model CommunityChannel {
 model Community {
   id                Int                 @id @default(autoincrement())
   name              String
-  subject           Subject             @relation(fields: [subjectId], references: [id])
-  subjectId         Int                 @unique
+  subject           String              @default("subject")
   users             CommunityHasUsers[]
   communityChannels CommunityChannel[]
   banner            String?
   isActive          Boolean             @default(false)
 }
 
-model Subject {
-  id          Int        @id @default(autoincrement())
-  name        String
-  description String
-  community   Community?
-}
+
 
 model CommunityHasUsers {
   id          Int       @id @default(autoincrement())

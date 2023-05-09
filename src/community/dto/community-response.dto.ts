@@ -13,5 +13,5 @@ export class CommunityResponse implements Community {
   communityChannels: CommunityChannel[];
   id: number;
   name: string;
-  subjectId: number;
+  subject: string;
 }

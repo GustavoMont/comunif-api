@@ -35,7 +35,7 @@ const communityChannelGenerator: generator<CommunityChannel> = (changes) => ({
 export const communityGenerator: generator<Community> = (change) => ({
   id: 1,
   name: 'comunidade',
-  subjectId: 1,
+  subject: 'subject',
   communityChannels: arrayGenerator<CommunityChannel>(
     3,
     communityChannelGenerator,

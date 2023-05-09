@@ -1,7 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import channelTypes from './fixtures/channel-types';
 import communities from './fixtures/communities';
-import subjects from './fixtures/subjects';
 import users from './fixtures/users';
 import communitiesChannels from './fixtures/community-channels';
 
@@ -16,11 +15,6 @@ const main = async () => {
   if (process.env.ENVIROMENT === 'development') {
     for (const data of users) {
       await db.user.create({
-        data,
-      });
-    }
-    for (const data of subjects) {
-      await db.subject.create({
         data,
       });
     }

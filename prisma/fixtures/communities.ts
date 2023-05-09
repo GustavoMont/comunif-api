@@ -1,14 +1,20 @@
 import { Community } from '@prisma/client';
 
-export default [
+const communities: Community[] = [
   {
     id: 1,
     name: 'Topinar',
-    subjectId: 1,
+    banner: null,
+    isActive: false,
+    subject: 'Ser top',
   },
   {
     id: 2,
     name: 'Editores',
-    subjectId: 2,
+    banner: null,
+    isActive: false,
+    subject: 'Edição de imagens',
   },
-] as Community[];
+];
+
+export default communities;

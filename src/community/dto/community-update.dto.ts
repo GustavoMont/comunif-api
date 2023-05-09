@@ -6,7 +6,7 @@ export class CommunityUpdate implements Community {
   @Exclude()
   id: number;
   @Exclude()
-  subjectId: number;
+  subject: string;
   @MinLength(3, {
     message: 'Nome deve conter no mínimo 3 letras',
   })
