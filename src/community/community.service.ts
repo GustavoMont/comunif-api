@@ -8,7 +8,8 @@ import { CommunityUpdate } from './dto/community-update.dto';
 import { ListResponse } from 'src/dtos/list.dto';
 import { RequestUser } from 'src/types/RequestUser';
 import { CommunityQueryDto } from './dto/community-query.dto';
-
+import { CreateCommunity } from './dto/community-create.dto';
+import { Community } from 'src/models/Community';
 @Injectable()
 export class CommunityService extends ICommunityService {
   constructor(
@@ -16,6 +17,35 @@ export class CommunityService extends ICommunityService {
     private readonly userRepository: UserRepository,
   ) {
     super();
+  }
+  async delete(user: RequestUser, id: number): Promise<void> {
+    this.handleForbiddenException(user.roles[0]);
+    await this.findById(id);
+    await this.repository.delete(id);
+  }
+  async create(
+    user: RequestUser,
+    body: CreateCommunity,
+  ): Promise<CommunityResponse> {
+    this.handleForbiddenException(user.roles[0]);
+    const hasCommunitySubject = await this.repository.count(
+      plainToInstance(CommunityQueryDto, {
+        subject: body.subject,
+      }),
+    );
+
+    if (hasCommunitySubject > 0) {
+      throw new HttpException(
+        'Já existe uma comunidade com esse assunto',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const newCommunity = await this.repository.create(
+      plainToInstance(Community, body),
+    );
+
+    return plainToInstance(CommunityResponse, newCommunity);
   }
   async findUserCommunities(userId: number): Promise<CommunityResponse[]> {
     const user = await this.userRepository.findById(userId);

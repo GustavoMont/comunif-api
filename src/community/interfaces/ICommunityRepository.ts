@@ -14,4 +14,6 @@ export abstract class ICommunityRepository extends Repository {
   ): Promise<Community[]>;
   abstract update(id: number, changes: Partial<Community>): Promise<Community>;
   abstract count(filters?: CommunityQueryDto): Promise<number>;
+  abstract create(newCommunity: Community): Promise<Community>;
+  abstract delete(id: number): Promise<void>;
 }

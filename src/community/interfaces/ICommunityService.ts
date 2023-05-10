@@ -4,6 +4,7 @@ import { CommunityUpdate } from '../dto/community-update.dto';
 import { ListResponse } from 'src/dtos/list.dto';
 import { RequestUser } from 'src/types/RequestUser';
 import { CommunityQueryDto } from '../dto/community-query.dto';
+import { CreateCommunity } from '../dto/community-create.dto';
 
 export abstract class ICommunityService extends Service {
   abstract addUser(
@@ -22,4 +23,9 @@ export abstract class ICommunityService extends Service {
     id: number,
     changes: CommunityUpdate,
   ): Promise<CommunityResponse>;
+  abstract create(
+    user: RequestUser,
+    body: CreateCommunity,
+  ): Promise<CommunityResponse>;
+  abstract delete(user: RequestUser, id: number): Promise<void>;
 }

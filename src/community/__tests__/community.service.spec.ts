@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { plainToInstance } from 'class-transformer';
+import { instanceToInstance, plainToInstance } from 'class-transformer';
 import { IUserRepository } from 'src/user/interfaces/IUserRepository';
 import { UserRepository } from 'src/user/user-repository.service';
 import {
@@ -22,6 +22,8 @@ describe('Community Service', () => {
   let repository: CommunityRepository;
   let userRepository: UserRepository;
   let communityService: CommunityService;
+  const admin = { id: 1, roles: [RoleEnum.admin], username: 'test' };
+  const user = { id: 1, roles: [RoleEnum.user], username: 'test' };
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -37,6 +39,8 @@ describe('Community Service', () => {
             findAll: jest.fn(),
             update: jest.fn(),
             count: jest.fn(),
+            create: jest.fn(),
+            delete: jest.fn(),
           } as ICommunityRepository,
         },
         {
@@ -53,7 +57,11 @@ describe('Community Service', () => {
     communityService = module.get<CommunityService>(CommunityService);
     repository = module.get<CommunityRepository>(CommunityRepository);
   });
-
+  afterEach(() => {
+    Object.keys(repository).forEach((key) => {
+      jest.spyOn(repository, key as keyof ICommunityRepository).mockReset();
+    });
+  });
   it('should be defined', () => {
     expect(communityService).toBeDefined();
     expect(repository).toBeDefined();
@@ -162,8 +170,6 @@ describe('Community Service', () => {
     const take = 3;
     const total = 6;
     const communities = arrayGenerator<Community>(take, communityGenerator);
-    const admin = { id: 1, roles: [RoleEnum.admin], username: 'test' };
-    const user = { id: 1, roles: [RoleEnum.user], username: 'test' };
 
     beforeEach(() => {
       jest.spyOn(repository, 'count').mockResolvedValue(total);
@@ -235,6 +241,74 @@ describe('Community Service', () => {
         plainToInstance(CommunityResponse, updatedCommunity),
       );
       expect(repository.update).toBeCalledWith(id, changes);
+    });
+  });
+  describe('create community', () => {
+    const newCommunity = communityGenerator();
+    beforeEach(() => {
+      jest.spyOn(repository, 'create').mockResolvedValue(newCommunity);
+      jest.spyOn(repository, 'count').mockResolvedValue(0);
+    });
+    it('should throw a forbidden', async () => {
+      await expect(
+        communityService.create(user, newCommunity),
+      ).rejects.toThrowError(
+        new HttpException(
+          'Você não tem permissão para executar essa ação',
+          HttpStatus.FORBIDDEN,
+        ),
+      );
+      expect(repository.count).not.toBeCalled();
+      expect(repository.create).not.toBeCalled();
+    });
+    it('should throw a community already has this subject', async () => {
+      jest.spyOn(repository, 'count').mockReset().mockResolvedValue(1);
+      await expect(
+        communityService.create(admin, newCommunity),
+      ).rejects.toThrowError(
+        new HttpException(
+          'Já existe uma comunidade com esse assunto',
+          HttpStatus.BAD_REQUEST,
+        ),
+      );
+      expect(repository.count).toBeCalledWith({
+        subject: newCommunity.subject,
+      });
+    });
+    it('should create communities', async () => {
+      const result = await communityService.create(admin, newCommunity);
+      expect(instanceToInstance(result)).toEqual(newCommunity);
+    });
+  });
+  describe('delete community', () => {
+    beforeEach(() => {
+      jest
+        .spyOn(repository, 'findById')
+        .mockResolvedValue(communityGenerator());
+      jest.spyOn(repository, 'delete').mockResolvedValue(null);
+    });
+    it('should throw forbidden', async () => {
+      await expect(communityService.delete(user, 1)).rejects.toThrowError(
+        new HttpException(
+          'Você não tem permissão para executar essa ação',
+          HttpStatus.FORBIDDEN,
+        ),
+      );
+      expect(repository.findById).not.toBeCalled();
+      expect(repository.delete).not.toBeCalled();
+    });
+    it('should throw not found', async () => {
+      jest.spyOn(repository, 'findById').mockReset().mockResolvedValue(null);
+      await expect(communityService.delete(admin, 1)).rejects.toThrowError(
+        new HttpException('Comunidade não encontrada', HttpStatus.NOT_FOUND),
+      );
+      expect(repository.findById).toBeCalledWith(1);
+      expect(repository.delete).not.toBeCalled();
+    });
+    it('should delete community', async () => {
+      await communityService.delete(admin, 1);
+      expect(repository.findById).toBeCalledWith(1);
+      expect(repository.delete).toBeCalledWith(1);
     });
   });
 });

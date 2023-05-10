@@ -11,6 +11,8 @@ import users from '../../../prisma/fixtures/users';
 import { User } from '@prisma/client';
 import communitiesChannels from '../../../prisma/fixtures/community-channels';
 import { ListResponse } from 'src/dtos/list.dto';
+import channelTypes from '../../../prisma/fixtures/channel-types';
+import { includeCommunityChannels } from '../../utils/tests-e2e';
 
 describe('Community controller', () => {
   let app: INestApplication;
@@ -21,9 +23,11 @@ describe('Community controller', () => {
   const allComunities = communities.map<CommunityResponse>((community) =>
     plainToInstance(CommunityResponse, {
       ...community,
-      communityChannels: communitiesChannels.filter(
-        ({ communityId }) => communityId === community.id,
-      ),
+      communityChannels: includeCommunityChannels({
+        channelTypes,
+        communitiesChannels,
+        currentCommunityId: community.id,
+      }),
     } as CommunityResponse),
   );
   const activeCommunities = allComunities.filter(({ isActive }) => isActive);
@@ -60,35 +64,90 @@ describe('Community controller', () => {
     adminToken = loginRes.body.access;
   });
   describe('/POST', () => {
-    it('should throw unauthorized exception', async () => {
-      return request(app.getHttpServer())
-        .post('/api/communities/add-user')
-        .expect(401)
-        .send({ communityId: community.id })
-        .expect({
-          statusCode: 401,
-          message: 'Unauthorized',
-        });
+    describe('add user in community', () => {
+      it('should throw unauthorized exception', async () => {
+        return request(app.getHttpServer())
+          .post('/api/communities/add-user')
+          .expect(401)
+          .send({ communityId: community.id })
+          .expect({
+            statusCode: 401,
+            message: 'Unauthorized',
+          });
+      });
+      it('should throw bad request', async () => {
+        return request(app.getHttpServer())
+          .post('/api/communities/add-user')
+          .send({})
+          .set('Authorization', 'Bearer ' + token)
+          .expect(400)
+          .expect({
+            statusCode: 400,
+            message: ['Deve ser um número', 'A comunidade deve ser informada'],
+            error: 'Bad Request',
+          });
+      });
+      it('should add user on community', async () => {
+        return request(app.getHttpServer())
+          .post('/api/communities/add-user')
+          .send({ communityId: 1 })
+          .set('Authorization', 'Bearer ' + token)
+          .expect(201)
+          .expect(instanceToPlain(allComunities[0]));
+      });
     });
-    it('should throw bad request', async () => {
-      return request(app.getHttpServer())
-        .post('/api/communities/add-user')
-        .send({})
-        .set('Authorization', 'Bearer ' + token)
-        .expect(400)
-        .expect({
-          statusCode: 400,
-          message: ['Deve ser um número', 'A comunidade deve ser informada'],
-          error: 'Bad Request',
-        });
-    });
-    it('should add user on community', async () => {
-      return request(app.getHttpServer())
-        .post('/api/communities/add-user')
-        .send({ communityId: 1 })
-        .set('Authorization', 'Bearer ' + token)
-        .expect(201)
-        .expect(instanceToPlain(allComunities[0]));
+    describe('create community', () => {
+      let communityId: number;
+      it('throw unauthorized', async () => {
+        return request(app.getHttpServer())
+          .post('/api/communities/')
+          .expect(401)
+          .expect({
+            statusCode: 401,
+            message: 'Unauthorized',
+          });
+      });
+      it('throw forbidden', async () => {
+        return request(app.getHttpServer())
+          .patch(`/api/communities/${editableCommunity.id}`)
+          .set('Authorization', 'Bearer ' + token)
+          .expect(403);
+      });
+      it('throw bad request exception', async () => {
+        return request(app.getHttpServer())
+          .post(`/api/communities`)
+          .set('Authorization', 'Bearer ' + adminToken)
+          .send({})
+          .expect(400)
+          .expect({
+            statusCode: 400,
+            message: [
+              'Nome deve conter no mínimo 3 letras',
+              'Assunto deve conter no mínimo 3 letras',
+            ],
+            error: 'Bad Request',
+          });
+      });
+      it('should create community', async () => {
+        const bodyData = { name: 'New community', subject: 'subject' };
+        return request(app.getHttpServer())
+          .post(`/api/communities`)
+          .set('Authorization', 'Bearer ' + adminToken)
+          .send(bodyData)
+          .expect(201)
+          .expect(({ body }) => {
+            communityId = body.id;
+            return (
+              body.name === bodyData.name && body.subject === bodyData.subject
+            );
+          });
+      });
+      afterAll(async () => {
+        return request(app.getHttpServer())
+          .delete(`/api/communities/${communityId}`)
+          .set('Authorization', 'Bearer ' + adminToken)
+          .expect(204);
+      });
     });
   });
   describe('/GET', () => {
@@ -220,6 +279,51 @@ describe('Community controller', () => {
             res.body.isActive === changes.isActive
           );
         });
+    });
+  });
+  describe('/DELETE', () => {
+    let communityId: number;
+    beforeAll(async () => {
+      return request(app.getHttpServer())
+        .post(`/api/communities`)
+        .set('Authorization', 'Bearer ' + adminToken)
+        .send({ name: 'deletada', subject: 'deletação' })
+        .expect(201)
+        .expect(({ body }) => {
+          communityId = body.id;
+        });
+    });
+    it('should throw unauthorized', async () => {
+      return request(app.getHttpServer())
+        .delete(`/api/communities/${communityId}`)
+        .expect(401)
+        .expect({
+          statusCode: 401,
+          message: 'Unauthorized',
+        });
+    });
+
+    it('should throw forbidden', async () => {
+      return request(app.getHttpServer())
+        .delete(`/api/communities/${communityId}`)
+        .set('Authorization', 'Bearer ' + token)
+        .expect(403);
+    });
+    it('should throw not found', async () => {
+      return request(app.getHttpServer())
+        .delete(`/api/communities/${communityId}00`)
+        .set('Authorization', 'Bearer ' + adminToken)
+        .expect(404)
+        .expect({
+          statusCode: 404,
+          message: 'Comunidade não encontrada',
+        });
+    });
+    it('should delete community', async () => {
+      return request(app.getHttpServer())
+        .delete(`/api/communities/${communityId}`)
+        .set('Authorization', 'Bearer ' + adminToken)
+        .expect(204);
     });
   });
   afterAll(async () => {

@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   Param,
   ParseFilePipe,
   ParseIntPipe,
@@ -32,10 +34,29 @@ import { RequestUser } from 'src/types/RequestUser';
 import { ParseIntUndefinedPipe } from 'src/pipes/parse-int-undefined.pipe';
 import { CommunityQueryDto } from './dto/community-query.dto';
 import { CamelizePipe } from './pipes/camelize.pipe';
+import { CreateCommunity } from './dto/community-create.dto';
 
 @Controller('api/communities')
 export class CommunityController {
   constructor(private readonly service: CommunityService) {}
+
+  @Roles(RoleEnum.admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Post()
+  async create(@User() user: RequestUser, @Body() body: CreateCommunity) {
+    return await this.service.create(user, body);
+  }
+
+  @Roles(RoleEnum.admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Delete(':id')
+  @HttpCode(204)
+  async delete(
+    @Param('id', ParseIntPipe) id: number,
+    @User() user: RequestUser,
+  ) {
+    return await this.service.delete(user, id);
+  }
 
   @Get()
   @UseGuards(JwtAuthGuard)

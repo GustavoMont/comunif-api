@@ -6,6 +6,31 @@ import { CommunityQueryDto } from './dto/community-query.dto';
 @Injectable()
 export class CommunityRepository implements ICommunityRepository {
   constructor(private readonly db: PrismaClient) {}
+  async delete(id: number): Promise<void> {
+    await this.db.community.delete({
+      where: {
+        id,
+      },
+    });
+  }
+  async create(newCommunity: Community): Promise<Community> {
+    const communty = await this.db.community.create({
+      data: newCommunity,
+    });
+    const channelsTypes = await this.db.channelType.findMany();
+    await Promise.all(
+      channelsTypes.map(({ id }) =>
+        this.db.communityChannel.create({
+          data: {
+            channelTypeId: id,
+            communityId: communty.id,
+          },
+        }),
+      ),
+    );
+
+    return communty;
+  }
   async findUserCommunities(userId: number): Promise<Community[]> {
     return await this.db.community.findMany({
       where: {
@@ -14,7 +39,11 @@ export class CommunityRepository implements ICommunityRepository {
         },
       },
       include: {
-        communityChannels: true,
+        communityChannels: {
+          include: {
+            channelType: true,
+          },
+        },
       },
     });
   }
@@ -24,7 +53,11 @@ export class CommunityRepository implements ICommunityRepository {
         id,
       },
       include: {
-        communityChannels: true,
+        communityChannels: {
+          include: {
+            channelType: true,
+          },
+        },
       },
     });
   }
@@ -57,7 +90,11 @@ export class CommunityRepository implements ICommunityRepository {
         },
       },
       include: {
-        communityChannels: true,
+        communityChannels: {
+          include: {
+            channelType: true,
+          },
+        },
       },
     });
   }
@@ -71,7 +108,11 @@ export class CommunityRepository implements ICommunityRepository {
         ...filters,
       },
       include: {
-        communityChannels: true,
+        communityChannels: {
+          include: {
+            channelType: true,
+          },
+        },
       },
       take,
       skip,

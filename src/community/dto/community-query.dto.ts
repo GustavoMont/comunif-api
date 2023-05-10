@@ -18,4 +18,6 @@ export class CommunityQueryDto {
   name: {
     contains: string;
   };
+  @Transform(({ value }) => (value as string).toLowerCase())
+  subject: string;
 }
