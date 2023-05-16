@@ -10,11 +10,13 @@ import { RequestUser } from 'src/types/RequestUser';
 import { CommunityQueryDto } from './dto/community-query.dto';
 import { CreateCommunity } from './dto/community-create.dto';
 import { Community } from 'src/models/Community';
+import { ImageService } from 'src/utils/image.service';
 @Injectable()
 export class CommunityService extends ICommunityService {
   constructor(
     private readonly repository: CommunityRepository,
     private readonly userRepository: UserRepository,
+    private readonly imageService: ImageService,
   ) {
     super();
   }
@@ -114,8 +116,11 @@ export class CommunityService extends ICommunityService {
     id: number,
     changes: CommunityUpdate,
   ): Promise<CommunityResponse> {
-    await this.findById(id);
+    const community = await this.findById(id);
 
+    if (changes.banner && community.banner) {
+      this.imageService.deleteImage(community.banner);
+    }
     const updatedCommunity = await this.repository.update(
       id,
       instanceToPlain(changes),

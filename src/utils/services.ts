@@ -1,6 +1,5 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { RoleEnum } from 'src/models/User';
-
 export abstract class Service {
   protected handleForbiddenException = (role: RoleEnum) => {
     if (!this.isAdmin(role)) {

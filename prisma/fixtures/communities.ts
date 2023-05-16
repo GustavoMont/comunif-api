@@ -4,14 +4,14 @@ const communities: Community[] = [
   {
     id: 1,
     name: 'Topinar',
-    banner: null,
+    banner: 'public/banner/default-Topinar-banner.webp',
     isActive: false,
     subject: 'Ser top',
   },
   {
     id: 2,
     name: 'Editores',
-    banner: null,
+    banner: 'public/banner/default-Editores-banner.webp',
     isActive: false,
     subject: 'Edição de imagens',
   },

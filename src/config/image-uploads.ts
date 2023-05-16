@@ -40,7 +40,11 @@ export const bannerUploadOptions: MulterOptions = {
       }
     },
     filename(req: RequestWithUser, file, callback) {
-      callback(null, `${req.body.name}-banner.${DEFAULT_EXTENSION}`);
+      const timestamp = new Date().getTime();
+      callback(
+        null,
+        `${timestamp}-${req.body.name}-banner.${DEFAULT_EXTENSION}`,
+      );
     },
   }),
 };

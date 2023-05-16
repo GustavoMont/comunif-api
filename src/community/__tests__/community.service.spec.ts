@@ -17,9 +17,11 @@ import { CommunityUpdate } from '../dto/community-update.dto';
 import { ListResponse } from 'src/dtos/list.dto';
 import { RoleEnum } from 'src/models/User';
 import { CommunityQueryDto } from '../dto/community-query.dto';
+import { ImageService } from 'src/utils/image.service';
 
 describe('Community Service', () => {
   let repository: CommunityRepository;
+  let imageService: ImageService;
   let userRepository: UserRepository;
   let communityService: CommunityService;
   const admin = { id: 1, roles: [RoleEnum.admin], username: 'test' };
@@ -50,10 +52,16 @@ describe('Community Service', () => {
             findAll: jest.fn(),
           } as Partial<IUserRepository>,
         },
+        {
+          provide: ImageService,
+          useValue: {
+            deleteImage: jest.fn(),
+          },
+        },
       ],
     }).compile();
     userRepository = module.get<UserRepository>(UserRepository);
-
+    imageService = module.get<ImageService>(ImageService);
     communityService = module.get<CommunityService>(CommunityService);
     repository = module.get<CommunityRepository>(CommunityRepository);
   });
@@ -235,12 +243,14 @@ describe('Community Service', () => {
       };
       jest.spyOn(repository, 'findById').mockResolvedValue(community);
       jest.spyOn(repository, 'update').mockResolvedValue(updatedCommunity);
+      jest.spyOn(imageService, 'deleteImage').mockResolvedValue();
 
       const result = await communityService.update(id, changes);
       expect(result).toEqual(
         plainToInstance(CommunityResponse, updatedCommunity),
       );
       expect(repository.update).toBeCalledWith(id, changes);
+      expect(imageService.deleteImage).toBeCalled();
     });
   });
   describe('create community', () => {

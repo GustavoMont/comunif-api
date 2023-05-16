@@ -42,8 +42,24 @@ export class CommunityController {
 
   @Roles(RoleEnum.admin)
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseInterceptors(FileInterceptor('banner', bannerUploadOptions))
   @Post()
-  async create(@User() user: RequestUser, @Body() body: CreateCommunity) {
+  async create(
+    @User() user: RequestUser,
+    @UploadedFile(
+      new ParseFilePipe({
+        fileIsRequired: false,
+        validators,
+      }),
+      SharpPipe,
+      PathPipe,
+    )
+    banner: string,
+    @Body() body: CreateCommunity,
+  ) {
+    if (banner) {
+      body.banner = banner;
+    }
     return await this.service.create(user, body);
   }
 
