@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ISecurityCodeService } from './interfaces/ISecurityCodeService';
 import { ResetPasswordCode } from '@prisma/client';
 import { SecurityCodeRepository } from './security-code-repository.service';
+import * as moment from 'moment';
 
 @Injectable()
 export class SecurityCodeService implements ISecurityCodeService {
@@ -29,7 +30,9 @@ export class SecurityCodeService implements ISecurityCodeService {
   async findByCode(code: string): Promise<ResetPasswordCode> {
     const resetCode = await this.repository.findByCode(code);
     if (!resetCode) {
-      throw new HttpException('Código não existe', HttpStatus.NOT_FOUND);
+      throw new HttpException('Código não encontrado', HttpStatus.NOT_FOUND);
+    } else if (moment(resetCode.expiresAt).isBefore(moment())) {
+      throw new HttpException('Esse código já expirou', HttpStatus.BAD_REQUEST);
     }
     return resetCode;
   }

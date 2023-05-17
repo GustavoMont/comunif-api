@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { ISecurityCodeRepository } from './interfaces/ISecurityCodeRepository';
 import { ResetPasswordCode } from '@prisma/client';
+import moment from 'moment';
 
 @Injectable()
 export class SecurityCodeRepository implements ISecurityCodeRepository {
@@ -11,6 +12,7 @@ export class SecurityCodeRepository implements ISecurityCodeRepository {
       data: {
         code,
         userId,
+        expiresAt: moment().add(4, 'hour').toDate(),
       },
     });
   }
