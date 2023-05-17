@@ -6,6 +6,10 @@ import { memoryStorage } from 'multer';
 import { PublicController } from './public/public.controller';
 import { CommunityModule } from './community/community.module';
 import { MessageModule } from './message/message.module';
+import { EmailModule } from './email/email.module';
+import { MailModule } from './mail/mail.module';
+import { SecurityCodeModule } from './security-code/security-code.module';
+import { SecurityCodeRepositoryService } from './security-code/security-code-repository.service';
 
 @Module({
   imports: [
@@ -16,7 +20,11 @@ import { MessageModule } from './message/message.module';
     }),
     CommunityModule,
     MessageModule,
+    EmailModule,
+    MailModule,
+    SecurityCodeModule,
   ],
   controllers: [PublicController],
+  providers: [SecurityCodeRepositoryService],
 })
 export class AppModule {}

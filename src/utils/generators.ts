@@ -1,4 +1,4 @@
-import { CommunityChannel } from '@prisma/client';
+import { CommunityChannel, ResetPasswordCode } from '@prisma/client';
 import { Community } from 'src/models/Community';
 import { RoleEnum, User } from 'src/models/User';
 
@@ -10,6 +10,16 @@ export const arrayGenerator = <T>(length: number, generator: generator<T>) => {
   );
   return array;
 };
+
+export const resetPasswordCodeGenerator: generator<ResetPasswordCode> = (
+  resetPasswordCode,
+) => ({
+  code: '0001',
+  expiresAt: new Date('01-01-2001'),
+  id: 1,
+  userId: 1,
+  ...resetPasswordCode,
+});
 
 export const userGenerator: generator<User> = (change) => ({
   birthday: new Date('11-11-00'),
