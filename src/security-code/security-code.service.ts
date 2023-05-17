@@ -22,9 +22,9 @@ export class SecurityCodeService implements ISecurityCodeService {
     }
     return code;
   }
-  async createCode(userId: number): Promise<void> {
+  async createCode(userId: number): Promise<ResetPasswordCode> {
     const code = await this.generateUniqueCode();
-    await this.repository.createCode(code, userId);
+    return await this.repository.createCode(code, userId);
   }
   async findByCode(code: string): Promise<ResetPasswordCode> {
     const resetCode = await this.repository.findByCode(code);

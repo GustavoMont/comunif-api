@@ -7,6 +7,8 @@ import { AuthModule } from 'src/auth/auth.module';
 import { UserResponse } from '../dto/user-response.dto';
 import users from '../../../prisma/fixtures/users';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
+import { MailModule } from 'src/mail/mail.module';
+import { SecurityCodeModule } from 'src/security-code/security-code.module';
 
 describe('Users', () => {
   let token: string;
@@ -14,7 +16,7 @@ describe('Users', () => {
   const user = users.find(({ username }) => username === 'editavel');
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [UserModule, AuthModule],
+      imports: [UserModule, AuthModule, MailModule, SecurityCodeModule],
       providers: [UserService],
     }).compile();
 
@@ -101,6 +103,37 @@ describe('Users', () => {
           ...user,
           ...changes,
         });
+    });
+  });
+  describe('/POST', () => {
+    describe('Reset password', () => {
+      it('should throw bad request', async () => {
+        return await request(app.getHttpServer())
+          .post('/api/users/reset-password')
+          .send({ email: 'robson' })
+          .expect(400)
+          .expect({
+            statusCode: 400,
+            message: ['Insira um e-mail válido'],
+            error: 'Bad Request',
+          });
+      });
+      it('should return user not found', async () => {
+        return await request(app.getHttpServer())
+          .post('/api/users/reset-password')
+          .send({ email: 'robson@email.com' })
+          .expect(404)
+          .expect({
+            statusCode: 404,
+            message: 'Usuário não encontrado.',
+          });
+      });
+      it('should return success empty', async () => {
+        return await request(app.getHttpServer())
+          .post('/api/users/reset-password')
+          .send({ email: user.email })
+          .expect(204);
+      });
     });
   });
   afterAll(async () => {

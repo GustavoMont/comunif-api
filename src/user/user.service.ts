@@ -4,10 +4,29 @@ import { UserResponse } from './dto/user-response.dto';
 import { UserUpdate } from './dto/user-update.dto';
 import { IUserService } from './interfaces/IUserService';
 import { UserRepository } from './user-repository.service';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { SecurityCodeService } from 'src/security-code/security-code.service';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class UserService implements IUserService {
-  constructor(private readonly repository: UserRepository) {}
+  constructor(
+    private readonly repository: UserRepository,
+    private readonly securityCodeService: SecurityCodeService,
+    private readonly mailService: MailService,
+  ) {}
+  async findByEmail(email: string): Promise<UserResponse> {
+    const user = await this.repository.findByEmail(email);
+    if (!user) {
+      throw new HttpException('Usuário não encontrado.', HttpStatus.NOT_FOUND);
+    }
+    return plainToInstance(UserResponse, user);
+  }
+  async resetPassword(body: ResetPasswordDto): Promise<void> {
+    const user = await this.findByEmail(body.email);
+    const resetCode = await this.securityCodeService.createCode(user.id);
+    await this.mailService.resetPassword(user, resetCode.code);
+  }
 
   async findById(id: number): Promise<UserResponse> {
     const user = await this.repository.findById(id);

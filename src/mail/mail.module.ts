@@ -27,5 +27,6 @@ import { emailConfig } from 'src/config/enviroment';
     }),
   ],
   providers: [MailService],
+  exports: [MailService],
 })
 export class MailModule {}
