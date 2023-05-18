@@ -7,6 +7,7 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 describe('MailService', () => {
   let service: MailService;
   let mailer: MailerService;
+  const user = userGenerator({ name: 'reseter' });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -31,12 +32,11 @@ describe('MailService', () => {
   afterEach(() => {
     jest.spyOn(mailer, 'sendMail').mockReset();
   });
+  beforeEach(() => {
+    jest.spyOn(mailer, 'sendMail').mockResolvedValue(true);
+  });
   describe('Reset password', () => {
-    const user = userGenerator({ name: 'reseter' });
     const code = '123456';
-    beforeEach(() => {
-      jest.spyOn(mailer, 'sendMail').mockResolvedValue(true);
-    });
     it('should throw error', async () => {
       jest.spyOn(mailer, 'sendMail').mockRejectedValueOnce('ocorreu um erro');
       await expect(service.resetPassword(user, code)).rejects.toThrowError(
@@ -55,6 +55,28 @@ describe('MailService', () => {
         context: {
           name: user.name,
           code,
+        },
+      });
+    });
+  });
+  describe('Password Updated', () => {
+    it('should throw error', async () => {
+      jest.spyOn(mailer, 'sendMail').mockRejectedValueOnce('ocorreu um erro');
+      await expect(service.passwordUpdated(user)).rejects.toThrowError(
+        new HttpException(
+          'Erro ao enviar o e-mail',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+      );
+    });
+    it('should send password updated email', async () => {
+      await service.passwordUpdated(user);
+      expect(mailer.sendMail).toBeCalledWith({
+        to: user.email,
+        subject: 'Sua senha foi redefinida',
+        template: './password-updated',
+        context: {
+          name: user.name,
         },
       });
     });

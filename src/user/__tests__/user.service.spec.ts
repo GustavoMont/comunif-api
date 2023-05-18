@@ -43,6 +43,7 @@ describe('Teste USer Service', () => {
           provide: MailService,
           useValue: {
             resetPassword: jest.fn(),
+            passwordUpdated: jest.fn(),
           },
         },
       ],
@@ -139,15 +140,17 @@ describe('Teste USer Service', () => {
   });
   describe('change password', () => {
     const code = '000001';
+    const user = userGenerator();
     const resetCode = {
       ...resetPasswordCodeGenerator({ code }),
-      user: userGenerator(),
+      user,
     };
     beforeEach(() => {
       jest
         .spyOn(securityCodeService, 'findByCode')
         .mockResolvedValue(resetCode);
       jest.spyOn(userRepository, 'update').mockResolvedValue(userGenerator());
+      jest.spyOn(mailService, 'passwordUpdated').mockResolvedValue();
     });
     it("should throw password doesn't matches", async () => {
       await expect(
@@ -162,6 +165,7 @@ describe('Teste USer Service', () => {
       expect(securityCodeService.findByCode).toBeCalledWith(code);
 
       expect(userRepository.update).not.toBeCalled();
+      expect(mailService.resetPassword).not.toBeCalled();
     });
     it('should change password', async () => {
       await userService.changePassword({
@@ -171,6 +175,7 @@ describe('Teste USer Service', () => {
       });
       expect(securityCodeService.findByCode).toBeCalledWith(code);
       expect(userRepository.update).toBeCalled();
+      expect(mailService.passwordUpdated).toBeCalledWith(user);
     });
   });
 });
