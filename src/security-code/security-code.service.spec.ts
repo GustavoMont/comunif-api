@@ -1,10 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SecurityCodeService } from './security-code.service';
 import { SecurityCodeRepository } from './security-code-repository.service';
-import { resetPasswordCodeGenerator } from 'src/utils/generators';
+import {
+  resetPasswordCodeGenerator,
+  userGenerator,
+} from 'src/utils/generators';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { afterEach } from 'node:test';
 import * as moment from 'moment';
+import { instanceToPlain } from 'class-transformer';
 describe('SecurityCodeService', () => {
   let service: SecurityCodeService;
   let repository: SecurityCodeRepository;
@@ -73,12 +77,17 @@ describe('SecurityCodeService', () => {
       );
     });
     it('should return code', async () => {
-      const code = resetPasswordCodeGenerator({
+      const user = userGenerator();
+      const reset = resetPasswordCodeGenerator({
         expiresAt: moment().add(4, 'days').toDate(),
       });
+      const code = {
+        ...reset,
+        user,
+      };
       jest.spyOn(repository, 'findByCode').mockResolvedValue(code);
       const result = await service.findByCode('000001');
-      expect(result).toBe(code);
+      expect(instanceToPlain(result)).toStrictEqual(code);
     });
   });
 });

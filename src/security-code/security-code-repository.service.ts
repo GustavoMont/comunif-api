@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { ISecurityCodeRepository } from './interfaces/ISecurityCodeRepository';
 import { ResetPasswordCode } from '@prisma/client';
-import moment from 'moment';
+import * as moment from 'moment';
 
 @Injectable()
 export class SecurityCodeRepository implements ISecurityCodeRepository {
@@ -20,6 +20,9 @@ export class SecurityCodeRepository implements ISecurityCodeRepository {
     return await this.db.resetPasswordCode.findUnique({
       where: {
         code,
+      },
+      include: {
+        user: true,
       },
     });
   }

@@ -70,4 +70,15 @@ export default [
     avatar: null,
     bio: null,
   },
+  {
+    id: 7,
+    name: 'Passwordson',
+    lastName: 'Usuario',
+    email: 'password@password.com',
+    username: 'password',
+    password: bcrypt.hashSync('12345678S', 10),
+    birthday: new Date('2000-06-27T00:00:00.000Z'),
+    avatar: null,
+    bio: null,
+  },
 ] as User[];

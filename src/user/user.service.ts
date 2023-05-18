@@ -7,7 +7,8 @@ import { UserRepository } from './user-repository.service';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { SecurityCodeService } from 'src/security-code/security-code.service';
 import { MailService } from 'src/mail/mail.service';
-
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UserService implements IUserService {
   constructor(
@@ -15,6 +16,15 @@ export class UserService implements IUserService {
     private readonly securityCodeService: SecurityCodeService,
     private readonly mailService: MailService,
   ) {}
+  async changePassword(body: UpdatePasswordDto): Promise<void> {
+    const resetCode = await this.securityCodeService.findByCode(body.code);
+    if (body.password !== body.confirmPassword) {
+      throw new HttpException('Senhas não coincidem', HttpStatus.BAD_REQUEST);
+    }
+    await this.repository.update(resetCode.userId, {
+      password: await bcrypt.hash(body.password, 10),
+    });
+  }
   async findByEmail(email: string): Promise<UserResponse> {
     const user = await this.repository.findByEmail(email);
     if (!user) {

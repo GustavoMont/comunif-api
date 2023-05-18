@@ -3,6 +3,8 @@ import { ISecurityCodeService } from './interfaces/ISecurityCodeService';
 import { ResetPasswordCode } from '@prisma/client';
 import { SecurityCodeRepository } from './security-code-repository.service';
 import * as moment from 'moment';
+import { plainToInstance } from 'class-transformer';
+import { ResetPasswordResponse } from './dto/reset-password-response.dto';
 
 @Injectable()
 export class SecurityCodeService implements ISecurityCodeService {
@@ -27,13 +29,13 @@ export class SecurityCodeService implements ISecurityCodeService {
     const code = await this.generateUniqueCode();
     return await this.repository.createCode(code, userId);
   }
-  async findByCode(code: string): Promise<ResetPasswordCode> {
+  async findByCode(code: string): Promise<ResetPasswordResponse> {
     const resetCode = await this.repository.findByCode(code);
     if (!resetCode) {
       throw new HttpException('Código não encontrado', HttpStatus.NOT_FOUND);
     } else if (moment(resetCode.expiresAt).isBefore(moment())) {
       throw new HttpException('Esse código já expirou', HttpStatus.BAD_REQUEST);
     }
-    return resetCode;
+    return plainToInstance(ResetPasswordResponse, resetCode);
   }
 }

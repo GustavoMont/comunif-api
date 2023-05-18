@@ -36,6 +36,7 @@ describe('Teste USer Service', () => {
           provide: SecurityCodeService,
           useValue: {
             createCode: jest.fn(),
+            findByCode: jest.fn(),
           },
         },
         {
@@ -134,6 +135,42 @@ describe('Teste USer Service', () => {
       await userService.resetPassword(body);
       expect(securityCodeService.createCode).toBeCalledWith(user.id);
       expect(mailService.resetPassword).toBeCalledWith(user, resetCode.code);
+    });
+  });
+  describe('change password', () => {
+    const code = '000001';
+    const resetCode = {
+      ...resetPasswordCodeGenerator({ code }),
+      user: userGenerator(),
+    };
+    beforeEach(() => {
+      jest
+        .spyOn(securityCodeService, 'findByCode')
+        .mockResolvedValue(resetCode);
+      jest.spyOn(userRepository, 'update').mockResolvedValue(userGenerator());
+    });
+    it("should throw password doesn't matches", async () => {
+      await expect(
+        userService.changePassword({
+          code,
+          confirmPassword: 'a',
+          password: '4552',
+        }),
+      ).rejects.toThrowError(
+        new HttpException('Senhas não coincidem', HttpStatus.BAD_REQUEST),
+      );
+      expect(securityCodeService.findByCode).toBeCalledWith(code);
+
+      expect(userRepository.update).not.toBeCalled();
+    });
+    it('should change password', async () => {
+      await userService.changePassword({
+        code,
+        confirmPassword: 'senha',
+        password: 'senha',
+      });
+      expect(securityCodeService.findByCode).toBeCalledWith(code);
+      expect(userRepository.update).toBeCalled();
     });
   });
 });

@@ -24,6 +24,7 @@ import { avatarUploadOptions, validators } from 'src/config/image-uploads';
 import { UserUpdatePipe } from './pipes/user-update.pipe';
 import { PathPipe } from 'src/pipes/image-path.pipe';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('/api/users')
 export class UserController {
@@ -71,5 +72,11 @@ export class UserController {
   @HttpCode(204)
   async resetPassword(@Body() body: ResetPasswordDto): Promise<void> {
     await this.service.resetPassword(body);
+  }
+
+  @Post('change-password')
+  @HttpCode(204)
+  async changePassword(@Body() body: UpdatePasswordDto): Promise<void> {
+    await this.service.changePassword(body);
   }
 }

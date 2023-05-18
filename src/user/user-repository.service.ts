@@ -39,7 +39,7 @@ export class UserRepository implements IUserRepository {
       data: user,
     });
   }
-  async update(id: number, updates: UserUpdate): Promise<User> {
+  async update(id: number, updates: Partial<UserUpdate>): Promise<User> {
     const user = await this.db.user.findUnique({
       where: { id },
     });
