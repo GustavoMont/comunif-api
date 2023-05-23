@@ -1,8 +1,6 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { instanceToInstance, plainToInstance } from 'class-transformer';
-import { IUserRepository } from 'src/user/interfaces/IUserRepository';
-import { UserRepository } from 'src/user/user-repository.service';
 import {
   arrayGenerator,
   communityGenerator,
@@ -18,11 +16,12 @@ import { ListResponse } from 'src/dtos/list.dto';
 import { RoleEnum } from 'src/models/User';
 import { CommunityQueryDto } from '../dto/community-query.dto';
 import { ImageService } from 'src/utils/image.service';
+import { UserService } from 'src/user/user.service';
 
 describe('Community Service', () => {
   let repository: CommunityRepository;
   let imageService: ImageService;
-  let userRepository: UserRepository;
+  let userService: UserService;
   let communityService: CommunityService;
   const admin = { id: 1, roles: [RoleEnum.admin], username: 'test' };
   const user = { id: 1, roles: [RoleEnum.user], username: 'test' };
@@ -46,11 +45,11 @@ describe('Community Service', () => {
           } as ICommunityRepository,
         },
         {
-          provide: UserRepository,
+          provide: UserService,
           useValue: {
             findById: jest.fn(),
             findAll: jest.fn(),
-          } as Partial<IUserRepository>,
+          },
         },
         {
           provide: ImageService,
@@ -60,7 +59,7 @@ describe('Community Service', () => {
         },
       ],
     }).compile();
-    userRepository = module.get<UserRepository>(UserRepository);
+    userService = module.get<UserService>(UserService);
     imageService = module.get<ImageService>(ImageService);
     communityService = module.get<CommunityService>(CommunityService);
     repository = module.get<CommunityRepository>(CommunityRepository);
@@ -77,7 +76,7 @@ describe('Community Service', () => {
   describe('Add User on community', () => {
     it('should throw user not found exception', async () => {
       //Arrange
-      jest.spyOn(userRepository, 'findById').mockResolvedValue(null);
+      jest.spyOn(userService, 'findById').mockResolvedValue(null);
       // Act & Assert
       await expect(communityService.addUser(1, 1)).rejects.toThrowError(
         new HttpException('Usuário não encontrado', HttpStatus.BAD_REQUEST),
@@ -88,7 +87,7 @@ describe('Community Service', () => {
     });
     it('should throw community not found', async () => {
       //Arrange
-      jest.spyOn(userRepository, 'findById').mockResolvedValue(userGenerator());
+      jest.spyOn(userService, 'findById').mockResolvedValue(userGenerator());
       jest.spyOn(repository, 'findById').mockResolvedValue(null);
       // Act & Assert
       await expect(communityService.addUser(1, 1)).rejects.toThrowError(
@@ -99,7 +98,7 @@ describe('Community Service', () => {
     });
     it('should throw user already in comunity error', async () => {
       //Arrange
-      jest.spyOn(userRepository, 'findById').mockResolvedValue(userGenerator());
+      jest.spyOn(userService, 'findById').mockResolvedValue(userGenerator());
       jest
         .spyOn(repository, 'findById')
         .mockResolvedValue(communityGenerator());
@@ -117,7 +116,7 @@ describe('Community Service', () => {
     it('should add user', async () => {
       //Arrange
       const community = communityGenerator();
-      jest.spyOn(userRepository, 'findById').mockResolvedValue(userGenerator());
+      jest.spyOn(userService, 'findById').mockResolvedValue(userGenerator());
       jest.spyOn(repository, 'findById').mockResolvedValue(community);
       jest.spyOn(repository, 'findUser').mockResolvedValue(null);
       jest.spyOn(repository, 'addUser').mockResolvedValue(community);
@@ -153,7 +152,7 @@ describe('Community Service', () => {
   });
   describe('get user communities', () => {
     it('should throw user does not exist', async () => {
-      jest.spyOn(userRepository, 'findById').mockResolvedValue(null);
+      jest.spyOn(userService, 'findById').mockResolvedValue(null);
 
       await expect(
         communityService.findUserCommunities(1),
@@ -163,7 +162,7 @@ describe('Community Service', () => {
       expect(repository.findUserCommunities).not.toBeCalled();
     });
     it('should return all user communities', async () => {
-      jest.spyOn(userRepository, 'findById').mockResolvedValue(userGenerator());
+      jest.spyOn(userService, 'findById').mockResolvedValue(userGenerator());
       const communities = arrayGenerator<Community>(3, communityGenerator);
       jest
         .spyOn(repository, 'findUserCommunities')

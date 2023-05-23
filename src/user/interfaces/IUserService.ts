@@ -1,14 +1,15 @@
 import { User } from '@prisma/client';
 import { UserResponse } from '../dto/user-response.dto';
 import { UserUpdate } from '../dto/user-update.dto';
-import { ResetPasswordDto } from '../dto/reset-password.dto';
-import { UpdatePasswordDto } from '../dto/update-password.dto';
+import { PasswordDto } from 'src/auth/dto/password.dto';
 
-export abstract class IUserService {
-  abstract findById(id: number): Promise<UserResponse>;
-  abstract findAll(): Promise<User[]>;
-  abstract update(id: number, changes: UserUpdate): Promise<UserResponse>;
-  abstract resetPassword(body: ResetPasswordDto): Promise<void>;
-  abstract findByEmail(email: string): Promise<UserResponse>;
-  abstract changePassword(body: UpdatePasswordDto): Promise<void>;
+export interface IUserService {
+  findById(id: number): Promise<UserResponse>;
+  findAll(): Promise<User[]>;
+  update(id: number, changes: UserUpdate): Promise<UserResponse>;
+  findByEmail(email: string): Promise<UserResponse>;
+  findByUsername(username: string, getPassword: boolean): Promise<UserResponse>;
+  create(user: User): Promise<User>;
+  changePassword(userId: number, update: PasswordDto): Promise<void>;
+  emailExists(email: string): Promise<boolean>;
 }

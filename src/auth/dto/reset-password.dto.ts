@@ -9,3 +9,10 @@ export class ResetPasswordDto {
   )
   email: string;
 }
+
+export class ResetPasswordResponseDto {
+  constructor(hashedEmail: string) {
+    this.email = hashedEmail;
+  }
+  email: string;
+}

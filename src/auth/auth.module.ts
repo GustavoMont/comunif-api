@@ -7,6 +7,8 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { MailModule } from 'src/mail/mail.module';
+import { SecurityCodeModule } from 'src/security-code/security-code.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { JwtStrategy } from './strategies/jwt.strategy';
         expiresIn: '8h',
       },
     }),
+    MailModule,
+    SecurityCodeModule,
   ],
   providers: [AuthService, PrismaClient, LocalStrategy, JwtStrategy],
   controllers: [AuthController],

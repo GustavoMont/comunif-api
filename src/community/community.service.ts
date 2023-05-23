@@ -1,6 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
-import { UserRepository } from 'src/user/user-repository.service';
 import { CommunityRepository } from './community-repository.service';
 import { CommunityResponse } from './dto/community-response.dto';
 import { ICommunityService } from './interfaces/ICommunityService';
@@ -11,11 +10,13 @@ import { CommunityQueryDto } from './dto/community-query.dto';
 import { CreateCommunity } from './dto/community-create.dto';
 import { Community } from 'src/models/Community';
 import { ImageService } from 'src/utils/image.service';
+import { UserService } from 'src/user/user.service';
+import { Service } from 'src/utils/services';
 @Injectable()
-export class CommunityService extends ICommunityService {
+export class CommunityService extends Service implements ICommunityService {
   constructor(
     private readonly repository: CommunityRepository,
-    private readonly userRepository: UserRepository,
+    private readonly userService: UserService,
     private readonly imageService: ImageService,
   ) {
     super();
@@ -50,7 +51,7 @@ export class CommunityService extends ICommunityService {
     return plainToInstance(CommunityResponse, newCommunity);
   }
   async findUserCommunities(userId: number): Promise<CommunityResponse[]> {
-    const user = await this.userRepository.findById(userId);
+    const user = await this.userService.findById(userId);
     if (!user) {
       throw new HttpException('Usuário não encontrado', HttpStatus.BAD_REQUEST);
     }
@@ -71,7 +72,7 @@ export class CommunityService extends ICommunityService {
     userId: number,
     communityId: number,
   ): Promise<CommunityResponse> {
-    const user = await this.userRepository.findById(userId);
+    const user = await this.userService.findById(userId);
     if (user === null) {
       throw new HttpException('Usuário não encontrado', HttpStatus.BAD_REQUEST);
     }

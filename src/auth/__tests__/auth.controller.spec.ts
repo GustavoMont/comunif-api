@@ -1,9 +1,11 @@
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
-import { UserRepository } from 'src/user/user-repository.service';
 import { AuthController } from '../auth.controller';
 import { AuthService } from '../auth.service';
 import { SignupDto } from '../dto/sign-up.dto';
+import { SecurityCodeService } from 'src/security-code/security-code.service';
+import { MailService } from 'src/mail/mail.service';
+import { UserRepository } from 'src/user/user-repository.service';
 
 describe('AuthController', () => {
   let authController: AuthController;
@@ -26,6 +28,19 @@ describe('AuthController', () => {
           provide: JwtService,
           useValue: {
             sign: jest.fn(),
+          },
+        },
+        {
+          provide: SecurityCodeService,
+          useValue: {
+            createCode: jest.fn(),
+            findByCode: jest.fn(),
+          },
+        },
+        {
+          provide: MailService,
+          useValue: {
+            resetPassword: jest.fn(),
           },
         },
       ],
@@ -56,5 +71,8 @@ describe('AuthController', () => {
       expect(authService.signup).toHaveBeenCalledWith(signUpDto);
       expect(result).toEqual({ access: 'jwt_token' });
     });
+  });
+  describe('reset password', () => {
+    it.todo('should');
   });
 });

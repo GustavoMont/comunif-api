@@ -1,4 +1,3 @@
-import { Service } from 'src/utils/services';
 import { CommunityResponse } from '../dto/community-response.dto';
 import { CommunityUpdate } from '../dto/community-update.dto';
 import { ListResponse } from 'src/dtos/list.dto';
@@ -6,7 +5,7 @@ import { RequestUser } from 'src/types/RequestUser';
 import { CommunityQueryDto } from '../dto/community-query.dto';
 import { CreateCommunity } from '../dto/community-create.dto';
 
-export abstract class ICommunityService extends Service {
+export abstract class ICommunityService {
   abstract addUser(
     userId: number,
     communityId: number,

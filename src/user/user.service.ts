@@ -4,40 +4,45 @@ import { UserResponse } from './dto/user-response.dto';
 import { UserUpdate } from './dto/user-update.dto';
 import { IUserService } from './interfaces/IUserService';
 import { UserRepository } from './user-repository.service';
-import { ResetPasswordDto } from './dto/reset-password.dto';
-import { SecurityCodeService } from 'src/security-code/security-code.service';
-import { MailService } from 'src/mail/mail.service';
-import { UpdatePasswordDto } from './dto/update-password.dto';
-import * as bcrypt from 'bcrypt';
 import { User } from 'src/models/User';
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UserService implements IUserService {
-  constructor(
-    private readonly repository: UserRepository,
-    private readonly securityCodeService: SecurityCodeService,
-    private readonly mailService: MailService,
-  ) {}
-  async changePassword(body: UpdatePasswordDto): Promise<void> {
-    const resetCode = await this.securityCodeService.findByCode(body.code);
+  constructor(private readonly repository: UserRepository) {}
+  async create(user: User): Promise<User> {
+    const newUser = await this.repository.create(user);
+    return newUser as User;
+  }
+  async findByUsername(
+    username: string,
+    getPassword = false,
+  ): Promise<UserResponse> {
+    const user = await this.repository.findByUsername(username);
+    if (!user) {
+      throw new HttpException('Usuário não encontrado.', HttpStatus.NOT_FOUND);
+    }
+    return plainToInstance(getPassword ? User : UserResponse, user);
+  }
+
+  async changePassword(userId, body): Promise<void> {
     if (body.password !== body.confirmPassword) {
       throw new HttpException('Senhas não coincidem', HttpStatus.BAD_REQUEST);
     }
-    const user = await this.repository.update(resetCode.userId, {
+    await this.repository.update(userId, {
       password: await bcrypt.hash(body.password, 10),
     });
-    await this.mailService.passwordUpdated(user as User);
   }
+
+  async emailExists(email: string): Promise<boolean> {
+    return !!(await this.repository.findByEmail(email));
+  }
+
   async findByEmail(email: string): Promise<UserResponse> {
     const user = await this.repository.findByEmail(email);
     if (!user) {
       throw new HttpException('Usuário não encontrado.', HttpStatus.NOT_FOUND);
     }
     return plainToInstance(UserResponse, user);
-  }
-  async resetPassword(body: ResetPasswordDto): Promise<void> {
-    const user = await this.findByEmail(body.email);
-    const resetCode = await this.securityCodeService.createCode(user.id);
-    await this.mailService.resetPassword(user, resetCode.code);
   }
 
   async findById(id: number): Promise<UserResponse> {

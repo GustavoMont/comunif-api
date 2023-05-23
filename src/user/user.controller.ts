@@ -2,12 +2,10 @@ import {
   Body,
   Controller,
   Get,
-  HttpCode,
   Param,
   ParseFilePipe,
   ParseIntPipe,
   Patch,
-  Post,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -18,13 +16,10 @@ import { OwnerGuard } from 'src/auth/guards/owner-auth.guard';
 import { UserResponse } from './dto/user-response.dto';
 import { UserUpdate } from './dto/user-update.dto';
 import { SharpPipe } from '../pipes/sharp-image.pipe';
-
 import { UserService } from './user.service';
 import { avatarUploadOptions, validators } from 'src/config/image-uploads';
 import { UserUpdatePipe } from './pipes/user-update.pipe';
 import { PathPipe } from 'src/pipes/image-path.pipe';
-import { ResetPasswordDto } from './dto/reset-password.dto';
-import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('/api/users')
 export class UserController {
@@ -66,17 +61,5 @@ export class UserController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<UserResponse> {
     return this.service.update(+id, update);
-  }
-
-  @Post('reset-password')
-  @HttpCode(204)
-  async resetPassword(@Body() body: ResetPasswordDto): Promise<void> {
-    await this.service.resetPassword(body);
-  }
-
-  @Post('change-password')
-  @HttpCode(204)
-  async changePassword(@Body() body: UpdatePasswordDto): Promise<void> {
-    await this.service.changePassword(body);
   }
 }
