@@ -16,6 +16,8 @@ import {
   ResetPasswordResponseDto,
 } from './dto/reset-password.dto';
 import { UserRepository } from 'src/user/user-repository.service';
+import { PasswordDto } from './dto/password.dto';
+import { RequestUser } from 'src/types/RequestUser';
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -25,6 +27,22 @@ export class AuthService implements IAuthService {
     private readonly mailService: MailService,
     private readonly securityCodeService: SecurityCodeService,
   ) {}
+  isPasswordEqual(password: string, confirmPassword: string): boolean {
+    if (password !== confirmPassword) {
+      throw new HttpException('Senhas não coincidem', HttpStatus.BAD_REQUEST);
+    }
+    return true;
+  }
+  async changePassword(
+    { id: userId }: RequestUser,
+    { confirmPassword, password }: PasswordDto,
+  ): Promise<void> {
+    this.isPasswordEqual(password, confirmPassword);
+    const user = await this.userRepository.update(userId, {
+      password: await bcrypt.hash(password, 10),
+    });
+    await this.mailService.passwordUpdated(user as User);
+  }
 
   async validateUser(username: string, pass: string): Promise<any> {
     const user = await this.userRepository.findByUsername(username);
@@ -52,9 +70,7 @@ export class AuthService implements IAuthService {
     };
   }
   async signup(body: SignupDto): Promise<TokenDto> {
-    if (body.password !== body.confirmPassword) {
-      throw new HttpException('Senhas não coincidem', HttpStatus.BAD_REQUEST);
-    }
+    this.isPasswordEqual(body.password, body.confirmPassword);
     const emailExists = await this.userRepository.findByEmail(body.email);
     if (!!emailExists) {
       throw new HttpException('E-mail já cadastrado', HttpStatus.BAD_REQUEST);

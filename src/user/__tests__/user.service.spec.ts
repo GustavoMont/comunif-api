@@ -2,18 +2,12 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { User } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
-import {
-  resetPasswordCodeGenerator,
-  userGenerator,
-} from 'src/utils/generators';
+import { userGenerator } from 'src/utils/generators';
 import { UserResponse } from '../dto/user-response.dto';
 import { UserRepository } from '../user-repository.service';
 import { UserService } from '../user.service';
 import { SecurityCodeService } from 'src/security-code/security-code.service';
 import { MailService } from 'src/mail/mail.service';
-import * as bcrypt from 'bcrypt';
-
-import { ResetPasswordResponseDto } from '../../auth/dto/reset-password.dto';
 
 jest.mock('bcrypt', () => ({
   hash: jest.fn(),
@@ -22,8 +16,6 @@ jest.mock('bcrypt', () => ({
 describe('Teste USer Service', () => {
   let userService: UserService;
   let userRepository: UserRepository;
-  let securityCodeService: SecurityCodeService;
-  let mailService: MailService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -58,8 +50,6 @@ describe('Teste USer Service', () => {
 
     userService = module.get<UserService>(UserService);
     userRepository = module.get<UserRepository>(UserRepository);
-    securityCodeService = module.get<SecurityCodeService>(SecurityCodeService);
-    mailService = module.get<MailService>(MailService);
   });
 
   it('should be defined', () => {

@@ -15,6 +15,8 @@ import {
 } from 'src/utils/generators';
 import { ResetPasswordResponseDto } from '../dto/reset-password.dto';
 import { UserRepository } from 'src/user/user-repository.service';
+import { RequestUser } from 'src/types/RequestUser';
+import { RoleEnum } from 'src/models/User';
 
 jest.mock('bcrypt', () => ({
   hash: jest.fn(),
@@ -39,6 +41,7 @@ describe('AuthService', () => {
             findByUsername: jest.fn(),
             findByEmail: jest.fn(),
             create: jest.fn(),
+            update: jest.fn(),
           },
         },
         {
@@ -58,6 +61,7 @@ describe('AuthService', () => {
           provide: MailService,
           useValue: {
             resetPassword: jest.fn(),
+            passwordUpdated: jest.fn(),
           },
         },
       ],
@@ -325,7 +329,33 @@ describe('AuthService', () => {
     });
   });
   describe('change password', () => {
-    it.todo('should throw passwords do not match');
-    it.todo('should change password and send email');
+    const requestUser: RequestUser = {
+      id: 1,
+      roles: [RoleEnum.user],
+      username: 'username',
+    };
+    it('should throw passwords do not match', async () => {
+      await expect(
+        authService.changePassword(requestUser, {
+          password: 'password',
+          confirmPassword: 'confirmPassword',
+        }),
+      ).rejects.toThrowError(
+        new HttpException('Senhas não coincidem', HttpStatus.BAD_REQUEST),
+      );
+    });
+    it('should change password and send email', async () => {
+      const user = userGenerator();
+      jest.spyOn(mailService, 'passwordUpdated').mockResolvedValue();
+      jest.spyOn(userRepository, 'update').mockResolvedValue(user);
+
+      await authService.changePassword(requestUser, {
+        password: 'password',
+        confirmPassword: 'password',
+      });
+
+      expect(userRepository.update).toBeCalled();
+      expect(mailService.passwordUpdated).toBeCalledWith(user);
+    });
   });
 });

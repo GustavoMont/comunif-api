@@ -7,8 +7,11 @@ import {
   ResetPasswordDto,
   ResetPasswordResponseDto,
 } from '../dto/reset-password.dto';
+import { PasswordDto } from '../dto/password.dto';
+import { RequestUser } from 'src/types/RequestUser';
 
 export abstract class IAuthService {
+  abstract isPasswordEqual(password: string, confirmPassword: string): boolean;
   abstract validateUser(username: string, pass: string): Promise<any>;
   abstract login(user: User): TokenDto;
   abstract signup(body: SignupDto): Promise<TokenDto>;
@@ -18,4 +21,8 @@ export abstract class IAuthService {
   abstract confirmCode(
     body: ConfirmResetPasswordCodeDto,
   ): Promise<{ access: string }>;
+  abstract changePassword(
+    user: RequestUser,
+    password: PasswordDto,
+  ): Promise<void>;
 }
