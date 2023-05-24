@@ -106,6 +106,9 @@ export class AuthService implements IAuthService {
       User,
       await this.userRepository.findByEmail(body.email),
     );
+    if (!user) {
+      throw new HttpException('E-mail não encontrado', HttpStatus.NOT_FOUND);
+    }
     const resetCode = await this.securityCodeService.createCode(user.id);
     await this.mailService.resetPassword(user, resetCode.code);
     return new ResetPasswordResponseDto(await bcrypt.hash(user.email, 10));

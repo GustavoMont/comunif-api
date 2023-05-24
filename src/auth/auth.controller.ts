@@ -1,4 +1,11 @@
-import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/sign-up.dto';
 import { TokenDto } from './dto/token-dto';
@@ -35,6 +42,7 @@ export class AuthController {
     return await this.service.resetPassword(body);
   }
   @Post('reset-password/confirm-code')
+  @HttpCode(200)
   async confirmCode(
     @Body() body: ConfirmResetPasswordCodeDto,
   ): Promise<ConfirmCodeResponse> {
@@ -43,6 +51,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('change-password')
+  @HttpCode(204)
   async changePassword(
     @User() user: RequestUser,
     @Body() body: PasswordDto,

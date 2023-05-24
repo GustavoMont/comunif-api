@@ -72,7 +72,4 @@ describe('AuthController', () => {
       expect(result).toEqual({ access: 'jwt_token' });
     });
   });
-  describe('reset password', () => {
-    it.todo('should');
-  });
 });
