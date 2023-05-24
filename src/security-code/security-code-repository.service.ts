@@ -7,6 +7,12 @@ import * as moment from 'moment';
 @Injectable()
 export class SecurityCodeRepository implements ISecurityCodeRepository {
   constructor(private readonly db: PrismaService) {}
+  async deletePassword(id: number): Promise<void> {
+    await this.db.resetPasswordCode.delete({
+      where: { id },
+    });
+    return;
+  }
   async createCode(code: string, userId: number): Promise<ResetPasswordCode> {
     return await this.db.resetPasswordCode.create({
       data: {
@@ -24,6 +30,11 @@ export class SecurityCodeRepository implements ISecurityCodeRepository {
       include: {
         user: true,
       },
+    });
+  }
+  async getUserCode(userId: number): Promise<ResetPasswordCode> {
+    return await this.db.resetPasswordCode.findUnique({
+      where: { userId },
     });
   }
 }

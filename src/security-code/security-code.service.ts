@@ -9,6 +9,9 @@ import { ResetPasswordResponse } from './dto/reset-password-response.dto';
 @Injectable()
 export class SecurityCodeService implements ISecurityCodeService {
   constructor(private readonly repository: SecurityCodeRepository) {}
+  isCodeExpired(code: ResetPasswordCode): boolean {
+    return moment(code.expiresAt).isBefore(moment());
+  }
   protected generateRandomInt(): number {
     return Math.floor(Math.random() * (9 - 0 + 1) + 0);
   }
@@ -26,6 +29,14 @@ export class SecurityCodeService implements ISecurityCodeService {
     return code;
   }
   async createCode(userId: number): Promise<ResetPasswordCode> {
+    const resetCode = await this.repository.getUserCode(userId);
+    if (!!resetCode) {
+      if (!this.isCodeExpired(resetCode)) {
+        return resetCode;
+      } else {
+        await this.repository.deletePassword(resetCode.id);
+      }
+    }
     const code = await this.generateUniqueCode();
     return await this.repository.createCode(code, userId);
   }
@@ -33,7 +44,7 @@ export class SecurityCodeService implements ISecurityCodeService {
     const resetCode = await this.repository.findByCode(code);
     if (!resetCode) {
       throw new HttpException('Código não encontrado', HttpStatus.NOT_FOUND);
-    } else if (moment(resetCode.expiresAt).isBefore(moment())) {
+    } else if (this.isCodeExpired(resetCode)) {
       throw new HttpException('Esse código já expirou', HttpStatus.BAD_REQUEST);
     }
     return plainToInstance(ResetPasswordResponse, resetCode);

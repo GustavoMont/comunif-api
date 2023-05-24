@@ -11,7 +11,7 @@ describe('Auth', () => {
   const baseUrl = 'api/auth';
   let hashedEmail: string;
   let token: string;
-  const user = users.find(({ id }) => id !== 7);
+  const user = users.find(({ id }) => id !== 7 && id !== 1);
   const passwordUser = users.find(({ username }) => username === 'password');
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -103,7 +103,19 @@ describe('Auth', () => {
             });
         });
       });
-      it.todo('should throw code expired');
+      it('should throw code expired', async () => {
+        return request(app.getHttpServer())
+          .post(`/${baseUrl}/reset-password/confirm-code`)
+          .send({
+            code: '000002',
+            email: 'AAAAAAAAAAAA',
+          })
+          .expect(400)
+          .expect({
+            statusCode: 400,
+            message: 'Esse código já expirou',
+          });
+      });
       it('should confirm code and response token', async () => {
         const email = await bcrypt.hash(passwordUser.email, 10);
         return request(app.getHttpServer())

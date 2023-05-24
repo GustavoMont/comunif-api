@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { SecurityCodeService } from './security-code.service';
-import { SecurityCodeRepository } from './security-code-repository.service';
+import { SecurityCodeService } from '../security-code.service';
+import { SecurityCodeRepository } from '../security-code-repository.service';
 import {
   resetPasswordCodeGenerator,
   userGenerator,
@@ -22,6 +22,8 @@ describe('SecurityCodeService', () => {
           useValue: {
             findByCode: jest.fn(),
             createCode: jest.fn(),
+            getUserCode: jest.fn(),
+            deletePassword: jest.fn(),
           },
         },
       ],
@@ -40,9 +42,13 @@ describe('SecurityCodeService', () => {
   describe('Create code', () => {
     beforeEach(() => {
       jest.spyOn(repository, 'findByCode').mockResolvedValue(null);
+      jest.spyOn(repository, 'getUserCode').mockResolvedValue(null);
       jest
         .spyOn(repository, 'createCode')
         .mockResolvedValue(resetPasswordCodeGenerator());
+    });
+    afterEach(() => {
+      jest.clearAllMocks();
     });
     it('should run twice', async () => {
       jest.spyOn(repository, 'findByCode').mockResolvedValueOnce({
@@ -53,6 +59,31 @@ describe('SecurityCodeService', () => {
       });
       await service.createCode(1);
       expect(repository.findByCode).toBeCalledTimes(2);
+    });
+    it('should return an existent code', async () => {
+      const userId = 1;
+      const resetCode = resetPasswordCodeGenerator({
+        userId,
+        expiresAt: moment().add(4, 'days').toDate(),
+      });
+      jest.spyOn(repository, 'getUserCode').mockResolvedValueOnce(resetCode);
+      const result = await service.createCode(userId);
+      expect(repository.getUserCode).toBeCalledWith(userId);
+      expect(repository.findByCode).not.toBeCalled();
+      expect(result).toStrictEqual(resetCode);
+    });
+    it('should delete and create a new code', async () => {
+      const userId = 1;
+      const expiredCode = resetPasswordCodeGenerator({
+        userId,
+        expiresAt: moment().subtract(2, 'days').toDate(),
+      });
+      jest.spyOn(repository, 'getUserCode').mockResolvedValueOnce(expiredCode);
+      jest.spyOn(repository, 'findByCode').mockResolvedValue(null);
+      await service.createCode(userId);
+      expect(repository.getUserCode).toBeCalledWith(userId);
+      expect(repository.deletePassword).toBeCalledWith(expiredCode.id);
+      expect(repository.createCode).toBeCalledTimes(1);
     });
     it('should run once', async () => {
       await service.createCode(1);
