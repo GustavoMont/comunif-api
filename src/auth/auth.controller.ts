@@ -57,8 +57,6 @@ export class AuthController {
     @User() user: RequestUser,
     @Body() body: PasswordDto,
   ): Promise<void> {
-    console.log(body);
-
     return await this.service.changePassword(user, body);
   }
 }
