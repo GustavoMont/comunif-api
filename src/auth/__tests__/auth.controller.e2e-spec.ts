@@ -131,15 +131,17 @@ describe('Auth', () => {
           });
       });
     });
+  });
+  describe('/PATCH', () => {
     describe('change password', () => {
       it('should throw anauthorized', async () => {
         return request(app.getHttpServer())
-          .post(`/${baseUrl}/change-password`)
+          .patch(`/${baseUrl}/change-password`)
           .expect(401);
       });
       it('should throw weak passwords', async () => {
         return request(app.getHttpServer())
-          .post(`/${baseUrl}/change-password`)
+          .patch(`/${baseUrl}/change-password`)
           .set('Authorization', 'Bearer ' + token)
           .expect(400)
           .expect({
@@ -152,7 +154,7 @@ describe('Auth', () => {
       });
       it('should throw passwords do not match', async () => {
         return request(app.getHttpServer())
-          .post(`/${baseUrl}/change-password`)
+          .patch(`/${baseUrl}/change-password`)
           .set('Authorization', 'Bearer ' + token)
           .send({
             password: 'S3nhasenha',
@@ -166,7 +168,7 @@ describe('Auth', () => {
       });
       it('should change password', async () => {
         return request(app.getHttpServer())
-          .post(`/${baseUrl}/change-password`)
+          .patch(`/${baseUrl}/change-password`)
           .set('Authorization', 'Bearer ' + token)
           .send({
             password: 'S3nhasenha',

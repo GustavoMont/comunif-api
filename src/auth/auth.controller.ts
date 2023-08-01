@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   HttpCode,
+  Patch,
   Post,
   Request,
   UseGuards,
@@ -50,12 +51,14 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('change-password')
+  @Patch('change-password')
   @HttpCode(204)
   async changePassword(
     @User() user: RequestUser,
     @Body() body: PasswordDto,
   ): Promise<void> {
+    console.log(body);
+
     return await this.service.changePassword(user, body);
   }
 }
