@@ -76,7 +76,7 @@ export class CommunityController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  async findALl(
+  async findAll(
     @User() user: RequestUser,
     @Query('take', ParseIntUndefinedPipe) take: number,
     @Query('page', ParseIntUndefinedPipe) page: number,
