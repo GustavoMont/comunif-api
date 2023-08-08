@@ -66,7 +66,11 @@ export class CommunityService extends Service implements ICommunityService {
         HttpStatus.NOT_FOUND,
       );
     }
-    return plainToInstance(CommunityResponse, community);
+    const isMember = !!(await this.repository.findUser(community.id, 1));
+    return plainToInstance(CommunityResponse, {
+      ...community,
+      isMember,
+    });
   }
   async addUser(
     userId: number,
@@ -106,12 +110,30 @@ export class CommunityService extends Service implements ICommunityService {
     const total = await this.repository.count(filters);
     const skip = this.generateSkip(page, take);
 
-    const communities = plainToInstance(
+    const communities = await this.repository.findAll(filters, take, skip);
+    const communitiesWithMembers = await Promise.all(
+      communities.map(async (community) => {
+        const communityUser = await this.repository.findUser(
+          community.id,
+          user.id,
+        );
+        return {
+          ...community,
+          isMember: !!communityUser,
+        };
+      }),
+    );
+    const communitiesResponse = plainToInstance(
       CommunityResponse,
-      await this.repository.findAll(filters, take, skip),
+      communitiesWithMembers,
     );
 
-    return new ListResponse<CommunityResponse>(communities, total, page, take);
+    return new ListResponse<CommunityResponse>(
+      communitiesResponse,
+      total,
+      page,
+      take,
+    );
   }
   async update(
     id: number,

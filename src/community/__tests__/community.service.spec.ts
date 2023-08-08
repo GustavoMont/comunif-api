@@ -130,6 +130,9 @@ describe('Community Service', () => {
     });
   });
   describe('get community', () => {
+    beforeEach(() => {
+      jest.spyOn(repository, 'findUser').mockResolvedValue(userGenerator());
+    });
     it('should return not fount', async () => {
       // Arrange
       jest.spyOn(repository, 'findById').mockResolvedValue(null);
@@ -146,7 +149,7 @@ describe('Community Service', () => {
       const result = await communityService.findById(1);
       // Assert
       expect(plainToInstance(CommunityResponse, result)).toEqual(
-        plainToInstance(CommunityResponse, community),
+        plainToInstance(CommunityResponse, { ...community, isMember: true }),
       );
     });
   });
@@ -181,18 +184,27 @@ describe('Community Service', () => {
     beforeEach(() => {
       jest.spyOn(repository, 'count').mockResolvedValue(total);
       jest.spyOn(repository, 'findAll').mockResolvedValue(communities);
+      jest.spyOn(repository, 'findUser').mockResolvedValue(userGenerator());
     });
     it('should return all communities when admin', async () => {
       const result = await communityService.findAll(admin, undefined, take);
+      const communityWithIsMember = communities.map((community) => ({
+        ...community,
+        isMember: true,
+      }));
       expect(result).toEqual(
-        new ListResponse<Community>(communities, total, 1, take),
+        new ListResponse<Community>(communityWithIsMember, total, 1, take),
       );
       expect(repository.findAll).toBeCalledWith(undefined, take, 0);
     });
     it('should return only active when user request', async () => {
       const result = await communityService.findAll(user, undefined, take);
+      const communityWithIsMember = communities.map((community) => ({
+        ...community,
+        isMember: true,
+      }));
       expect(result).toEqual(
-        new ListResponse<Community>(communities, total, 1, take),
+        new ListResponse<Community>(communityWithIsMember, total, 1, take),
       );
       expect(repository.findAll).toBeCalledWith({ isActive: true }, take, 0);
     });
@@ -205,9 +217,13 @@ describe('Community Service', () => {
         plainToInstance(CommunityQueryDto, { isActive: false, name: 'sim' }),
         3,
       );
+      const communityWithIsMember = communities.map((community) => ({
+        ...community,
+        isMember: true,
+      }));
       expect(result).toEqual(
         new ListResponse<Community>(
-          plainToInstance(CommunityResponse, communities),
+          plainToInstance(CommunityResponse, communityWithIsMember),
           total,
           1,
           take,

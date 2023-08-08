@@ -14,4 +14,6 @@ export class CommunityResponse implements Community {
   id: number;
   name: string;
   subject: string;
+  @Expose()
+  isMember = false;
 }

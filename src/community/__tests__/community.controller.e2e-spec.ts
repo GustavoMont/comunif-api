@@ -193,8 +193,12 @@ describe('Community controller', () => {
           .expect(instanceToPlain(expectedResponse));
       });
       it('should return all communities', async () => {
+        const communitiesWithIsMember = allComunities.map((community) => ({
+          ...community,
+          isMember: false,
+        }));
         const expectedResponse = new ListResponse<CommunityResponse>(
-          allComunities,
+          communitiesWithIsMember,
           allComunities.length,
           1,
           20,
@@ -207,8 +211,14 @@ describe('Community controller', () => {
           .expect(instanceToPlain(expectedResponse));
       });
       it('should return just one community', async () => {
+        const firstCommunity = allComunities[0];
         let expectedResponse = new ListResponse<CommunityResponse>(
-          [allComunities[0]],
+          [
+            {
+              ...firstCommunity,
+              isMember: false,
+            },
+          ],
           allComunities.length,
           1,
           1,
@@ -219,8 +229,14 @@ describe('Community controller', () => {
           .set('Authorization', 'Bearer ' + adminToken)
           .expect(200)
           .expect(instanceToPlain(expectedResponse));
+        const secondCommunity = allComunities[1];
         expectedResponse = new ListResponse<CommunityResponse>(
-          [allComunities[1]],
+          [
+            {
+              ...secondCommunity,
+              isMember: false,
+            },
+          ],
           allComunities.length,
           2,
           1,
