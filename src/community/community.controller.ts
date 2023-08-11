@@ -86,10 +86,12 @@ export class CommunityController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async findById(
     @Param('id', ParseIntPipe) id: number,
+    @User() user: RequestUser,
   ): Promise<CommunityResponse> {
-    return await this.service.findById(id);
+    return await this.service.findById(id, user);
   }
   @UseGuards(JwtAuthGuard)
   @Post('add-user')

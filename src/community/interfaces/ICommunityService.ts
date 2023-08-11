@@ -10,7 +10,7 @@ export abstract class ICommunityService {
     userId: number,
     communityId: number,
   ): Promise<CommunityResponse>;
-  abstract findById(id: number): Promise<CommunityResponse>;
+  abstract findById(id: number, user?: RequestUser): Promise<CommunityResponse>;
   abstract findUserCommunities(userId: number): Promise<CommunityResponse[]>;
   abstract findAll(
     user: RequestUser,

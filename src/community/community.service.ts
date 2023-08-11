@@ -23,7 +23,7 @@ export class CommunityService extends Service implements ICommunityService {
   }
   async delete(user: RequestUser, id: number): Promise<void> {
     this.handleForbiddenException(user.roles[0]);
-    await this.findById(id);
+    await this.findById(id, user);
     await this.repository.delete(id);
   }
   async create(
@@ -58,7 +58,7 @@ export class CommunityService extends Service implements ICommunityService {
     const communities = await this.repository.findUserCommunities(userId);
     return plainToInstance(CommunityResponse, communities);
   }
-  async findById(id: number): Promise<CommunityResponse> {
+  async findById(id: number, user?: RequestUser): Promise<CommunityResponse> {
     const community = await this.repository.findById(id);
     if (!community) {
       throw new HttpException(
@@ -66,7 +66,12 @@ export class CommunityService extends Service implements ICommunityService {
         HttpStatus.NOT_FOUND,
       );
     }
-    const isMember = !!(await this.repository.findUser(community.id, 1));
+    const communityUser = await this.repository.findUser(
+      community.id,
+      user?.id || 0,
+    );
+    const isMember = !!communityUser;
+
     return plainToInstance(CommunityResponse, {
       ...community,
       isMember,
