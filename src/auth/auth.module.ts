@@ -18,7 +18,7 @@ import { AuthRepository } from './auth.repository.service';
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: {
-        expiresIn: '8h',
+        expiresIn: '1h',
       },
     }),
     MailModule,
