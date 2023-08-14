@@ -21,6 +21,7 @@ model User {
   messages          Message[]
   role              String              @default(dbgenerated("user"))
   resetPasswordCode ResetPasswordCode?
+  refreshToken      UserTokens?
 }
 
 model ResetPasswordCode {
@@ -72,4 +73,12 @@ model CommunityHasUsers {
   communityId Int
   user        User      @relation(fields: [userId], references: [id])
   userId      Int
+}
+
+model UserTokens {
+  id        Int      @id @default(autoincrement())
+  token     String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int      @unique
+  expiresIn DateTime
 }

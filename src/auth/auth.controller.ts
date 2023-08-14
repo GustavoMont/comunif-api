@@ -4,7 +4,7 @@ import {
   HttpCode,
   Patch,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -21,19 +21,32 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { User } from 'src/decorators/request-user.decorator';
 import { RequestUser } from 'src/types/RequestUser';
 import { PasswordDto } from './dto/password.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { Request } from 'express';
 
 @Controller('api/auth')
 export class AuthController {
   constructor(private service: AuthService) {}
-
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  login(@Request() req): TokenDto {
-    return this.service.login(req.user);
+  async login(@Req() req): Promise<TokenDto> {
+    return await this.service.login(req.user);
   }
   @Post('signup')
   async signup(@Body() body: SignupDto): Promise<TokenDto> {
     return await this.service.signup(body);
+  }
+
+  @HttpCode(200)
+  @Post('refresh-token')
+  async refreshToken(
+    @Body() body: RefreshTokenDto,
+    @Req() req: Request,
+  ): Promise<TokenDto> {
+    return await this.service.refreshToken(
+      body,
+      req.headers['authorization']?.replace('Bearer ', ''),
+    );
   }
 
   @Post('reset-password')

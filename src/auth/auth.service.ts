@@ -18,6 +18,12 @@ import {
 import { UserRepository } from 'src/user/user-repository.service';
 import { PasswordDto } from './dto/password.dto';
 import { RequestUser } from 'src/types/RequestUser';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { TokenPayload } from './dto/token-payload';
+import { AuthRepository } from './auth.repository.service';
+import * as moment from 'moment';
+import { v4 } from 'uuid';
+import { refreshTokenConstants } from './constants/jwt-constants';
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -26,6 +32,7 @@ export class AuthService implements IAuthService {
     private jwtService: JwtService,
     private readonly mailService: MailService,
     private readonly securityCodeService: SecurityCodeService,
+    private readonly authRepository: AuthRepository,
   ) {}
   isPasswordEqual(password: string, confirmPassword: string): boolean {
     if (password !== confirmPassword) {
@@ -62,11 +69,74 @@ export class AuthService implements IAuthService {
       roles: [user.role],
     };
   }
-  login(user: User): TokenDto {
-    const payload = this.generatePayload(user);
 
+  protected generateToken(payload: TokenPayload) {
+    return this.jwtService.sign(payload);
+  }
+
+  protected generateRefreshTokenData(userId: number) {
     return {
-      access: this.jwtService.sign(payload),
+      expiresIn: moment()
+        .add(refreshTokenConstants.addDaysExpire, 'days')
+        .toDate(),
+      token: v4(),
+      userId,
+    };
+  }
+
+  protected async createOrUpdateRefreshToken(userId: number): Promise<string> {
+    const userToken = await this.authRepository.findByUserId(userId);
+    if (!userToken) {
+      const { token } = await this.authRepository.create(
+        this.generateRefreshTokenData(userId),
+      );
+      return token;
+    }
+    const { token } = await this.authRepository.update(
+      userToken.id,
+      this.generateRefreshTokenData(userId),
+    );
+    return token;
+  }
+  async login(user: User): Promise<TokenDto> {
+    const payload = this.generatePayload(user);
+    const refreshToken = await this.createOrUpdateRefreshToken(user.id);
+    return {
+      access: this.generateToken(payload),
+      refreshToken,
+    };
+  }
+  async refreshToken(
+    { refreshToken }: RefreshTokenDto,
+    accessToken: string,
+  ): Promise<TokenDto> {
+    const errorMessage = 'Você não pode realizar essa ação';
+    if (!accessToken) {
+      throw new HttpException(errorMessage, HttpStatus.UNAUTHORIZED);
+    }
+    const {
+      sub: userId,
+      roles,
+      username,
+    } = this.jwtService.decode(accessToken) as TokenPayload;
+    const userToken = await this.authRepository.findByUserId(userId);
+    if (!userToken) {
+      throw new HttpException(errorMessage, HttpStatus.UNAUTHORIZED);
+    }
+    if (moment().isAfter(userToken.expiresIn)) {
+      throw new HttpException(errorMessage, HttpStatus.UNAUTHORIZED);
+    }
+    if (refreshToken !== userToken.token) {
+      throw new HttpException(errorMessage, HttpStatus.UNAUTHORIZED);
+    }
+    const { token } = await this.authRepository.update(
+      userToken.id,
+      this.generateRefreshTokenData(userId),
+    );
+    const access = this.generateToken({ sub: userId, roles, username });
+    return {
+      access,
+      refreshToken: token,
     };
   }
   async signup(body: SignupDto): Promise<TokenDto> {
@@ -97,7 +167,7 @@ export class AuthService implements IAuthService {
         user,
       ),
     );
-    return this.login(createdUser as User);
+    return await this.login(createdUser as User);
   }
   async resetPassword(
     body: ResetPasswordDto,

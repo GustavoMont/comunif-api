@@ -9,6 +9,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { MailModule } from 'src/mail/mail.module';
 import { SecurityCodeModule } from 'src/security-code/security-code.module';
+import { AuthRepository } from './auth.repository.service';
 
 @Module({
   imports: [
@@ -23,7 +24,13 @@ import { SecurityCodeModule } from 'src/security-code/security-code.module';
     MailModule,
     SecurityCodeModule,
   ],
-  providers: [AuthService, PrismaClient, LocalStrategy, JwtStrategy],
+  providers: [
+    AuthService,
+    PrismaClient,
+    LocalStrategy,
+    JwtStrategy,
+    AuthRepository,
+  ],
   controllers: [AuthController],
   exports: [AuthService],
 })

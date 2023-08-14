@@ -93,7 +93,7 @@ describe('Community controller', () => {
           .send({ communityId: 1 })
           .set('Authorization', 'Bearer ' + token)
           .expect(201)
-          .expect(instanceToPlain(allComunities[0]));
+          .expect(instanceToPlain({ ...allComunities[0], isMember: true }));
       });
     });
     describe('create community', () => {

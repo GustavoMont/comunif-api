@@ -125,7 +125,7 @@ describe('Community Service', () => {
       const result = await communityService.addUser(1, 1);
 
       expect(plainToInstance(CommunityResponse, result)).toEqual(
-        plainToInstance(CommunityResponse, community),
+        plainToInstance(CommunityResponse, { ...community, isMember: true }),
       );
     });
   });
@@ -302,7 +302,10 @@ describe('Community Service', () => {
     });
     it('should create communities', async () => {
       const result = await communityService.create(admin, newCommunity);
-      expect(instanceToInstance(result)).toEqual(newCommunity);
+      expect(instanceToInstance(result)).toEqual({
+        ...newCommunity,
+        isMember: false,
+      });
     });
   });
   describe('delete community', () => {

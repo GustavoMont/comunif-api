@@ -11,7 +11,7 @@ describe('Auth', () => {
   const baseUrl = 'api/auth';
   let hashedEmail: string;
   let token: string;
-  const user = users.find(({ id }) => id !== 7 && id !== 1);
+  const user = users.find(({ id }) => id === 2);
   const passwordUser = users.find(({ username }) => username === 'password');
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -129,6 +129,60 @@ describe('Auth', () => {
             token = body.access;
             return !!body.access;
           });
+      });
+    });
+    describe('refresh-token', () => {
+      let accessToken: string;
+      let refreshToken: string;
+      let noTokenUserAccessToken;
+      beforeEach(async () => {
+        let response = await request(app.getHttpServer())
+          .post('/api/auth/login')
+          .send({ username: user.username, password: '12345678S' })
+          .expect(201);
+        accessToken = response.body.access;
+        refreshToken = response.body.refreshToken;
+        response = await request(app.getHttpServer())
+          .post('/api/auth/login')
+          .send({ username: passwordUser.username, password: '12345678S' })
+          .expect(201);
+        noTokenUserAccessToken = response.body.access;
+      });
+
+      it('should throw unauthorized to wrong code', () => {
+        return request(app.getHttpServer())
+          .post(`/${baseUrl}/refresh-token`)
+          .set('Authorization', 'Bearer ' + accessToken)
+          .send({
+            refreshToken: 'tolki',
+          })
+          .expect(401)
+          .expect({
+            statusCode: 401,
+            message: 'Você não pode realizar essa ação',
+          });
+      });
+      it('should throw unauthorized to user without code', () => {
+        return request(app.getHttpServer())
+          .post(`/${baseUrl}/refresh-token`)
+          .set('Authorization', 'Bearer ' + noTokenUserAccessToken)
+          .send({
+            refreshToken,
+          })
+          .expect(401)
+          .expect({
+            statusCode: 401,
+            message: 'Você não pode realizar essa ação',
+          });
+      });
+      it('should allow generate new access token', () => {
+        return request(app.getHttpServer())
+          .post(`/${baseUrl}/refresh-token`)
+          .set('Authorization', 'Bearer ' + accessToken)
+          .send({
+            refreshToken,
+          })
+          .expect(200);
       });
     });
   });

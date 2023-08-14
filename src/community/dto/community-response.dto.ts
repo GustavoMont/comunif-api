@@ -15,5 +15,6 @@ export class CommunityResponse implements Community {
   name: string;
   subject: string;
   @Expose()
+  @Transform(({ value }) => (typeof value === 'undefined' ? false : value))
   isMember = false;
 }

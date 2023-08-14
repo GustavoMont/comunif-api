@@ -1,17 +1,23 @@
-import { CommunityChannel, ResetPasswordCode } from '@prisma/client';
+import {
+  CommunityChannel,
+  ResetPasswordCode,
+  UserTokens,
+} from '@prisma/client';
+import * as moment from 'moment';
 import { Community } from 'src/models/Community';
 import { RoleEnum, User } from 'src/models/User';
+import { v4 } from 'uuid';
 
-type generator<T> = (change?: Partial<T>) => T;
+type Generator<T> = (change?: Partial<T>) => T;
 
-export const arrayGenerator = <T>(length: number, generator: generator<T>) => {
+export const arrayGenerator = <T>(length: number, generator: Generator<T>) => {
   const array = Array.from({ length }, (value, key) =>
     generator({ id: key } as any),
   );
   return array;
 };
 
-export const resetPasswordCodeGenerator: generator<ResetPasswordCode> = (
+export const resetPasswordCodeGenerator: Generator<ResetPasswordCode> = (
   resetPasswordCode,
 ) => ({
   code: '0001',
@@ -21,7 +27,7 @@ export const resetPasswordCodeGenerator: generator<ResetPasswordCode> = (
   ...resetPasswordCode,
 });
 
-export const userGenerator: generator<User> = (change) => ({
+export const userGenerator: Generator<User> = (change) => ({
   birthday: new Date('11-11-00'),
   email: 'email@email.com',
   id: 1,
@@ -35,14 +41,14 @@ export const userGenerator: generator<User> = (change) => ({
   ...change,
 });
 
-const communityChannelGenerator: generator<CommunityChannel> = (changes) => ({
+const communityChannelGenerator: Generator<CommunityChannel> = (changes) => ({
   id: 1,
   channelTypeId: 1,
   communityId: 1,
   ...changes,
 });
 
-export const communityGenerator: generator<Community> = (change) => ({
+export const communityGenerator: Generator<Community> = (change) => ({
   id: 1,
   name: 'comunidade',
   subject: 'subject',
@@ -53,4 +59,12 @@ export const communityGenerator: generator<Community> = (change) => ({
   banner: 'banner',
   isActive: true,
   ...change,
+});
+
+export const userTokenGenerator: Generator<UserTokens> = (userToken) => ({
+  expiresIn: moment().toDate(),
+  id: 1,
+  token: v4(),
+  userId: 1,
+  ...userToken,
 });

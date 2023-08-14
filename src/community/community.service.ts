@@ -100,7 +100,7 @@ export class CommunityService extends Service implements ICommunityService {
       );
     }
     const response = await this.repository.addUser(communityId, userId);
-    return plainToInstance(CommunityResponse, response);
+    return plainToInstance(CommunityResponse, { ...response, isMember: true });
   }
 
   async findAll(
