@@ -22,7 +22,7 @@ import { User } from 'src/decorators/request-user.decorator';
 import { RequestUser } from 'src/types/RequestUser';
 import { PasswordDto } from './dto/password.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { Request } from 'express';
+import { AccessToken } from 'src/decorators/authorization-headers.decorator';
 
 @Controller('api/auth')
 export class AuthController {
@@ -41,12 +41,9 @@ export class AuthController {
   @Post('refresh-token')
   async refreshToken(
     @Body() body: RefreshTokenDto,
-    @Req() req: Request,
+    @AccessToken() accessToken: string,
   ): Promise<TokenDto> {
-    return await this.service.refreshToken(
-      body,
-      req.headers['authorization']?.replace('Bearer ', ''),
-    );
+    return await this.service.refreshToken(body, accessToken);
   }
 
   @Post('reset-password')
