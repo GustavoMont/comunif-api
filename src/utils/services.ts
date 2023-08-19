@@ -9,7 +9,7 @@ export abstract class Service {
       );
     }
   };
-  protected generateSkip = (page: number, take): number =>
+  protected generateSkip = (page: number, take: number): number =>
     page === 0 ? 0 : (page - 1) * take;
   protected isAdmin = (role: RoleEnum) => role === RoleEnum.admin;
 }

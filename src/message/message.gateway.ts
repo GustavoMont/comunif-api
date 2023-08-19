@@ -1,26 +1,23 @@
 import {
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { MessageService } from './message.service';
 import { Server, Socket } from 'socket.io';
-import { Logger } from '@nestjs/common';
-import { Message } from '@prisma/client';
-import { CommunityService } from 'src/community/community.service';
+import { Inject, Logger } from '@nestjs/common';
+import { IMessageGateway } from './interfaces/IMessageGatewat';
+import { MessagePayload } from './dtos/message-payload.dto';
+import { IMessageService } from './interfaces/IMessageService';
+import { JoinChannelDto } from './dtos/join-channel.dto';
+import { MessageResponse } from './dtos/message-response.dto';
 
 @WebSocketGateway()
-export class MessageGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+export class MessageGateway implements IMessageGateway {
   private logger: Logger = new Logger('MessageLogger');
   constructor(
-    private readonly messageService: MessageService,
-    private communityService: CommunityService,
+    @Inject(IMessageService) private readonly service: IMessageService,
   ) {}
+
   @WebSocketServer() server: Server;
 
   afterInit() {
@@ -33,24 +30,25 @@ export class MessageGateway
     this.logger.log(`Usuário ${client.id} saiu`);
   }
 
-  @SubscribeMessage('joinRooms')
-  async joinRooms(client: Socket, { userId }: { userId: number }) {
-    const communities = await this.communityService.findUserCommunities(userId);
-    communities.forEach(({ communityChannels }) => {
-      communityChannels.forEach(({ id }) => client.join(`channel${id}`));
-    });
+  @SubscribeMessage('message-channel')
+  async onMessageChannel(
+    client: Socket,
+    payload: MessagePayload,
+  ): Promise<void> {
+    const room = payload.communityChannelId.toString();
+    client.join(room);
+    const message = await this.service.create(payload);
+    this.server.to(room).emit('message-channel', message);
   }
-
-  @SubscribeMessage('messageToCommunity')
-  chat(client: Socket, payload: Message) {
-    const { communityChannelId: room, content } = payload;
-    this.server.to(`${room}`).emit('message', content);
-  }
-
-  @SubscribeMessage('messageToServer')
-  handleMessage(client: Socket, payload: any) {
-    console.log(payload);
-
-    this.server.emit('msgToClient', payload, client.id);
+  @SubscribeMessage('join-channel')
+  async onJoinChannel(
+    client: Socket,
+    payload: JoinChannelDto,
+  ): Promise<MessageResponse[]> {
+    client.join(payload.communityChannelId.toString());
+    const listMessages = await this.service.findByChannelId(
+      payload.communityChannelId,
+    );
+    return listMessages.results;
   }
 }

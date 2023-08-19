@@ -5,6 +5,7 @@ import {
 } from '@prisma/client';
 import * as moment from 'moment';
 import { Community } from 'src/models/Community';
+import { Message } from 'src/models/Message';
 import { RoleEnum, User } from 'src/models/User';
 import { v4 } from 'uuid';
 
@@ -67,4 +68,13 @@ export const userTokenGenerator: Generator<UserTokens> = (userToken) => ({
   token: v4(),
   userId: 1,
   ...userToken,
+});
+
+export const messageGenerator: Generator<Message> = (message) => ({
+  communityChannelId: 1,
+  content: 'content',
+  id: 1,
+  user: userGenerator(),
+  userId: 1,
+  ...message,
 });
