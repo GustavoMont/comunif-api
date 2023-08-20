@@ -6,6 +6,7 @@ import { IUserService } from './interfaces/IUserService';
 import { UserRepository } from './user-repository.service';
 import { User } from 'src/models/User';
 import * as bcrypt from 'bcrypt';
+import { env } from 'constants/env';
 @Injectable()
 export class UserService implements IUserService {
   constructor(private readonly repository: UserRepository) {}
@@ -64,6 +65,9 @@ export class UserService implements IUserService {
       if (usernameExists && usernameExists.id !== id) {
         throw new HttpException('Username já em uso', HttpStatus.BAD_REQUEST);
       }
+    }
+    if (changes.avatar) {
+      changes.avatar = `${env.domain}/${changes.avatar}`;
     }
     const user = await this.repository.update(id, changes);
     if (!user) {

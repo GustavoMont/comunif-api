@@ -12,6 +12,7 @@ import { Community } from 'src/models/Community';
 import { ImageService } from 'src/utils/image.service';
 import { UserService } from 'src/user/user.service';
 import { Service } from 'src/utils/services';
+import { env } from 'constants/env';
 @Injectable()
 export class CommunityService extends Service implements ICommunityService {
   constructor(
@@ -147,7 +148,8 @@ export class CommunityService extends Service implements ICommunityService {
     const community = await this.findById(id);
 
     if (changes.banner && community.banner) {
-      this.imageService.deleteImage(community.banner);
+      await this.imageService.deleteImage(community.banner);
+      changes.banner = `${env.domain}/${changes.banner}`;
     }
     const updatedCommunity = await this.repository.update(
       id,

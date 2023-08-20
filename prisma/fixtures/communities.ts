@@ -1,17 +1,18 @@
 import { Community } from '@prisma/client';
+import { env } from 'constants/env';
 
 const communities: Community[] = [
   {
     id: 1,
     name: 'Topinar',
-    banner: 'public/banner/default-Topinar-banner.webp',
+    banner: `${env.domain}/public/banner/default-Topinar-banner.webp`,
     isActive: false,
     subject: 'Ser top',
   },
   {
     id: 2,
     name: 'Editores',
-    banner: 'public/banner/default-Editores-banner.webp',
+    banner: `${env.domain}/public/banner/default-Editores-banner.webp`,
     isActive: false,
     subject: 'Edição de imagens',
   },
