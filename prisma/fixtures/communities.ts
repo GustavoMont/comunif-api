@@ -1,5 +1,5 @@
 import { Community } from '@prisma/client';
-import { env } from 'constants/env';
+import { env } from '../../src/constants/env';
 
 const communities: Community[] = [
   {

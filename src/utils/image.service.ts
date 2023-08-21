@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { env } from 'constants/env';
+import { env } from 'src/constants/env';
 import { unlink } from 'fs/promises';
 
 @Injectable()

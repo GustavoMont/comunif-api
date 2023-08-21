@@ -12,7 +12,7 @@ import { Community } from 'src/models/Community';
 import { ImageService } from 'src/utils/image.service';
 import { UserService } from 'src/user/user.service';
 import { Service } from 'src/utils/services';
-import { env } from 'constants/env';
+import { env } from 'src/constants/env';
 @Injectable()
 export class CommunityService extends Service implements ICommunityService {
   constructor(
