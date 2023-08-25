@@ -5,16 +5,24 @@ import { PrismaClient } from '@prisma/client';
 import { UserModule } from 'src/user/user.module';
 import { CommunityRepository } from './community-repository.service';
 import { ImageService } from 'src/utils/image.service';
+import { ICommunityRepository } from './interfaces/ICommunityRepository';
+import { ICommunityService } from './interfaces/ICommunityService';
 
 @Module({
   imports: [UserModule],
   controllers: [CommunityController],
   providers: [
-    CommunityService,
-    CommunityRepository,
+    {
+      provide: ICommunityService,
+      useClass: CommunityService,
+    },
+    {
+      provide: ICommunityRepository,
+      useClass: CommunityRepository,
+    },
     PrismaClient,
     ImageService,
   ],
-  exports: [CommunityService],
+  exports: [ICommunityService],
 })
 export class CommunityModule {}

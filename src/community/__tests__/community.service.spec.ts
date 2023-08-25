@@ -6,7 +6,6 @@ import {
   communityGenerator,
   userGenerator,
 } from 'src/utils/generators';
-import { CommunityRepository } from '../community-repository.service';
 import { CommunityService } from '../community.service';
 import { CommunityResponse } from '../dto/community-response.dto';
 import { ICommunityRepository } from '../interfaces/ICommunityRepository';
@@ -19,7 +18,7 @@ import { ImageService } from 'src/utils/image.service';
 import { UserService } from 'src/user/user.service';
 
 describe('Community Service', () => {
-  let repository: CommunityRepository;
+  let repository: ICommunityRepository;
   let imageService: ImageService;
   let userService: UserService;
   let communityService: CommunityService;
@@ -31,7 +30,7 @@ describe('Community Service', () => {
       providers: [
         CommunityService,
         {
-          provide: CommunityRepository,
+          provide: ICommunityRepository,
           useValue: {
             addUser: jest.fn(),
             findUser: jest.fn(),
@@ -62,7 +61,7 @@ describe('Community Service', () => {
     userService = module.get<UserService>(UserService);
     imageService = module.get<ImageService>(ImageService);
     communityService = module.get<CommunityService>(CommunityService);
-    repository = module.get<CommunityRepository>(CommunityRepository);
+    repository = module.get<ICommunityRepository>(ICommunityRepository);
   });
   afterEach(() => {
     Object.keys(repository).forEach((key) => {

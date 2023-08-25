@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  Inject,
   Param,
   ParseFilePipe,
   ParseIntPipe,
@@ -17,7 +18,6 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RequestWithUser } from 'src/types/RequestWithUser';
-import { CommunityService } from './community.service';
 import { CommunityAddUser } from './dto/community-add-user.dto';
 import { CommunityResponse } from './dto/community-response.dto';
 import { CommunityUpdate } from './dto/community-update.dto';
@@ -35,10 +35,13 @@ import { ParseIntUndefinedPipe } from 'src/pipes/parse-int-undefined.pipe';
 import { CommunityQueryDto } from './dto/community-query.dto';
 import { CamelizePipe } from './pipes/camelize.pipe';
 import { CreateCommunity } from './dto/community-create.dto';
+import { ICommunityService } from './interfaces/ICommunityService';
 
 @Controller('api/communities')
 export class CommunityController {
-  constructor(private readonly service: CommunityService) {}
+  constructor(
+    @Inject(ICommunityService) private readonly service: ICommunityService,
+  ) {}
 
   @Roles(RoleEnum.admin)
   @UseGuards(JwtAuthGuard, RolesGuard)

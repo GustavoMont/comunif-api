@@ -1,6 +1,5 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
-import { CommunityRepository } from './community-repository.service';
 import { CommunityResponse } from './dto/community-response.dto';
 import { ICommunityService } from './interfaces/ICommunityService';
 import { CommunityUpdate } from './dto/community-update.dto';
@@ -13,10 +12,12 @@ import { ImageService } from 'src/utils/image.service';
 import { UserService } from 'src/user/user.service';
 import { Service } from 'src/utils/services';
 import { env } from 'src/constants/env';
+import { ICommunityRepository } from './interfaces/ICommunityRepository';
 @Injectable()
 export class CommunityService extends Service implements ICommunityService {
   constructor(
-    private readonly repository: CommunityRepository,
+    @Inject(ICommunityRepository)
+    private readonly repository: ICommunityRepository,
     private readonly userService: UserService,
     private readonly imageService: ImageService,
   ) {

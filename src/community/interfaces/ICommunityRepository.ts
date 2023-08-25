@@ -1,19 +1,20 @@
 import { Community, User } from '@prisma/client';
-import { Repository } from 'src/utils/repositories';
 import { CommunityQueryDto } from '../dto/community-query.dto';
 
-export abstract class ICommunityRepository extends Repository {
-  abstract addUser(communityId: number, userId: number): Promise<Community>;
-  abstract findUser(communityId: number, userId: number): Promise<User>;
-  abstract findById(id: number): Promise<Community>;
-  abstract findUserCommunities(userId: number): Promise<Community[]>;
-  abstract findAll(
+export interface ICommunityRepository {
+  addUser(communityId: number, userId: number): Promise<Community>;
+  findUser(communityId: number, userId: number): Promise<User>;
+  findById(id: number): Promise<Community>;
+  findUserCommunities(userId: number): Promise<Community[]>;
+  findAll(
     filters?: CommunityQueryDto,
     take?: number,
     skip?: number,
   ): Promise<Community[]>;
-  abstract update(id: number, changes: Partial<Community>): Promise<Community>;
-  abstract count(filters?: CommunityQueryDto): Promise<number>;
-  abstract create(newCommunity: Community): Promise<Community>;
-  abstract delete(id: number): Promise<void>;
+  update(id: number, changes: Partial<Community>): Promise<Community>;
+  count(filters?: CommunityQueryDto): Promise<number>;
+  create(newCommunity: Community): Promise<Community>;
+  delete(id: number): Promise<void>;
 }
+
+export const ICommunityRepository = Symbol('ICommunityRepository');

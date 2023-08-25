@@ -5,26 +5,19 @@ import { RequestUser } from 'src/types/RequestUser';
 import { CommunityQueryDto } from '../dto/community-query.dto';
 import { CreateCommunity } from '../dto/community-create.dto';
 
-export abstract class ICommunityService {
-  abstract addUser(
-    userId: number,
-    communityId: number,
-  ): Promise<CommunityResponse>;
-  abstract findById(id: number, user?: RequestUser): Promise<CommunityResponse>;
-  abstract findUserCommunities(userId: number): Promise<CommunityResponse[]>;
-  abstract findAll(
+export interface ICommunityService {
+  addUser(userId: number, communityId: number): Promise<CommunityResponse>;
+  findById(id: number, user?: RequestUser): Promise<CommunityResponse>;
+  findUserCommunities(userId: number): Promise<CommunityResponse[]>;
+  findAll(
     user: RequestUser,
     filters?: CommunityQueryDto,
     take?: number,
     page?: number,
   ): Promise<ListResponse<CommunityResponse>>;
-  abstract update(
-    id: number,
-    changes: CommunityUpdate,
-  ): Promise<CommunityResponse>;
-  abstract create(
-    user: RequestUser,
-    body: CreateCommunity,
-  ): Promise<CommunityResponse>;
-  abstract delete(user: RequestUser, id: number): Promise<void>;
+  update(id: number, changes: CommunityUpdate): Promise<CommunityResponse>;
+  create(user: RequestUser, body: CreateCommunity): Promise<CommunityResponse>;
+  delete(user: RequestUser, id: number): Promise<void>;
 }
+
+export const ICommunityService = Symbol('ICommunityService');
