@@ -11,7 +11,11 @@ import { IMessageService } from './interfaces/IMessageService';
 import { JoinChannelDto } from './dtos/join-channel.dto';
 import { MessageResponse } from './dtos/message-response.dto';
 
-@WebSocketGateway()
+@WebSocketGateway({
+  cors: {
+    origin: 'http://localhost:3001',
+  },
+})
 export class MessageGateway implements IMessageGateway {
   private logger: Logger = new Logger('MessageLogger');
   constructor(
