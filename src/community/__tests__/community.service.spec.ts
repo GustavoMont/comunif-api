@@ -72,62 +72,6 @@ describe('Community Service', () => {
     expect(communityService).toBeDefined();
     expect(repository).toBeDefined();
   });
-  describe('Add User on community', () => {
-    it('should throw user not found exception', async () => {
-      //Arrange
-      jest.spyOn(userService, 'findById').mockResolvedValue(null);
-      // Act & Assert
-      await expect(communityService.addUser(1, 1)).rejects.toThrowError(
-        new HttpException('Usuário não encontrado', HttpStatus.BAD_REQUEST),
-      );
-      expect(repository.findUser).not.toBeCalled();
-      expect(repository.findById).not.toBeCalled();
-      expect(repository.addUser).not.toBeCalled();
-    });
-    it('should throw community not found', async () => {
-      //Arrange
-      jest.spyOn(userService, 'findById').mockResolvedValue(userGenerator());
-      jest.spyOn(repository, 'findById').mockResolvedValue(null);
-      // Act & Assert
-      await expect(communityService.addUser(1, 1)).rejects.toThrowError(
-        new HttpException('Comunidade não encontrada', HttpStatus.BAD_REQUEST),
-      );
-      expect(repository.findUser).not.toBeCalled();
-      expect(repository.addUser).not.toBeCalled();
-    });
-    it('should throw user already in comunity error', async () => {
-      //Arrange
-      jest.spyOn(userService, 'findById').mockResolvedValue(userGenerator());
-      jest
-        .spyOn(repository, 'findById')
-        .mockResolvedValue(communityGenerator());
-      jest.spyOn(repository, 'findUser').mockResolvedValue(userGenerator());
-
-      //Act & Assert
-      await expect(communityService.addUser(1, 1)).rejects.toThrowError(
-        new HttpException(
-          'Usuário já está nessa comunidade',
-          HttpStatus.BAD_REQUEST,
-        ),
-      );
-      expect(repository.addUser).not.toBeCalled();
-    });
-    it('should add user', async () => {
-      //Arrange
-      const community = communityGenerator();
-      jest.spyOn(userService, 'findById').mockResolvedValue(userGenerator());
-      jest.spyOn(repository, 'findById').mockResolvedValue(community);
-      jest.spyOn(repository, 'findUser').mockResolvedValue(null);
-      jest.spyOn(repository, 'addUser').mockResolvedValue(community);
-
-      //Act & Assert
-      const result = await communityService.addUser(1, 1);
-
-      expect(plainToInstance(CommunityResponse, result)).toEqual(
-        plainToInstance(CommunityResponse, { ...community, isMember: true }),
-      );
-    });
-  });
   describe('get community', () => {
     beforeEach(() => {
       jest.spyOn(repository, 'findUser').mockResolvedValue(userGenerator());

@@ -19,7 +19,6 @@ describe('Community controller', () => {
   let token: string;
   let user: User;
   let admin: User;
-  const community = communities.find(({ id }) => id === 1);
   const allComunities = communities.map<CommunityResponse>((community) =>
     plainToInstance(CommunityResponse, {
       ...community,
@@ -46,7 +45,7 @@ describe('Community controller', () => {
       }),
     );
     await app.init();
-    user = users.find(({ username }) => username === 'community');
+    user = users.find(({ username }) => username === 'user1');
     admin = users.find(({ username }) => username === 'admin');
 
     if (!user) {
@@ -64,38 +63,6 @@ describe('Community controller', () => {
     adminToken = loginRes.body.access;
   });
   describe('/POST', () => {
-    describe('add user in community', () => {
-      it('should throw unauthorized exception', async () => {
-        return request(app.getHttpServer())
-          .post('/api/communities/add-user')
-          .expect(401)
-          .send({ communityId: community.id })
-          .expect({
-            statusCode: 401,
-            message: 'Unauthorized',
-          });
-      });
-      it('should throw bad request', async () => {
-        return request(app.getHttpServer())
-          .post('/api/communities/add-user')
-          .send({})
-          .set('Authorization', 'Bearer ' + token)
-          .expect(400)
-          .expect({
-            statusCode: 400,
-            message: ['Deve ser um número', 'A comunidade deve ser informada'],
-            error: 'Bad Request',
-          });
-      });
-      it('should add user on community', async () => {
-        return request(app.getHttpServer())
-          .post('/api/communities/add-user')
-          .send({ communityId: 1 })
-          .set('Authorization', 'Bearer ' + token)
-          .expect(201)
-          .expect(instanceToPlain({ ...allComunities[0], isMember: true }));
-      });
-    });
     describe('create community', () => {
       let communityId: number;
       it('throw unauthorized', async () => {

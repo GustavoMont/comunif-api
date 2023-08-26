@@ -8,6 +8,7 @@ import { CommunityModule } from './community/community.module';
 import { MessageModule } from './message/message.module';
 import { MailModule } from './mail/mail.module';
 import { SecurityCodeModule } from './security-code/security-code.module';
+import { CommunityUsersModule } from './community-users/community-users.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { SecurityCodeModule } from './security-code/security-code.module';
     MessageModule,
     MailModule,
     SecurityCodeModule,
+    CommunityUsersModule,
   ],
   controllers: [PublicController],
 })

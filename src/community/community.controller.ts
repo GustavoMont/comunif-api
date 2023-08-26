@@ -11,14 +11,11 @@ import {
   Patch,
   Post,
   Query,
-  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { RequestWithUser } from 'src/types/RequestWithUser';
-import { CommunityAddUser } from './dto/community-add-user.dto';
 import { CommunityResponse } from './dto/community-response.dto';
 import { CommunityUpdate } from './dto/community-update.dto';
 import { RolesGuard } from 'src/auth/guards/role.guard';
@@ -95,14 +92,6 @@ export class CommunityController {
     @User() user: RequestUser,
   ): Promise<CommunityResponse> {
     return await this.service.findById(id, user);
-  }
-  @UseGuards(JwtAuthGuard)
-  @Post('add-user')
-  async addUser(
-    @Body() body: CommunityAddUser,
-    @Req() req: RequestWithUser,
-  ): Promise<CommunityResponse> {
-    return await this.service.addUser(req.user.id, body.communityId);
   }
 
   @UseGuards(JwtAuthGuard)

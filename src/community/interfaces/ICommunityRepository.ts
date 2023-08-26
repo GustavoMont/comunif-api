@@ -1,9 +1,8 @@
-import { Community, User } from '@prisma/client';
+import { Community } from '@prisma/client';
 import { CommunityQueryDto } from '../dto/community-query.dto';
+import { User } from 'src/models/User';
 
 export interface ICommunityRepository {
-  addUser(communityId: number, userId: number): Promise<Community>;
-  findUser(communityId: number, userId: number): Promise<User>;
   findById(id: number): Promise<Community>;
   findUserCommunities(userId: number): Promise<Community[]>;
   findAll(
@@ -15,6 +14,7 @@ export interface ICommunityRepository {
   count(filters?: CommunityQueryDto): Promise<number>;
   create(newCommunity: Community): Promise<Community>;
   delete(id: number): Promise<void>;
+  findUser(communityId: number, userId: number): Promise<User>;
 }
 
 export const ICommunityRepository = Symbol('ICommunityRepository');

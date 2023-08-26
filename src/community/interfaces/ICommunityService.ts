@@ -6,7 +6,6 @@ import { CommunityQueryDto } from '../dto/community-query.dto';
 import { CreateCommunity } from '../dto/community-create.dto';
 
 export interface ICommunityService {
-  addUser(userId: number, communityId: number): Promise<CommunityResponse>;
   findById(id: number, user?: RequestUser): Promise<CommunityResponse>;
   findUserCommunities(userId: number): Promise<CommunityResponse[]>;
   findAll(

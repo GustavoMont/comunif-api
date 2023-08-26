@@ -4,6 +4,7 @@ import communities from './fixtures/communities';
 import users from './fixtures/users';
 import communitiesChannels from './fixtures/community-channels';
 import resetPasswordsCode from './fixtures/reset-password-codes';
+import communityHasUsers from './fixtures/community-has-users';
 
 const db = new PrismaClient();
 
@@ -31,6 +32,11 @@ const main = async () => {
     }
     for (const data of resetPasswordsCode) {
       await db.resetPasswordCode.create({
+        data,
+      });
+    }
+    for (const data of communityHasUsers) {
+      await db.communityHasUsers.create({
         data,
       });
     }
