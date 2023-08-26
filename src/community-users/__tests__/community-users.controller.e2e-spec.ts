@@ -8,15 +8,26 @@ import users from '../../../prisma/fixtures/users';
 import { User } from '@prisma/client';
 import communitiesChannels from '../../../prisma/fixtures/community-channels';
 import channelTypes from '../../../prisma/fixtures/channel-types';
-import { includeCommunityChannels } from '../../utils/tests-e2e';
+import {
+  getCommunityMembers,
+  includeCommunityChannels,
+} from '../../utils/tests-e2e';
 import { CommunityResponse } from 'src/community/dto/community-response.dto';
 import { CommunityUsersModule } from '../community-users.module';
+import { ListResponse } from 'src/dtos/list.dto';
+import communityHasUsers from '../../../prisma/fixtures/community-has-users';
+import { UserResponse } from 'src/user/dto/user-response.dto';
 
 describe('Community controller', () => {
   let app: INestApplication;
   let token: string;
   let user: User;
   const community = communities.find(({ id }) => id === 1);
+  const communityMembers = getCommunityMembers({
+    communityHasUsers,
+    users,
+    communityId: 1,
+  });
   const allComunities = communities.map<CommunityResponse>((community) =>
     plainToInstance(CommunityResponse, {
       ...community,
@@ -50,6 +61,44 @@ describe('Community controller', () => {
       .send({ username: user.username, password: '12345678S' })
       .expect(201);
     token = loginRes.body.access;
+  });
+  describe('/GET', () => {
+    describe('list community memeber', () => {
+      const route = '/api/community-users/1/members';
+      it('should throw unauthorized exception', async () => {
+        return request(app.getHttpServer())
+          .get(route)
+          .expect(401)
+          .send({ communityId: community.id })
+          .expect({
+            statusCode: 401,
+            message: 'Unauthorized',
+          });
+      });
+      it('should throw community not found', () => {
+        return request(app.getHttpServer())
+          .get('/api/community-users/100/members')
+          .set('Authorization', 'Bearer ' + token)
+          .expect(404)
+          .expect({
+            statusCode: 404,
+            message: 'Comunidade não encontrada',
+          });
+      });
+      it('should list communities members', () => {
+        const expectedResponse = new ListResponse<UserResponse>(
+          plainToInstance(UserResponse, communityMembers),
+          communityMembers.length,
+          1,
+          20,
+        );
+        return request(app.getHttpServer())
+          .get(route)
+          .set('Authorization', 'Bearer ' + token)
+          .expect(200)
+          .expect(instanceToPlain(expectedResponse));
+      });
+    });
   });
   describe('/POST', () => {
     describe('add user in community', () => {

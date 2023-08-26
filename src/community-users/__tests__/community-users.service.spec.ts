@@ -4,9 +4,15 @@ import { UserService } from 'src/user/user.service';
 import { ICommunityService } from 'src/community/interfaces/ICommunityService';
 import { ICommunityUsersRepostory } from '../interfaces/ICommunityUserRepository';
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { communityGenerator, userGenerator } from 'src/utils/generators';
+import {
+  arrayGenerator,
+  communityGenerator,
+  userGenerator,
+} from 'src/utils/generators';
 import { CommunityResponse } from 'src/community/dto/community-response.dto';
 import { plainToInstance } from 'class-transformer';
+import { ListResponse } from 'src/dtos/list.dto';
+import { UserResponse } from 'src/user/dto/user-response.dto';
 
 describe('CommunityUsersService', () => {
   let service: CommunityUsersService;
@@ -23,6 +29,8 @@ describe('CommunityUsersService', () => {
           useValue: {
             addUser: jest.fn(),
             findUser: jest.fn(),
+            findCommunityMembers: jest.fn(),
+            countCommunityMembers: jest.fn(),
           } as ICommunityUsersRepostory,
         },
         {
@@ -118,6 +126,37 @@ describe('CommunityUsersService', () => {
 
       expect(plainToInstance(CommunityResponse, result)).toEqual(
         plainToInstance(CommunityResponse, { ...community, isMember: true }),
+      );
+    });
+  });
+  describe('List community members', () => {
+    it('should throw community not found', async () => {
+      jest
+        .spyOn(communityService, 'findById')
+        .mockRejectedValue(
+          new HttpException('Comunidade não encontrada', HttpStatus.NOT_FOUND),
+        );
+      await expect(service.findCommunityMembers(1)).rejects.toThrowError(
+        new HttpException('Comunidade não encontrada', HttpStatus.NOT_FOUND),
+      );
+      expect(repository.findCommunityMembers).not.toBeCalled();
+      expect(communityService.findById).toBeCalledWith(1);
+    });
+    it('should return list of communityMembers', async () => {
+      const total = 10;
+      jest
+        .spyOn(communityService, 'findById')
+        .mockResolvedValue(
+          plainToInstance(CommunityResponse, communityGenerator()),
+        );
+
+      const members = arrayGenerator(5, userGenerator);
+      const membersResponse = plainToInstance(UserResponse, members);
+      jest.spyOn(repository, 'countCommunityMembers').mockResolvedValue(total);
+      jest.spyOn(repository, 'findCommunityMembers').mockResolvedValue(members);
+      const result = await service.findCommunityMembers(1, 1, 5);
+      expect(result).toStrictEqual(
+        new ListResponse<UserResponse>(membersResponse, total, 1, 5),
       );
     });
   });

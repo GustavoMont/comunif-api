@@ -1,4 +1,9 @@
-import { ChannelType, CommunityChannel } from '@prisma/client';
+import {
+  ChannelType,
+  CommunityChannel,
+  CommunityHasUsers,
+  User,
+} from '@prisma/client';
 
 interface includeCommunityChannelsParams {
   communitiesChannels: CommunityChannel[];
@@ -37,4 +42,23 @@ export const includeCommunityChannels = ({
       channelType,
     };
   }) as any;
+};
+
+interface GetCommunityMembersParams {
+  communityHasUsers: CommunityHasUsers[];
+  users: User[];
+  communityId: number;
+}
+
+export const getCommunityMembers = ({
+  communityHasUsers,
+  communityId,
+  users,
+}: GetCommunityMembersParams) => {
+  const communityHasUsersFiltered = communityHasUsers.filter(
+    ({ communityId: community }) => community === communityId,
+  );
+  const usersIds = communityHasUsersFiltered.map(({ userId }) => userId);
+  const members = users.filter(({ id }) => usersIds.includes(id));
+  return members;
 };
