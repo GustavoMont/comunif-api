@@ -16,4 +16,9 @@ export default [
     name: 'chat',
     description: 'Canal para conversa entre os integrantes da comunidade',
   },
+  {
+    id: 4,
+    name: 'doubts',
+    description: 'Canal para conversa entre os integrantes da comunidade',
+  },
 ] as ChannelType[];
