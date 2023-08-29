@@ -23,6 +23,18 @@ export class CommunityService extends Service implements ICommunityService {
   ) {
     super();
   }
+  async findByChannelId(
+    communityChannelId: number,
+  ): Promise<CommunityResponse> {
+    const community = await this.repository.findByChannelId(communityChannelId);
+    if (!community) {
+      throw new HttpException(
+        'Comunidade não encontrada',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return plainToInstance(CommunityResponse, community);
+  }
   async delete(user: RequestUser, id: number): Promise<void> {
     this.handleForbiddenException(user.roles[0]);
     await this.findById(id, user);

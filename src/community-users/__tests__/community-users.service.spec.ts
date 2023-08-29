@@ -160,4 +160,16 @@ describe('CommunityUsersService', () => {
       );
     });
   });
+  describe('check if user is in community', () => {
+    it('should return true', async () => {
+      jest.spyOn(repository, 'findUser').mockResolvedValue(userGenerator());
+      const result = await service.isUserInCommunity(1, 1);
+      expect(result).toBeTruthy();
+    });
+    it('should return false', async () => {
+      jest.spyOn(repository, 'findUser').mockResolvedValue(null);
+      const result = await service.isUserInCommunity(1, 1);
+      expect(result).not.toBeTruthy();
+    });
+  });
 });

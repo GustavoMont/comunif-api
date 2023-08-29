@@ -9,6 +9,7 @@ export interface ICommunityUsersService {
     page: number,
     take: number,
   ): Promise<ListResponse<UserResponse>>;
+  isUserInCommunity(userId: number, communityId: number): Promise<boolean>;
 }
 
 export const ICommunityUsersService = Symbol('ICommunityUsersService');

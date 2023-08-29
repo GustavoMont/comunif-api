@@ -15,6 +15,7 @@ export interface ICommunityRepository {
   create(newCommunity: Community): Promise<Community>;
   delete(id: number): Promise<void>;
   findUser(communityId: number, userId: number): Promise<User>;
+  findByChannelId(communityChannelId: number): Promise<Community>;
 }
 
 export const ICommunityRepository = Symbol('ICommunityRepository');

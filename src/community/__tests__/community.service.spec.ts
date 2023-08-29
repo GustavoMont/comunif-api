@@ -41,6 +41,7 @@ describe('Community Service', () => {
             count: jest.fn(),
             create: jest.fn(),
             delete: jest.fn(),
+            findByChannelId: jest.fn(),
           } as ICommunityRepository,
         },
         {
@@ -280,6 +281,22 @@ describe('Community Service', () => {
       await communityService.delete(admin, 1);
       expect(repository.findById).toBeCalledWith(1);
       expect(repository.delete).toBeCalledWith(1);
+    });
+  });
+  describe('get community by channel id', () => {
+    it('should throw community not found', async () => {
+      jest.spyOn(repository, 'findByChannelId').mockResolvedValue(null);
+      await expect(communityService.findByChannelId(1)).rejects.toThrowError(
+        new HttpException('Comunidade não encontrada', HttpStatus.NOT_FOUND),
+      );
+    });
+    it('should return community', async () => {
+      const community = communityGenerator();
+      jest.spyOn(repository, 'findByChannelId').mockResolvedValue(community);
+      const result = await communityService.findByChannelId(1);
+      expect(result).toStrictEqual(
+        plainToInstance(CommunityResponse, community),
+      );
     });
   });
 });

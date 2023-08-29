@@ -5,12 +5,11 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Inject, Logger } from '@nestjs/common';
-import { IMessageGateway } from './interfaces/IMessageGatewat';
+import { IMessageGateway } from './interfaces/IMessageGateway';
 import { MessagePayload } from './dtos/message-payload.dto';
 import { IMessageService } from './interfaces/IMessageService';
 import { JoinChannelDto } from './dtos/join-channel.dto';
 import { MessageResponse } from './dtos/message-response.dto';
-
 @WebSocketGateway({
   cors: {
     origin: 'http://localhost:3001',
@@ -52,6 +51,7 @@ export class MessageGateway implements IMessageGateway {
     client.join(payload.communityChannelId.toString());
     const listMessages = await this.service.findByChannelId(
       payload.communityChannelId,
+      'socket',
     );
     return listMessages.results;
   }

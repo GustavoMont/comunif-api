@@ -5,12 +5,15 @@ import { CommunityModule } from 'src/community/community.module';
 import { PrismaClient } from '@prisma/client';
 import { MessageRepository } from './message.repository.service';
 import { IMessageRepository } from './interfaces/IMessageRepository';
-import { IMessageGateway } from './interfaces/IMessageGatewat';
+import { IMessageGateway } from './interfaces/IMessageGateway';
 import { IMessageService } from './interfaces/IMessageService';
+import { MessageController } from './message.controller';
+import { CommunityUsersModule } from 'src/community-users/community-users.module';
 
 @Module({
-  imports: [CommunityModule],
+  imports: [CommunityModule, CommunityUsersModule],
   providers: [
+    PrismaClient,
     {
       provide: IMessageGateway,
       useClass: MessageGateway,
@@ -19,11 +22,11 @@ import { IMessageService } from './interfaces/IMessageService';
       provide: IMessageService,
       useClass: MessageService,
     },
-    PrismaClient,
     {
       provide: IMessageRepository,
       useClass: MessageRepository,
     },
   ],
+  controllers: [MessageController],
 })
 export class MessageModule {}

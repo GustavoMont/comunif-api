@@ -7,6 +7,24 @@ import { User } from 'src/models/User';
 @Injectable()
 export class CommunityRepository implements ICommunityRepository {
   constructor(private readonly db: PrismaClient) {}
+  async findByChannelId(communityChannelId: number): Promise<Community> {
+    const communityChannel = await this.db.communityChannel.findUnique({
+      where: { id: communityChannelId },
+      include: {
+        community: {
+          include: {
+            communityChannels: {
+              include: {
+                channelType: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return communityChannel?.community;
+  }
   async findUser(communityId: number, userId: number): Promise<User> {
     const result = await this.db.communityHasUsers.findFirst({
       where: {

@@ -7,6 +7,7 @@ import * as moment from 'moment';
 import { Community } from 'src/models/Community';
 import { Message } from 'src/models/Message';
 import { RoleEnum, User } from 'src/models/User';
+import { RequestUser } from 'src/types/RequestUser';
 import { v4 } from 'uuid';
 
 type Generator<T> = (change?: Partial<T>) => T;
@@ -40,6 +41,13 @@ export const userGenerator: Generator<User> = (change) => ({
   bio: null,
   role: RoleEnum.user,
   ...change,
+});
+
+export const requestUserGenerator: Generator<RequestUser> = (user) => ({
+  id: 1,
+  roles: [RoleEnum.user],
+  username: 'username',
+  ...user,
 });
 
 const communityChannelGenerator: Generator<CommunityChannel> = (changes) => ({

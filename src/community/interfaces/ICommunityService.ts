@@ -17,6 +17,7 @@ export interface ICommunityService {
   update(id: number, changes: CommunityUpdate): Promise<CommunityResponse>;
   create(user: RequestUser, body: CreateCommunity): Promise<CommunityResponse>;
   delete(user: RequestUser, id: number): Promise<void>;
+  findByChannelId(communityChannelId: number): Promise<CommunityResponse>;
 }
 
 export const ICommunityService = Symbol('ICommunityService');

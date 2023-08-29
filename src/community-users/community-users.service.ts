@@ -43,12 +43,12 @@ export class CommunityUsersService
     userId: number,
   ): Promise<CommunityResponse> {
     await this.userService.findById(userId);
+
     await this.communityService.findById(communityId);
-    const userIsInCommunity = await this.repository.findUser(
-      communityId,
-      userId,
-    );
-    if (!!userIsInCommunity) {
+
+    const isUserInCommunity = await this.isUserInCommunity(userId, communityId);
+
+    if (isUserInCommunity) {
       throw new HttpException(
         'Usuário já está nessa comunidade',
         HttpStatus.BAD_REQUEST,
@@ -56,5 +56,12 @@ export class CommunityUsersService
     }
     const community = await this.repository.addUser(communityId, userId);
     return plainToInstance(CommunityResponse, { ...community, isMember: true });
+  }
+  async isUserInCommunity(
+    userId: number,
+    communityId: number,
+  ): Promise<boolean> {
+    const user = await this.repository.findUser(communityId, userId);
+    return Boolean(user);
   }
 }
