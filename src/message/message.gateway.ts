@@ -9,7 +9,6 @@ import { IMessageGateway } from './interfaces/IMessageGateway';
 import { MessagePayload } from './dtos/message-payload.dto';
 import { IMessageService } from './interfaces/IMessageService';
 import { JoinChannelDto } from './dtos/join-channel.dto';
-import { MessageResponse } from './dtos/message-response.dto';
 @WebSocketGateway({
   cors: {
     origin: 'http://localhost:3001',
@@ -44,15 +43,7 @@ export class MessageGateway implements IMessageGateway {
     this.server.to(room).emit('message-channel', message);
   }
   @SubscribeMessage('join-channel')
-  async onJoinChannel(
-    client: Socket,
-    payload: JoinChannelDto,
-  ): Promise<MessageResponse[]> {
+  async onJoinChannel(client: Socket, payload: JoinChannelDto): Promise<void> {
     client.join(payload.communityChannelId.toString());
-    const listMessages = await this.service.findByChannelId(
-      payload.communityChannelId,
-      'socket',
-    );
-    return listMessages.results;
   }
 }
