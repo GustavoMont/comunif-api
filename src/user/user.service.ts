@@ -7,6 +7,7 @@ import { UserRepository } from './user-repository.service';
 import { User } from 'src/models/User';
 import * as bcrypt from 'bcrypt';
 import { env } from 'src/constants/env';
+import { PasswordDto } from 'src/auth/dto/password.dto';
 @Injectable()
 export class UserService implements IUserService {
   constructor(private readonly repository: UserRepository) {}
@@ -25,7 +26,7 @@ export class UserService implements IUserService {
     return plainToInstance(getPassword ? User : UserResponse, user);
   }
 
-  async changePassword(userId, body): Promise<void> {
+  async changePassword(userId: number, body: PasswordDto): Promise<void> {
     if (body.password !== body.confirmPassword) {
       throw new HttpException('Senhas não coincidem', HttpStatus.BAD_REQUEST);
     }
