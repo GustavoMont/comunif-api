@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CommunityUsersService } from '../community-users.service';
-import { UserService } from 'src/user/user.service';
 import { ICommunityService } from 'src/community/interfaces/ICommunityService';
 import { ICommunityUsersRepostory } from '../interfaces/ICommunityUserRepository';
 import { HttpException, HttpStatus } from '@nestjs/common';
@@ -13,11 +12,12 @@ import { CommunityResponse } from 'src/community/dto/community-response.dto';
 import { plainToInstance } from 'class-transformer';
 import { ListResponse } from 'src/dtos/list.dto';
 import { UserResponse } from 'src/user/dto/user-response.dto';
+import { IUserService } from 'src/user/interfaces/IUserService';
 
 describe('CommunityUsersService', () => {
   let service: CommunityUsersService;
   let repository: ICommunityUsersRepostory;
-  let userService: UserService;
+  let userService: IUserService;
   let communityService: ICommunityService;
 
   beforeEach(async () => {
@@ -34,7 +34,7 @@ describe('CommunityUsersService', () => {
           } as ICommunityUsersRepostory,
         },
         {
-          provide: UserService,
+          provide: IUserService,
           useValue: {
             findById: jest.fn(),
             findAll: jest.fn(),
@@ -51,7 +51,7 @@ describe('CommunityUsersService', () => {
 
     service = module.get<CommunityUsersService>(CommunityUsersService);
     repository = module.get<ICommunityUsersRepostory>(ICommunityUsersRepostory);
-    userService = module.get<UserService>(UserService);
+    userService = module.get<IUserService>(IUserService);
     communityService = module.get<ICommunityService>(ICommunityService);
   });
 

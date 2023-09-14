@@ -15,12 +15,12 @@ import {
   userTokenGenerator,
 } from 'src/utils/generators';
 import { ResetPasswordResponseDto } from '../dto/reset-password.dto';
-import { UserRepository } from 'src/user/user-repository.service';
 import { RequestUser } from 'src/types/RequestUser';
 import { RoleEnum } from 'src/models/User';
 import * as uuid from 'uuid';
 import { AuthRepository } from '../auth.repository.service';
 import * as moment from 'moment';
+import { IUserRepository } from 'src/user/interfaces/IUserRepository';
 jest.mock('bcrypt', () => ({
   hash: jest.fn(),
   compare: jest.fn(),
@@ -33,8 +33,7 @@ jest.mock('uuid', () => ({
 describe('AuthService', () => {
   let authService: AuthService;
   let authRepository: AuthRepository;
-
-  let userRepository: UserRepository;
+  let userRepository: IUserRepository;
   let jwtService: JwtService;
   let securityCodeService: SecurityCodeService;
   let mailService: MailService;
@@ -45,7 +44,7 @@ describe('AuthService', () => {
       providers: [
         AuthService,
         {
-          provide: UserRepository,
+          provide: IUserRepository,
           useValue: {
             findByUsername: jest.fn(),
             findByEmail: jest.fn(),
@@ -86,7 +85,7 @@ describe('AuthService', () => {
     }).compile();
 
     authService = module.get<AuthService>(AuthService);
-    userRepository = module.get<UserRepository>(UserRepository);
+    userRepository = module.get<IUserRepository>(IUserRepository);
     jwtService = module.get<JwtService>(JwtService);
     securityCodeService = module.get<SecurityCodeService>(SecurityCodeService);
     mailService = module.get<MailService>(MailService);

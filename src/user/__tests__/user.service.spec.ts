@@ -2,12 +2,13 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { User } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
-import { userGenerator } from 'src/utils/generators';
+import { arrayGenerator, userGenerator } from 'src/utils/generators';
 import { UserResponse } from '../dto/user-response.dto';
-import { UserRepository } from '../user-repository.service';
 import { UserService } from '../user.service';
 import { SecurityCodeService } from 'src/security-code/security-code.service';
 import { MailService } from 'src/mail/mail.service';
+import { ListResponse } from 'src/dtos/list.dto';
+import { IUserRepository } from '../interfaces/IUserRepository';
 
 jest.mock('bcrypt', () => ({
   hash: jest.fn(),
@@ -15,20 +16,22 @@ jest.mock('bcrypt', () => ({
 }));
 describe('Teste USer Service', () => {
   let userService: UserService;
-  let userRepository: UserRepository;
+  let userRepository: IUserRepository;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserService,
         {
-          provide: UserRepository,
+          provide: IUserRepository,
           useValue: {
             findByUsername: jest.fn(),
             findByEmail: jest.fn(),
             create: jest.fn(),
             findById: jest.fn(),
+            findAll: jest.fn(),
             update: jest.fn(),
+            count: jest.fn(),
           },
         },
         {
@@ -49,12 +52,25 @@ describe('Teste USer Service', () => {
     }).compile();
 
     userService = module.get<UserService>(UserService);
-    userRepository = module.get<UserRepository>(UserRepository);
+    userRepository = module.get<IUserRepository>(IUserRepository);
   });
 
   it('should be defined', () => {
     expect(userService).toBeDefined();
     expect(userRepository).toBeDefined();
+  });
+  describe('findAll', () => {
+    it('should return list of users', async () => {
+      const users = arrayGenerator(5, userGenerator);
+      const total = 10;
+      jest.spyOn(userRepository, 'count').mockResolvedValue(total);
+      jest.spyOn(userRepository, 'findAll').mockResolvedValue(users);
+      const result = await userService.findAll(1, 5);
+      const usersResponse = plainToInstance(UserResponse, users);
+      expect(result).toStrictEqual(
+        new ListResponse(usersResponse, total, 1, 5),
+      );
+    });
   });
   describe('get by id', () => {
     it('should throw not found exception', async () => {
@@ -125,32 +141,4 @@ describe('Teste USer Service', () => {
       expect(userRepository.findByUsername).toBeCalledWith('username');
     });
   });
-
-  // describe('change password', () => {
-  //   const user = userGenerator();
-  //   const resetCode = {
-  //     ...resetPasswordCodeGenerator({ code }),
-  //     user,
-  //   };
-  //   beforeEach(() => {
-  //     jest
-  //       .spyOn(securityCodeService, 'findByCode')
-  //       .mockResolvedValue(resetCode);
-  //     jest.spyOn(userRepository, 'update').mockResolvedValue(userGenerator());
-  //     jest.spyOn(mailService, 'passwordUpdated').mockResolvedValue();
-  //   });
-
-  //   it('should change password', async () => {
-  //     await userService.changePassword({
-  //       code,
-  //       email: 'hashed',
-  //       confirmPassword: 'senha',
-  //       password: 'senha',
-  //     });
-  //     expect(securityCodeService.findByCode).toBeCalledWith(code);
-  //     expect(userRepository.update).toBeCalled();
-  //     expect(mailService.passwordUpdated).toBeCalledWith(user);
-  //     expect(bcrypt.compare).toBeCalled();
-  //   });
-  // });
 });

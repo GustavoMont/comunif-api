@@ -6,6 +6,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { UserResponse } from '../dto/user-response.dto';
 import users from '../../../prisma/fixtures/users';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
+import { ListResponse } from 'src/dtos/list.dto';
 
 describe('Users', () => {
   let token: string;
@@ -40,11 +41,14 @@ describe('Users', () => {
         .expect(instanceToPlain(plainToInstance(UserResponse, user)));
     });
     it('should return list of user response', async () => {
+      const usersResponse = plainToInstance(UserResponse, users);
       return request(app.getHttpServer())
         .get('/api/users/')
         .set('Authorization', 'Bearer ' + token)
         .expect(200)
-        .expect(instanceToPlain(plainToInstance(UserResponse, users)));
+        .expect(
+          instanceToPlain(new ListResponse(usersResponse, users.length, 1, 20)),
+        );
     });
     it('should throw unauthorized', async () => {
       await request(app.getHttpServer())

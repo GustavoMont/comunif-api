@@ -2,10 +2,12 @@ import {
   Body,
   Controller,
   Get,
+  Inject,
   Param,
   ParseFilePipe,
   ParseIntPipe,
   Patch,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -16,14 +18,15 @@ import { OwnerGuard } from 'src/auth/guards/owner-auth.guard';
 import { UserResponse } from './dto/user-response.dto';
 import { UserUpdate } from './dto/user-update.dto';
 import { SharpPipe } from '../pipes/sharp-image.pipe';
-import { UserService } from './user.service';
 import { avatarUploadOptions, validators } from 'src/config/image-uploads';
 import { UserUpdatePipe } from './pipes/user-update.pipe';
 import { PathPipe } from 'src/pipes/image-path.pipe';
+import { ListResponse } from 'src/dtos/list.dto';
+import { IUserService } from './interfaces/IUserService';
 
 @Controller('/api/users')
 export class UserController {
-  constructor(private readonly service: UserService) {}
+  constructor(@Inject(IUserService) private readonly service: IUserService) {}
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
@@ -32,8 +35,11 @@ export class UserController {
   }
   @UseGuards(JwtAuthGuard)
   @Get()
-  async findAll(): Promise<UserResponse[]> {
-    return await this.service.findAll();
+  async findAll(
+    @Query('page') page,
+    @Query('take') take,
+  ): Promise<ListResponse<UserResponse>> {
+    return await this.service.findAll(page, take);
   }
 
   @UseGuards(JwtAuthGuard, OwnerGuard)

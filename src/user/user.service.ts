@@ -1,16 +1,23 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { UserResponse } from './dto/user-response.dto';
 import { UserUpdate } from './dto/user-update.dto';
 import { IUserService } from './interfaces/IUserService';
-import { UserRepository } from './user-repository.service';
 import { User } from 'src/models/User';
 import * as bcrypt from 'bcrypt';
 import { env } from 'src/constants/env';
 import { PasswordDto } from 'src/auth/dto/password.dto';
+import { serviceConstants } from 'src/constants/service.constants';
+import { Service } from 'src/utils/services';
+import { ListResponse } from 'src/dtos/list.dto';
+import { IUserRepository } from './interfaces/IUserRepository';
 @Injectable()
-export class UserService implements IUserService {
-  constructor(private readonly repository: UserRepository) {}
+export class UserService extends Service implements IUserService {
+  constructor(
+    @Inject(IUserRepository) private readonly repository: IUserRepository,
+  ) {
+    super();
+  }
   async create(user: User): Promise<User> {
     const newUser = await this.repository.create(user);
     return newUser as User;
@@ -32,7 +39,7 @@ export class UserService implements IUserService {
     }
     await this.repository.update(userId, {
       password: await bcrypt.hash(body.password, 10),
-    });
+    } as UserUpdate);
   }
 
   async emailExists(email: string): Promise<boolean> {
@@ -54,9 +61,17 @@ export class UserService implements IUserService {
     }
     return plainToInstance(UserResponse, user);
   }
-  async findAll(): Promise<UserResponse[]> {
-    const users = await this.repository.findAll();
-    return plainToInstance(UserResponse, users);
+  async findAll(
+    page = 1,
+    take = serviceConstants.take,
+  ): Promise<ListResponse<UserResponse>> {
+    const skip = this.generateSkip(page, take);
+    const [users, total] = await Promise.all([
+      this.repository.findAll({ skip, take }),
+      this.repository.count(),
+    ]);
+    const userResponse = plainToInstance(UserResponse, users);
+    return new ListResponse(userResponse, total, page, take);
   }
   async update(id: number, changes: UserUpdate): Promise<UserResponse> {
     if (changes.username) {
@@ -67,6 +82,7 @@ export class UserService implements IUserService {
         throw new HttpException('Username já em uso', HttpStatus.BAD_REQUEST);
       }
     }
+    delete changes.password;
     if (changes.avatar) {
       changes.avatar = `${env.domain}/${changes.avatar}`;
     }

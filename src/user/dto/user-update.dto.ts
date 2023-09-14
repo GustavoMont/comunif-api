@@ -9,7 +9,6 @@ export class UserUpdate implements User {
   @Exclude()
   email: string;
   username: string;
-  @Exclude()
   password: string;
   birthday: Date;
   bio: string;

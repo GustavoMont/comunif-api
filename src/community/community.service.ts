@@ -9,16 +9,16 @@ import { CommunityQueryDto } from './dto/community-query.dto';
 import { CreateCommunity } from './dto/community-create.dto';
 import { Community } from 'src/models/Community';
 import { ImageService } from 'src/utils/image.service';
-import { UserService } from 'src/user/user.service';
 import { Service } from 'src/utils/services';
 import { env } from 'src/constants/env';
 import { ICommunityRepository } from './interfaces/ICommunityRepository';
+import { IUserService } from 'src/user/interfaces/IUserService';
 @Injectable()
 export class CommunityService extends Service implements ICommunityService {
   constructor(
     @Inject(ICommunityRepository)
     private readonly repository: ICommunityRepository,
-    private readonly userService: UserService,
+    @Inject(IUserService) private readonly userService: IUserService,
     private readonly imageService: ImageService,
   ) {
     super();

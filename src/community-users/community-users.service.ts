@@ -2,12 +2,12 @@ import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { ICommunityUsersService } from './interfaces/ICommunityUsersService';
 import { CommunityResponse } from 'src/community/dto/community-response.dto';
 import { ICommunityUsersRepostory } from './interfaces/ICommunityUserRepository';
-import { UserService } from 'src/user/user.service';
 import { plainToInstance } from 'class-transformer';
 import { ICommunityService } from 'src/community/interfaces/ICommunityService';
 import { ListResponse } from 'src/dtos/list.dto';
 import { UserResponse } from 'src/user/dto/user-response.dto';
 import { Service } from 'src/utils/services';
+import { IUserService } from 'src/user/interfaces/IUserService';
 
 @Injectable()
 export class CommunityUsersService
@@ -19,7 +19,8 @@ export class CommunityUsersService
     private readonly repository: ICommunityUsersRepostory,
     @Inject(ICommunityService)
     private readonly communityService: ICommunityService,
-    private readonly userService: UserService,
+    @Inject(IUserService)
+    private readonly userService: IUserService,
   ) {
     super();
   }

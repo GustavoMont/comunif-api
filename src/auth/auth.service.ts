@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { TokenDto } from './dto/token-dto';
@@ -15,7 +15,6 @@ import {
   ResetPasswordDto,
   ResetPasswordResponseDto,
 } from './dto/reset-password.dto';
-import { UserRepository } from 'src/user/user-repository.service';
 import { PasswordDto } from './dto/password.dto';
 import { RequestUser } from 'src/types/RequestUser';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -24,11 +23,13 @@ import { AuthRepository } from './auth.repository.service';
 import * as moment from 'moment';
 import { v4 } from 'uuid';
 import { refreshTokenConstants } from './constants/jwt-constants';
+import { IUserRepository } from 'src/user/interfaces/IUserRepository';
+import { UserUpdate } from 'src/user/dto/user-update.dto';
 
 @Injectable()
 export class AuthService implements IAuthService {
   constructor(
-    private userRepository: UserRepository,
+    @Inject(IUserRepository) private userRepository: IUserRepository,
     private jwtService: JwtService,
     private readonly mailService: MailService,
     private readonly securityCodeService: SecurityCodeService,
@@ -47,7 +48,7 @@ export class AuthService implements IAuthService {
     this.isPasswordEqual(password, confirmPassword);
     const user = await this.userRepository.update(userId, {
       password: await bcrypt.hash(password, 10),
-    });
+    } as UserUpdate);
     await this.mailService.passwordUpdated(user as User);
   }
 

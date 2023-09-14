@@ -15,12 +15,12 @@ import { ListResponse } from 'src/dtos/list.dto';
 import { RoleEnum } from 'src/models/User';
 import { CommunityQueryDto } from '../dto/community-query.dto';
 import { ImageService } from 'src/utils/image.service';
-import { UserService } from 'src/user/user.service';
+import { IUserService } from 'src/user/interfaces/IUserService';
 
 describe('Community Service', () => {
   let repository: ICommunityRepository;
   let imageService: ImageService;
-  let userService: UserService;
+  let userService: IUserService;
   let communityService: CommunityService;
   const admin = { id: 1, roles: [RoleEnum.admin], username: 'test' };
   const user = { id: 1, roles: [RoleEnum.user], username: 'test' };
@@ -45,7 +45,7 @@ describe('Community Service', () => {
           } as ICommunityRepository,
         },
         {
-          provide: UserService,
+          provide: IUserService,
           useValue: {
             findById: jest.fn(),
             findAll: jest.fn(),
@@ -59,7 +59,7 @@ describe('Community Service', () => {
         },
       ],
     }).compile();
-    userService = module.get<UserService>(UserService);
+    userService = module.get<IUserService>(IUserService);
     imageService = module.get<ImageService>(ImageService);
     communityService = module.get<CommunityService>(CommunityService);
     repository = module.get<ICommunityRepository>(ICommunityRepository);

@@ -2,12 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { PrismaClient, User } from '@prisma/client';
 import { UserUpdate } from './dto/user-update.dto';
 import { IUserRepository } from './interfaces/IUserRepository';
+import { PaginationDto } from 'src/dtos/pagination.dto';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
   constructor(private readonly db: PrismaClient) {}
-  async findAll(): Promise<User[]> {
-    return await this.db.user.findMany();
+  async count(): Promise<number> {
+    return await this.db.user.count();
+  }
+  async findAll({ skip, take }: PaginationDto): Promise<User[]> {
+    return await this.db.user.findMany({
+      take,
+      skip,
+    });
   }
 
   async findById(id: number): Promise<User> {
