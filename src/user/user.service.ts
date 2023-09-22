@@ -84,7 +84,7 @@ export class UserService extends Service implements IUserService {
     }
     delete changes.password;
     if (changes.avatar) {
-      changes.avatar = `${env.domain}/${changes.avatar}`;
+      changes.avatar = `${process.env.DOMAIN}/${changes.avatar}`;
     }
     const user = await this.repository.update(id, changes);
     if (!user) {

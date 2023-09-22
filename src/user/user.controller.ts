@@ -23,6 +23,7 @@ import { UserUpdatePipe } from './pipes/user-update.pipe';
 import { PathPipe } from 'src/pipes/image-path.pipe';
 import { ListResponse } from 'src/dtos/list.dto';
 import { IUserService } from './interfaces/IUserService';
+import { ParseIntUndefinedPipe } from 'src/pipes/parse-int-undefined.pipe';
 
 @Controller('/api/users')
 export class UserController {
@@ -36,8 +37,8 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Get()
   async findAll(
-    @Query('page') page,
-    @Query('take') take,
+    @Query('page', ParseIntUndefinedPipe) page,
+    @Query('take', ParseIntUndefinedPipe) take,
   ): Promise<ListResponse<UserResponse>> {
     return await this.service.findAll(page, take);
   }

@@ -115,11 +115,11 @@ export class AuthService implements IAuthService {
     if (!accessToken) {
       throw new HttpException(errorMessage, HttpStatus.UNAUTHORIZED);
     }
-    const {
-      sub: userId,
-      roles,
-      username,
-    } = this.jwtService.decode(accessToken) as TokenPayload;
+    const tokenPayload = this.jwtService.decode(accessToken) as TokenPayload;
+    if (!tokenPayload) {
+      throw new HttpException(errorMessage, HttpStatus.UNAUTHORIZED);
+    }
+    const { roles, sub: userId, username } = tokenPayload;
     const userToken = await this.authRepository.findByUserId(userId);
     if (!userToken) {
       throw new HttpException(errorMessage, HttpStatus.UNAUTHORIZED);
