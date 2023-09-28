@@ -10,6 +10,8 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { MailModule } from 'src/mail/mail.module';
 import { SecurityCodeModule } from 'src/security-code/security-code.module';
 import { AuthRepository } from './auth.repository.service';
+import { IAuthRepository } from './interfaces/IAuthRepository';
+import { IAuthService } from './interfaces/IAuthService';
 
 @Module({
   imports: [
@@ -25,13 +27,19 @@ import { AuthRepository } from './auth.repository.service';
     SecurityCodeModule,
   ],
   providers: [
-    AuthService,
+    {
+      provide: IAuthService,
+      useClass: AuthService,
+    },
     PrismaClient,
     LocalStrategy,
     JwtStrategy,
-    AuthRepository,
+    {
+      provide: IAuthRepository,
+      useClass: AuthRepository,
+    },
   ],
   controllers: [AuthController],
-  exports: [AuthService],
+  exports: [IAuthService],
 })
 export class AuthModule {}

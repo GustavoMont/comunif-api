@@ -7,7 +7,7 @@ import {
   ResetPasswordDto,
   ResetPasswordResponseDto,
 } from '../dto/reset-password.dto';
-import { PasswordDto } from '../dto/password.dto';
+import { PasswordDto } from '../../user/dto/password.dto';
 import { RequestUser } from 'src/types/RequestUser';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
 
@@ -21,3 +21,5 @@ export interface IAuthService {
   changePassword(user: RequestUser, password: PasswordDto): Promise<void>;
   refreshToken(body: RefreshTokenDto, accessToken: string): Promise<TokenDto>;
 }
+
+export const IAuthService = Symbol('IAuthService');

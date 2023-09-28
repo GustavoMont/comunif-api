@@ -13,6 +13,5 @@ export class UserResponse implements User {
   birthday: Date;
   bio: string;
   avatar: string;
-  @Exclude()
   role: RoleEnum;
 }

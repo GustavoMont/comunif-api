@@ -1,8 +1,10 @@
 import { ResetPasswordCode } from '@prisma/client';
 
-export abstract class ISecurityCodeRepository {
-  abstract findByCode(code: string): Promise<ResetPasswordCode | null>;
-  abstract createCode(code: string, userId: number): Promise<ResetPasswordCode>;
-  abstract getUserCode(userId: number): Promise<ResetPasswordCode>;
-  abstract deletePassword(id: number): Promise<void>;
+export interface ISecurityCodeRepository {
+  findByCode(code: string): Promise<ResetPasswordCode | null>;
+  createCode(code: string, userId: number): Promise<ResetPasswordCode>;
+  getUserCode(userId: number): Promise<ResetPasswordCode>;
+  deletePassword(id: number): Promise<void>;
 }
+
+export const ISecurityCodeRepository = Symbol('ISecurityCodeRepository');

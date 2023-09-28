@@ -7,6 +7,7 @@ import {
   ParseFilePipe,
   ParseIntPipe,
   Patch,
+  Post,
   Query,
   UploadedFile,
   UseGuards,
@@ -24,10 +25,26 @@ import { PathPipe } from 'src/pipes/image-path.pipe';
 import { ListResponse } from 'src/dtos/list.dto';
 import { IUserService } from './interfaces/IUserService';
 import { ParseIntUndefinedPipe } from 'src/pipes/parse-int-undefined.pipe';
+import { RolesGuard } from 'src/auth/guards/role.guard';
+import { RoleEnum } from 'src/models/User';
+import { Roles } from 'src/decorators/roles.decorator';
+import { UserCreate } from './dto/user-create.dto';
+import { RequestUser } from 'src/types/RequestUser';
+import { User } from 'src/decorators/request-user.decorator';
 
 @Controller('/api/users')
 export class UserController {
   constructor(@Inject(IUserService) private readonly service: IUserService) {}
+
+  @Post()
+  @Roles(RoleEnum.admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async create(
+    @Body() body: UserCreate,
+    @User() user: RequestUser,
+  ): Promise<UserResponse> {
+    return await this.service.create(body, user);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')

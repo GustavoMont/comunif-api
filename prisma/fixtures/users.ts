@@ -25,6 +25,7 @@ export default [
     birthday: new Date('2000-06-27T00:00:00.000Z'),
     avatar: null,
     bio: null,
+    role: RoleEnum.user,
   },
   {
     id: 3,
@@ -36,6 +37,7 @@ export default [
     birthday: new Date('2000-06-27T00:00:00.000Z'),
     avatar: null,
     bio: null,
+    role: RoleEnum.user,
   },
   {
     id: 4,
@@ -47,6 +49,7 @@ export default [
     birthday: new Date('2000-06-27T00:00:00.000Z'),
     avatar: null,
     bio: null,
+    role: RoleEnum.user,
   },
   {
     id: 5,
@@ -58,6 +61,7 @@ export default [
     birthday: new Date('2000-06-27T00:00:00.000Z'),
     avatar: null,
     bio: null,
+    role: RoleEnum.user,
   },
   {
     id: 6,
@@ -69,6 +73,7 @@ export default [
     birthday: new Date('2000-06-27T00:00:00.000Z'),
     avatar: null,
     bio: null,
+    role: RoleEnum.user,
   },
   {
     id: 7,
@@ -80,5 +85,6 @@ export default [
     birthday: new Date('2000-06-27T00:00:00.000Z'),
     avatar: null,
     bio: null,
+    role: RoleEnum.user,
   },
 ] as User[];

@@ -5,12 +5,13 @@ import { UserUpdate } from './dto/user-update.dto';
 import { IUserService } from './interfaces/IUserService';
 import { User } from 'src/models/User';
 import * as bcrypt from 'bcrypt';
-import { env } from 'src/constants/env';
-import { PasswordDto } from 'src/auth/dto/password.dto';
 import { serviceConstants } from 'src/constants/service.constants';
 import { Service } from 'src/utils/services';
 import { ListResponse } from 'src/dtos/list.dto';
 import { IUserRepository } from './interfaces/IUserRepository';
+import { PasswordDto } from './dto/password.dto';
+import { UserCreate } from './dto/user-create.dto';
+import { RequestUser } from 'src/types/RequestUser';
 @Injectable()
 export class UserService extends Service implements IUserService {
   constructor(
@@ -18,28 +19,81 @@ export class UserService extends Service implements IUserService {
   ) {
     super();
   }
-  async create(user: User): Promise<User> {
-    const newUser = await this.repository.create(user);
-    return newUser as User;
-  }
-  async findByUsername(
+  async validateUser(
     username: string,
-    getPassword = false,
+    password: string,
   ): Promise<UserResponse> {
     const user = await this.repository.findByUsername(username);
+
     if (!user) {
-      throw new HttpException('Usuário não encontrado.', HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        'Usuário ou senha incorretos',
+        HttpStatus.FORBIDDEN,
+      );
     }
-    return plainToInstance(getPassword ? User : UserResponse, user);
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    if (!isPasswordCorrect) {
+      throw new HttpException(
+        'Usuário ou senha incorretos',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    return plainToInstance(UserResponse, user);
+  }
+  passwordMatches(password: string, confirmPassword: string) {
+    if (password !== confirmPassword) {
+      throw new HttpException('Senhas não coincidem', HttpStatus.BAD_REQUEST);
+    }
+  }
+  async create(body: UserCreate, currentUser?: RequestUser): Promise<User> {
+    this.passwordMatches(body.password, body.confirmPassword);
+    const emailExists = await this.emailExists(body.email);
+    if (emailExists) {
+      throw new HttpException('E-mail já cadastrado', HttpStatus.BAD_REQUEST);
+    }
+    const usernameExists = await this.usernameExists(body.username);
+    if (!!usernameExists) {
+      throw new HttpException(
+        'Username não disponível',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const isCreatingAdmin = this.isAdmin(body.role);
+    const currentUserIsAdmin = this.isAdmin(currentUser?.roles[0]);
+    if (isCreatingAdmin && !currentUserIsAdmin) {
+      throw new HttpException(
+        'Você não tem permissão para executar essa ação',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    delete body.confirmPassword;
+    const hashedPassword = await bcrypt.hash(body.password, 10);
+    const user = await this.repository.create({
+      ...body,
+      password: hashedPassword,
+    });
+    return plainToInstance(UserResponse, user);
+  }
+  async usernameExists(username: string): Promise<boolean> {
+    const user = await this.repository.findByUsername(username);
+    return !!user;
   }
 
-  async changePassword(userId: number, body: PasswordDto): Promise<void> {
+  async changePassword(
+    userId: number,
+    body: PasswordDto,
+  ): Promise<UserResponse> {
     if (body.password !== body.confirmPassword) {
       throw new HttpException('Senhas não coincidem', HttpStatus.BAD_REQUEST);
     }
-    await this.repository.update(userId, {
+    const userExists = await this.repository.findById(userId);
+    if (!userExists) {
+      throw new HttpException('Usuário não encontrado', HttpStatus.NOT_FOUND);
+    }
+    const user = await this.repository.update(userId, {
       password: await bcrypt.hash(body.password, 10),
     } as UserUpdate);
+    return plainToInstance(UserResponse, user);
   }
 
   async emailExists(email: string): Promise<boolean> {
@@ -49,7 +103,7 @@ export class UserService extends Service implements IUserService {
   async findByEmail(email: string): Promise<UserResponse> {
     const user = await this.repository.findByEmail(email);
     if (!user) {
-      throw new HttpException('Usuário não encontrado.', HttpStatus.NOT_FOUND);
+      throw new HttpException('E-mail não encontrado', HttpStatus.NOT_FOUND);
     }
     return plainToInstance(UserResponse, user);
   }

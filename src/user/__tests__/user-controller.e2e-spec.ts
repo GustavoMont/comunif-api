@@ -7,11 +7,15 @@ import { UserResponse } from '../dto/user-response.dto';
 import users from '../../../prisma/fixtures/users';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { ListResponse } from 'src/dtos/list.dto';
+import { UserCreate } from '../dto/user-create.dto';
+import { RoleEnum } from 'src/models/User';
 
 describe('Users', () => {
   let token: string;
+  let adminToken: string;
   let app: INestApplication;
   const user = users.find(({ username }) => username === 'editavel');
+  const admin = users.find(({ username }) => username === 'admin');
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [UserModule, AuthModule],
@@ -29,7 +33,12 @@ describe('Users', () => {
       .post('/api/auth/login')
       .send({ username: user.username, password: '12345678S' })
       .expect(201);
+    const adminLogin = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ username: admin.username, password: '4dminSenha' })
+      .expect(201);
     token = loginRes.body.access;
+    adminToken = adminLogin.body.access;
   });
 
   describe('/GET', () => {
@@ -64,6 +73,107 @@ describe('Users', () => {
       });
     });
   });
+  describe('/POST', () => {
+    describe('Create user', () => {
+      const adminPayload: UserCreate = plainToInstance(UserCreate, {
+        birthday: new Date('1999-01-01'),
+        confirmPassword: '12345678S',
+        email: 'naousado@email.com',
+        lastName: 'Cléber',
+        name: 'Adminelson',
+        password: '12345678S',
+        role: RoleEnum.admin,
+        username: 'administro',
+      } as UserCreate);
+      it('should throw unauthorized exception', async () => {
+        return request(app.getHttpServer())
+          .post('/api/users')
+          .send({})
+          .expect(401)
+          .expect({
+            statusCode: 401,
+            message: 'Unauthorized',
+          });
+      });
+      it('should throw bad request exception', async () => {
+        return request(app.getHttpServer())
+          .post('/api/users')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .expect(400)
+          .expect({
+            statusCode: 400,
+            message: [
+              'Nome é um campo obrigatório',
+              'Sobrenomeome é um campo obrigatório',
+              'Informe um e-mail válido',
+              'username é um campo obrigatório',
+              'Idade mínima de 15 anos',
+              'A senha deve ter no mínimo 8 caracteres, conter uma letra e um número',
+            ],
+            error: 'Bad Request',
+          });
+      });
+      it('should throw passwords does not match', async () => {
+        return request(app.getHttpServer())
+          .post('/api/users')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({
+            ...adminPayload,
+            confirmPassword: 'top10senhas',
+          })
+          .expect(400)
+          .expect({ statusCode: 400, message: 'Senhas não coincidem' });
+      });
+      it('should throw e-mail already exists', async () => {
+        return request(app.getHttpServer())
+          .post('/api/users')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({
+            ...adminPayload,
+            email: user.email,
+          })
+          .expect(400)
+          .expect({
+            statusCode: 400,
+            message: 'E-mail já cadastrado',
+          });
+      });
+      it('should throw e-mail username already exists', async () => {
+        return request(app.getHttpServer())
+          .post('/api/users')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({
+            ...adminPayload,
+            username: user.username,
+          })
+          .expect(400)
+          .expect({
+            statusCode: 400,
+            message: 'Username não disponível',
+          });
+      });
+      it('should throw forbidden exception', async () => {
+        return request(app.getHttpServer())
+          .post('/api/users')
+          .set('Authorization', `Bearer ${token}`)
+          .send(adminPayload)
+          .expect(403)
+          .expect({
+            statusCode: 403,
+            message: 'Forbidden resource',
+            error: 'Forbidden',
+          });
+      });
+      it('should create another admin', async () => {
+        return request(app.getHttpServer())
+          .post('/api/users')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send(adminPayload)
+          .expect(201);
+      });
+    });
+  });
+
   describe('/PATCH', () => {
     it('should throw unauthorized', async () => {
       return request(app.getHttpServer())

@@ -4,6 +4,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { resolve } from 'path';
 import { emailConfig } from 'src/config/enviroment';
+import { IMailService } from './interfaces/IMailService';
 
 @Module({
   imports: [
@@ -26,7 +27,12 @@ import { emailConfig } from 'src/config/enviroment';
       },
     }),
   ],
-  providers: [MailService],
-  exports: [MailService],
+  providers: [
+    {
+      provide: IMailService,
+      useClass: MailService,
+    },
+  ],
+  exports: [IMailService],
 })
 export class MailModule {}
