@@ -33,6 +33,7 @@ import { UserCreate } from './dto/user-create.dto';
 import { RequestUser } from 'src/types/RequestUser';
 import { User } from 'src/decorators/request-user.decorator';
 import { DeactivateUser } from './dto/deactivate-user.dto';
+import { UserQueryDto } from './dto/user-query.dto';
 
 @Controller('/api/users')
 export class UserController {
@@ -58,8 +59,9 @@ export class UserController {
   async findAll(
     @Query('page', ParseIntUndefinedPipe) page,
     @Query('take', ParseIntUndefinedPipe) take,
+    @Query() query: UserQueryDto,
   ): Promise<ListResponse<UserResponse>> {
-    return await this.service.findAll(page, take);
+    return await this.service.findAll(page, take, query);
   }
 
   @UseGuards(JwtAuthGuard, OwnerGuard)

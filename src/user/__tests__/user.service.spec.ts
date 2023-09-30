@@ -17,6 +17,7 @@ import * as bcrypt from 'bcrypt';
 import { UserCreate } from '../dto/user-create.dto';
 import { RoleEnum } from 'src/models/User';
 import { IMailService } from 'src/mail/interfaces/IMailService';
+import { UserQueryDto } from '../dto/user-query.dto';
 
 jest.mock('bcrypt', () => ({
   hash: jest.fn(),
@@ -86,6 +87,25 @@ describe('Teste USer Service', () => {
       const usersResponse = plainToInstance(UserResponse, users);
       expect(result).toStrictEqual(
         new ListResponse(usersResponse, total, 1, 5),
+      );
+    });
+    it('should filter users', async () => {
+      const users = arrayGenerator(5, userGenerator);
+      const total = 10;
+      const query: UserQueryDto = {
+        isActive: false,
+      };
+      jest.spyOn(userRepository, 'count').mockResolvedValue(total);
+      jest.spyOn(userRepository, 'findAll').mockResolvedValue(users);
+      const result = await userService.findAll(1, 5, query);
+      const usersResponse = plainToInstance(UserResponse, users);
+      expect(result).toStrictEqual(
+        new ListResponse(usersResponse, total, 1, 5),
+      );
+      expect(userRepository.count).toBeCalledWith(query);
+      expect(userRepository.findAll).toBeCalledWith(
+        { take: 5, skip: 0 },
+        query,
       );
     });
   });

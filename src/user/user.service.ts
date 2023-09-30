@@ -20,6 +20,7 @@ import { UserCreate } from './dto/user-create.dto';
 import { RequestUser } from 'src/types/RequestUser';
 import { DeactivateUser } from './dto/deactivate-user.dto';
 import { IMailService } from 'src/mail/interfaces/IMailService';
+import { UserQueryDto } from './dto/user-query.dto';
 @Injectable()
 export class UserService extends Service implements IUserService {
   constructor(
@@ -169,11 +170,12 @@ export class UserService extends Service implements IUserService {
   async findAll(
     page = 1,
     take = serviceConstants.take,
+    query?: UserQueryDto,
   ): Promise<ListResponse<UserResponse>> {
     const skip = this.generateSkip(page, take);
     const [users, total] = await Promise.all([
-      this.repository.findAll({ skip, take }),
-      this.repository.count(),
+      this.repository.findAll({ skip, take }, query),
+      this.repository.count(query),
     ]);
     const userResponse = plainToInstance(UserResponse, users);
     return new ListResponse(userResponse, total, page, take);

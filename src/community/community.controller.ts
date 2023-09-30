@@ -30,7 +30,6 @@ import { User } from 'src/decorators/request-user.decorator';
 import { RequestUser } from 'src/types/RequestUser';
 import { ParseIntUndefinedPipe } from 'src/pipes/parse-int-undefined.pipe';
 import { CommunityQueryDto } from './dto/community-query.dto';
-import { CamelizePipe } from './pipes/camelize.pipe';
 import { CreateCommunity } from './dto/community-create.dto';
 import { ICommunityService } from './interfaces/ICommunityService';
 
@@ -80,7 +79,7 @@ export class CommunityController {
     @User() user: RequestUser,
     @Query('take', ParseIntUndefinedPipe) take: number,
     @Query('page', ParseIntUndefinedPipe) page: number,
-    @Query(CamelizePipe) query: CommunityQueryDto,
+    @Query() query: CommunityQueryDto,
   ): Promise<ListResponse<CommunityResponse>> {
     return await this.service.findAll(user, query, take, page);
   }

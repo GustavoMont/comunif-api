@@ -5,10 +5,15 @@ import { PasswordDto } from '../dto/password.dto';
 import { UserCreate } from '../dto/user-create.dto';
 import { RequestUser } from 'src/types/RequestUser';
 import { DeactivateUser } from '../dto/deactivate-user.dto';
+import { UserQueryDto } from '../dto/user-query.dto';
 
 export interface IUserService {
   findById(id: number): Promise<UserResponse>;
-  findAll(page?: number, take?: number): Promise<ListResponse<UserResponse>>;
+  findAll(
+    page?: number,
+    take?: number,
+    query?: UserQueryDto,
+  ): Promise<ListResponse<UserResponse>>;
   update(id: number, changes: UserUpdate): Promise<UserResponse>;
   findByEmail(email: string): Promise<UserResponse>;
   create(body: UserCreate, currentUser?: RequestUser): Promise<UserResponse>;
