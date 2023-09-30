@@ -105,4 +105,26 @@ describe('MailService', () => {
       });
     });
   });
+  describe('Activate user', () => {
+    it('should throw error', async () => {
+      jest.spyOn(mailer, 'sendMail').mockRejectedValueOnce('ocorreu um erro');
+      await expect(service.activateUser(user)).rejects.toThrowError(
+        new HttpException(
+          'Erro ao enviar o e-mail! Por favor contate manualmente o usuário.',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+      );
+    });
+    it('should send activate e-mail', async () => {
+      await service.activateUser(user);
+      expect(mailer.sendMail).toBeCalledWith({
+        to: user.email,
+        subject: 'Sua conta foi reativada!',
+        template: './activate-user',
+        context: {
+          name: user.name,
+        },
+      });
+    });
+  });
 });

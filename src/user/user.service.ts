@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { UserResponse } from './dto/user-response.dto';
 import { UserUpdate } from './dto/user-update.dto';
@@ -21,6 +27,22 @@ export class UserService extends Service implements IUserService {
     @Inject(IMailService) private readonly mailService: IMailService,
   ) {
     super();
+  }
+  async activate(userId: number, currentUser?: RequestUser): Promise<void> {
+    if (!currentUser || !this.isAdmin(currentUser.roles[0])) {
+      throw new ForbiddenException();
+    }
+    const user = await this.findById(userId);
+    if (user.isActive) {
+      throw new HttpException(
+        'Esse usuário já está ativo',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    await Promise.all([
+      this.repository.update(user.id, { isActive: true }),
+      this.mailService.activateUser(user),
+    ]);
   }
   async deactivate(
     userId: number,

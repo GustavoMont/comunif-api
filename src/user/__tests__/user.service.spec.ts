@@ -61,6 +61,7 @@ describe('Teste USer Service', () => {
           provide: IMailService,
           useValue: {
             deactivateUser: jest.fn(),
+            activateUser: jest.fn(),
           },
         },
       ],
@@ -366,6 +367,41 @@ describe('Teste USer Service', () => {
         isActive: false,
       });
       expect(mailService.deactivateUser).toBeCalledWith(userResponse, reason);
+    });
+  });
+  describe('activate user', () => {
+    const admin = requestUserGenerator({ roles: [RoleEnum.admin] });
+    it('should throw forbidden exception', async () => {
+      await expect(userService.activate(1)).rejects.toThrowError(
+        new HttpException('Forbidden', HttpStatus.FORBIDDEN),
+      );
+    });
+    it('should throw user not found exception', async () => {
+      jest.spyOn(userRepository, 'findById').mockResolvedValue(null);
+      await expect(
+        userService.deactivate(1, { reason: 'sim' }, admin),
+      ).rejects.toThrowError(
+        new HttpException('Usuário não encontrado', HttpStatus.NOT_FOUND),
+      );
+    });
+    it('should throw user already active exception', async () => {
+      const user = userGenerator({ isActive: true });
+      jest.spyOn(userRepository, 'findById').mockResolvedValue(user);
+      await expect(userService.activate(1, admin)).rejects.toThrowError(
+        new HttpException('Esse usuário já está ativo', HttpStatus.BAD_REQUEST),
+      );
+    });
+    it('should activate user and send e-mail', async () => {
+      const user = userGenerator({ isActive: false });
+      jest.spyOn(userRepository, 'findById').mockResolvedValue(user);
+      await userService.activate(user.id, admin);
+      expect(userRepository.update).toBeCalledWith(user.id, {
+        isActive: true,
+      });
+
+      expect(mailService.activateUser).toBeCalledWith(
+        plainToInstance(UserResponse, user),
+      );
     });
   });
 });

@@ -99,4 +99,15 @@ export class UserController {
   ) {
     await this.service.deactivate(userId, body, user);
   }
+
+  @Patch(':id/activate')
+  @HttpCode(204)
+  @Roles(RoleEnum.admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async activate(
+    @Param('id', ParseIntPipe) userId: number,
+    @User() user: RequestUser,
+  ) {
+    await this.service.activate(userId, user);
+  }
 }

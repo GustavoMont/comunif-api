@@ -17,6 +17,9 @@ describe('Users', () => {
   let app: INestApplication;
   const user = users.find(({ username }) => username === 'editavel');
   const activeUser = users.find(({ username }) => username === 'ativado');
+  const deactivateUser = users.find(
+    ({ username }) => username === 'desativado',
+  );
   const admin = users.find(({ username }) => username === 'admin');
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -26,6 +29,7 @@ describe('Users', () => {
       .overrideProvider(IMailService)
       .useValue({
         deactivateUser: jest.fn(),
+        activateUser: jest.fn(),
       })
 
       .compile();
@@ -272,6 +276,53 @@ describe('Users', () => {
           .expect(200)
           .expect(({ body }) => {
             return !body.isActive;
+          });
+      });
+    });
+    describe('deactivate user', () => {
+      it('should throw unauthorized', async () => {
+        return request(app.getHttpServer())
+          .patch(`/api/users/${deactivateUser.id}/activate`)
+          .expect(401)
+          .expect({
+            statusCode: 401,
+            message: 'Unauthorized',
+          });
+      });
+      it('should throw forbidden', async () => {
+        return request(app.getHttpServer())
+          .patch(`/api/users/${deactivateUser.id}/activate`)
+          .set('Authorization', `Bearer ${token}`)
+          .expect(403)
+          .expect({
+            statusCode: 403,
+            message: 'Forbidden resource',
+            error: 'Forbidden',
+          });
+      });
+      it('should throw bad request', async () => {
+        return request(app.getHttpServer())
+          .patch(`/api/users/${user.id}/activate`)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ reason: 'oi' })
+          .expect(400)
+          .expect({
+            statusCode: 400,
+            message: 'Esse usuário já está ativo',
+          });
+      });
+      it('should activate user', async () => {
+        await request(app.getHttpServer())
+          .patch(`/api/users/${deactivateUser.id}/activate`)
+          .set('Authorization', `Bearer ${adminToken}`)
+
+          .expect(204);
+        return request(app.getHttpServer())
+          .get(`/api/users/${activeUser.id}`)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .expect(200)
+          .expect(({ body }) => {
+            return body.isActive;
           });
       });
     });

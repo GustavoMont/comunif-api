@@ -6,6 +6,25 @@ import { MailerService } from '@nestjs-modules/mailer';
 @Injectable()
 export class MailService implements IMailService {
   constructor(private readonly mailer: MailerService) {}
+  async activateUser({ email: to, name }: User): Promise<void> {
+    try {
+      await this.mailer.sendMail({
+        to,
+        subject: 'Sua conta foi reativada!',
+        template: './activate-user',
+        context: {
+          name,
+        },
+      });
+    } catch (error) {
+      this.logger.error(error);
+
+      throw new HttpException(
+        'Erro ao enviar o e-mail! Por favor contate manualmente o usuário.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
   private readonly logger = new Logger('mail');
   async deactivateUser(
     { email: to, name }: User,

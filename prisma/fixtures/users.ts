@@ -107,4 +107,17 @@ export default [
     role: RoleEnum.user,
     isActive: true,
   },
+  {
+    id: 9,
+    name: 'Desativado',
+    lastName: 'Usuario',
+    email: 'desativado@ativado.com',
+    username: 'desativado',
+    password: bcrypt.hashSync('12345678S', 10),
+    birthday: new Date('2000-06-27T00:00:00.000Z'),
+    avatar: null,
+    bio: null,
+    role: RoleEnum.user,
+    isActive: false,
+  },
 ] as User[];

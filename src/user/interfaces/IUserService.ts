@@ -21,6 +21,7 @@ export interface IUserService {
     body: DeactivateUser,
     user: RequestUser,
   ): Promise<void>;
+  activate(userId: number, user?: RequestUser): Promise<void>;
 }
 
 export const IUserService = Symbol('IUserService');
