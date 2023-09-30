@@ -158,7 +158,7 @@ describe('Community Service', () => {
       jest.spyOn(repository, 'count').mockResolvedValue(total);
       const result = await communityService.findAll(
         admin,
-        plainToInstance(CommunityQueryDto, { isActive: false, name: 'sim' }),
+        plainToInstance(CommunityQueryDto, { isActive: 'false', name: 'sim' }),
         3,
       );
       const communityWithIsMember = communities.map((community) => ({
