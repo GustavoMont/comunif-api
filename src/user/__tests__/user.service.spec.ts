@@ -16,6 +16,7 @@ import { IUserRepository } from '../interfaces/IUserRepository';
 import * as bcrypt from 'bcrypt';
 import { UserCreate } from '../dto/user-create.dto';
 import { RoleEnum } from 'src/models/User';
+import { IMailService } from 'src/mail/interfaces/IMailService';
 
 jest.mock('bcrypt', () => ({
   hash: jest.fn(),
@@ -24,6 +25,7 @@ jest.mock('bcrypt', () => ({
 describe('Teste USer Service', () => {
   let userService: UserService;
   let userRepository: IUserRepository;
+  let mailService: IMailService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -55,11 +57,18 @@ describe('Teste USer Service', () => {
             passwordUpdated: jest.fn(),
           },
         },
+        {
+          provide: IMailService,
+          useValue: {
+            deactivateUser: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     userService = module.get<UserService>(UserService);
     userRepository = module.get<IUserRepository>(IUserRepository);
+    mailService = module.get<IMailService>(IMailService);
   });
 
   it('should be defined', () => {
@@ -95,21 +104,6 @@ describe('Teste USer Service', () => {
       );
     });
   });
-  // describe('find by username', () => {
-  //   it('should throw not found', async () => {
-  //     jest.spyOn(userRepository, 'findByUsername').mockResolvedValue(null);
-  //     await expect(userService.findByUsername('username')).rejects.toThrowError(
-  //       new HttpException('Usuário não encontrado.', HttpStatus.NOT_FOUND),
-  //     );
-  //   });
-  //   it('should return user', async () => {
-  //     const user = userGenerator();
-  //     jest.spyOn(userRepository, 'findByUsername').mockResolvedValue(user);
-
-  //     const result = await userService.findByUsername('username');
-  //     expect(result).toStrictEqual(plainToInstance(UserResponse, user));
-  //   });
-  // });
   describe('update user', () => {
     it('should throw exist username error', async () => {
       jest
@@ -149,15 +143,18 @@ describe('Teste USer Service', () => {
     });
   });
   describe('validate user', () => {
-    it('should throw forbidden exception when user not found', async () => {
+    it('should throw unauthorized exception when user not found', async () => {
       jest.spyOn(userRepository, 'findByUsername').mockResolvedValue(null);
       await expect(
         userService.validateUser('username', 'password'),
       ).rejects.toThrowError(
-        new HttpException('Usuário ou senha incorretos', HttpStatus.FORBIDDEN),
+        new HttpException(
+          'Usuário ou senha incorretos',
+          HttpStatus.UNAUTHORIZED,
+        ),
       );
     });
-    it('should throw forbidden exception when password is wrong', async () => {
+    it('should throw unauthorized exception when password is wrong', async () => {
       jest
         .spyOn(userRepository, 'findByUsername')
         .mockResolvedValue(userGenerator());
@@ -165,7 +162,22 @@ describe('Teste USer Service', () => {
       await expect(
         userService.validateUser('username', 'password'),
       ).rejects.toThrowError(
-        new HttpException('Usuário ou senha incorretos', HttpStatus.FORBIDDEN),
+        new HttpException(
+          'Usuário ou senha incorretos',
+          HttpStatus.UNAUTHORIZED,
+        ),
+      );
+    });
+    it('should throw unauthorized to deactivated user', async () => {
+      const user = userGenerator({ isActive: false });
+      jest.spyOn(userRepository, 'findByUsername').mockResolvedValue(user);
+      await expect(
+        userService.validateUser('username', 'password'),
+      ).rejects.toThrowError(
+        new HttpException(
+          'Essa conta está desativada no momento',
+          HttpStatus.UNAUTHORIZED,
+        ),
       );
     });
     it('should return user', async () => {
@@ -316,6 +328,44 @@ describe('Teste USer Service', () => {
         ...payload,
         password: hashedPassword,
       });
+    });
+  });
+  describe('deactivate user', () => {
+    it('should throw user not found exception', async () => {
+      jest.spyOn(userRepository, 'findById').mockResolvedValue(null);
+      const admin = requestUserGenerator({ roles: [RoleEnum.admin] });
+      await expect(
+        userService.deactivate(1, { reason: 'sim' }, admin),
+      ).rejects.toThrowError(
+        new HttpException('Usuário não encontrado', HttpStatus.NOT_FOUND),
+      );
+    });
+    it('should throw forbidden exception', async () => {
+      jest.spyOn(userRepository, 'findById').mockResolvedValue(userGenerator());
+      await expect(
+        userService.deactivate(
+          1,
+          { reason: 'sim' },
+          requestUserGenerator({ roles: [RoleEnum.user] }),
+        ),
+      ).rejects.toThrowError(
+        new HttpException(
+          'Você não tem permissão para executar essa ação',
+          HttpStatus.FORBIDDEN,
+        ),
+      );
+    });
+    it('should deactivate user and send e-mail', async () => {
+      const user = userGenerator();
+      const admin = requestUserGenerator({ roles: [RoleEnum.admin] });
+      const reason = 'você foi banido porque você é um jão';
+      jest.spyOn(userRepository, 'findById').mockResolvedValue(user);
+      const userResponse = plainToInstance(UserResponse, user);
+      await userService.deactivate(user.id, { reason }, admin);
+      expect(userRepository.update).toBeCalledWith(user.id, {
+        isActive: false,
+      });
+      expect(mailService.deactivateUser).toBeCalledWith(userResponse, reason);
     });
   });
 });

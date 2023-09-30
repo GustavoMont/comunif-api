@@ -3,6 +3,8 @@ import { Exclude } from 'class-transformer';
 
 export class UserUpdate implements User {
   @Exclude()
+  isActive: boolean;
+  @Exclude()
   id: number;
   name: string;
   lastName: string;

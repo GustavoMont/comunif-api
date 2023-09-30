@@ -4,7 +4,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import users from '../../../prisma/fixtures/users';
 import * as bcrypt from 'bcrypt';
-import { MailService } from 'src/mail/mail.service';
+import { IMailService } from 'src/mail/interfaces/IMailService';
 
 describe('Auth', () => {
   let app: INestApplication;
@@ -17,7 +17,7 @@ describe('Auth', () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AuthModule],
     })
-      .overrideProvider(MailService)
+      .overrideProvider(IMailService)
       .useValue({
         resetPassword: jest.fn(),
         passwordUpdated: jest.fn(),

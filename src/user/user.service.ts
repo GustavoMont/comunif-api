@@ -12,12 +12,34 @@ import { IUserRepository } from './interfaces/IUserRepository';
 import { PasswordDto } from './dto/password.dto';
 import { UserCreate } from './dto/user-create.dto';
 import { RequestUser } from 'src/types/RequestUser';
+import { DeactivateUser } from './dto/deactivate-user.dto';
+import { IMailService } from 'src/mail/interfaces/IMailService';
 @Injectable()
 export class UserService extends Service implements IUserService {
   constructor(
     @Inject(IUserRepository) private readonly repository: IUserRepository,
+    @Inject(IMailService) private readonly mailService: IMailService,
   ) {
     super();
+  }
+  async deactivate(
+    userId: number,
+    { reason }: DeactivateUser,
+    currentUser: RequestUser,
+  ): Promise<void> {
+    if (!this.isAdmin(currentUser.roles[0])) {
+      throw new HttpException(
+        'Você não tem permissão para executar essa ação',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    const user = await this.findById(userId);
+    await Promise.all([
+      this.repository.update(user.id, {
+        isActive: false,
+      }),
+      this.mailService.deactivateUser(user, reason),
+    ]);
   }
   async validateUser(
     username: string,
@@ -28,14 +50,20 @@ export class UserService extends Service implements IUserService {
     if (!user) {
       throw new HttpException(
         'Usuário ou senha incorretos',
-        HttpStatus.FORBIDDEN,
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+    if (!user.isActive) {
+      throw new HttpException(
+        'Essa conta está desativada no momento',
+        HttpStatus.UNAUTHORIZED,
       );
     }
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
       throw new HttpException(
         'Usuário ou senha incorretos',
-        HttpStatus.FORBIDDEN,
+        HttpStatus.UNAUTHORIZED,
       );
     }
     return plainToInstance(UserResponse, user);
@@ -67,9 +95,10 @@ export class UserService extends Service implements IUserService {
       );
     }
     delete body.confirmPassword;
+    const changes = plainToInstance(User, body);
     const hashedPassword = await bcrypt.hash(body.password, 10);
     const user = await this.repository.create({
-      ...body,
+      ...changes,
       password: hashedPassword,
     });
     return plainToInstance(UserResponse, user);

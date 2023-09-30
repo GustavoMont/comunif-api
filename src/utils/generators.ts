@@ -40,6 +40,7 @@ export const userGenerator: Generator<User> = (change) => ({
   avatar: null,
   bio: null,
   role: RoleEnum.user,
+  isActive: true,
   ...change,
 });
 

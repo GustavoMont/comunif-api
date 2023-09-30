@@ -6,6 +6,7 @@ export enum RoleEnum {
 }
 
 export class User implements UserType {
+  isActive: boolean;
   id: number;
   name: string;
   lastName: string;

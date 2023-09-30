@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Inject,
   Param,
   ParseFilePipe,
@@ -31,6 +32,7 @@ import { Roles } from 'src/decorators/roles.decorator';
 import { UserCreate } from './dto/user-create.dto';
 import { RequestUser } from 'src/types/RequestUser';
 import { User } from 'src/decorators/request-user.decorator';
+import { DeactivateUser } from './dto/deactivate-user.dto';
 
 @Controller('/api/users')
 export class UserController {
@@ -85,5 +87,16 @@ export class UserController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<UserResponse> {
     return this.service.update(+id, update);
+  }
+  @Patch(':id/deactivate')
+  @HttpCode(204)
+  @Roles(RoleEnum.admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async deactivate(
+    @Param('id', ParseIntPipe) userId: number,
+    @Body() body: DeactivateUser,
+    @User() user: RequestUser,
+  ) {
+    await this.service.deactivate(userId, body, user);
   }
 }

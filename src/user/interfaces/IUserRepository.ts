@@ -1,5 +1,4 @@
 import { User } from '@prisma/client';
-import { UserUpdate } from '../dto/user-update.dto';
 import { PaginationDto } from 'src/dtos/pagination.dto';
 
 export interface IUserRepository {
@@ -9,7 +8,7 @@ export interface IUserRepository {
   findByUsername(username: string): Promise<User>;
   findByEmail(email: string): Promise<User>;
   create(user: User): Promise<User>;
-  update(id: number, updates: UserUpdate): Promise<User>;
+  update(id: number, updates: Partial<User>): Promise<User>;
 }
 
 export const IUserRepository = Symbol('IUserRepository');

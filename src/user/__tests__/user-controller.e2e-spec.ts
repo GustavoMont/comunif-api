@@ -9,18 +9,26 @@ import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { ListResponse } from 'src/dtos/list.dto';
 import { UserCreate } from '../dto/user-create.dto';
 import { RoleEnum } from 'src/models/User';
+import { IMailService } from 'src/mail/interfaces/IMailService';
 
 describe('Users', () => {
   let token: string;
   let adminToken: string;
   let app: INestApplication;
   const user = users.find(({ username }) => username === 'editavel');
+  const activeUser = users.find(({ username }) => username === 'ativado');
   const admin = users.find(({ username }) => username === 'admin');
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [UserModule, AuthModule],
       providers: [],
-    }).compile();
+    })
+      .overrideProvider(IMailService)
+      .useValue({
+        deactivateUser: jest.fn(),
+      })
+
+      .compile();
 
     app = moduleRef.createNestApplication();
     app.useGlobalPipes(
@@ -175,48 +183,99 @@ describe('Users', () => {
   });
 
   describe('/PATCH', () => {
-    it('should throw unauthorized', async () => {
-      return request(app.getHttpServer())
-        .patch('/api/users/1')
-        .expect(401)
-        .expect({
-          statusCode: 401,
-          message: 'Unauthorized',
-        });
+    describe('update user', () => {
+      it('should throw unauthorized', async () => {
+        return request(app.getHttpServer())
+          .patch('/api/users/1')
+          .expect(401)
+          .expect({
+            statusCode: 401,
+            message: 'Unauthorized',
+          });
+      });
+      it('should throw forbidden', async () => {
+        return request(app.getHttpServer())
+          .patch('/api/users/100')
+          .set('Authorization', 'Bearer ' + token)
+          .expect(403)
+          .expect({
+            statusCode: 403,
+            message: 'Você não tem permissão para isso',
+          });
+      });
+      it('should update user', async () => {
+        const changes = {
+          name: 'novo',
+          lastName: 'editado',
+          username: 'outro_username',
+          bio: 'uma bio',
+        };
+        await request(app.getHttpServer())
+          .patch(`/api/users/${user.id}`)
+          .set('Authorization', 'Bearer ' + token)
+          .send(changes)
+          .expect(200);
+        return request(app.getHttpServer())
+          .get(`/api/users/${user.id}`)
+          .set('Authorization', 'Bearer ' + token)
+          .expect(200)
+          .send({
+            ...user,
+            ...changes,
+          });
+      });
     });
-    it('should throw forbidden', async () => {
-      return request(app.getHttpServer())
-        .patch('/api/users/100')
-        .set('Authorization', 'Bearer ' + token)
-        .expect(403)
-        .expect({
-          statusCode: 403,
-          message: 'Você não tem permissão para isso',
-        });
-    });
-    it('should update user', async () => {
-      const changes = {
-        name: 'novo',
-        lastName: 'editado',
-        username: 'outro_username',
-        bio: 'uma bio',
-      };
-      await request(app.getHttpServer())
-        .patch(`/api/users/${user.id}`)
-        .set('Authorization', 'Bearer ' + token)
-        .send(changes)
-        .expect(200);
-      return request(app.getHttpServer())
-        .get(`/api/users/${user.id}`)
-        .set('Authorization', 'Bearer ' + token)
-        .expect(200)
-        .send({
-          ...user,
-          ...changes,
-        });
+    describe('deactivate user', () => {
+      it('should throw unauthorized', async () => {
+        return request(app.getHttpServer())
+          .patch(`/api/users/${activeUser.id}/deactivate`)
+          .expect(401)
+          .expect({
+            statusCode: 401,
+            message: 'Unauthorized',
+          });
+      });
+      it('should throw forbidden', async () => {
+        return request(app.getHttpServer())
+          .patch(`/api/users/${activeUser.id}/deactivate`)
+          .set('Authorization', `Bearer ${token}`)
+          .expect(403)
+          .expect({
+            statusCode: 403,
+            message: 'Forbidden resource',
+            error: 'Forbidden',
+          });
+      });
+      it('should throw bad request', async () => {
+        return request(app.getHttpServer())
+          .patch(`/api/users/${activeUser.id}/deactivate`)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ reason: 'oi' })
+          .expect(400)
+          .expect({
+            statusCode: 400,
+            message: ['Insira uma mensagem mais detalhada'],
+            error: 'Bad Request',
+          });
+      });
+      it('should deactivate user', async () => {
+        await request(app.getHttpServer())
+          .patch(`/api/users/${activeUser.id}/deactivate`)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({
+            reason: 'Então você foi banido por blablablablablablablablabla',
+          })
+          .expect(204);
+        return request(app.getHttpServer())
+          .get(`/api/users/${activeUser.id}`)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .expect(200)
+          .expect(({ body }) => {
+            return !body.isActive;
+          });
+      });
     });
   });
-
   afterAll(async () => {
     await request(app.getHttpServer())
       .patch(`/api/users/${user.id}`)

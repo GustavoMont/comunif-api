@@ -4,6 +4,7 @@ import { ListResponse } from 'src/dtos/list.dto';
 import { PasswordDto } from '../dto/password.dto';
 import { UserCreate } from '../dto/user-create.dto';
 import { RequestUser } from 'src/types/RequestUser';
+import { DeactivateUser } from '../dto/deactivate-user.dto';
 
 export interface IUserService {
   findById(id: number): Promise<UserResponse>;
@@ -15,6 +16,11 @@ export interface IUserService {
   emailExists(email: string): Promise<boolean>;
   usernameExists(username: string): Promise<boolean>;
   validateUser(username: string, password: string): Promise<UserResponse>;
+  deactivate(
+    userId: number,
+    body: DeactivateUser,
+    user: RequestUser,
+  ): Promise<void>;
 }
 
 export const IUserService = Symbol('IUserService');

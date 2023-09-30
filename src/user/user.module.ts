@@ -5,8 +5,10 @@ import { UserRepository } from './user-repository.service';
 import { PrismaClient } from '@prisma/client';
 import { IUserService } from './interfaces/IUserService';
 import { IUserRepository } from './interfaces/IUserRepository';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
+  imports: [MailModule],
   controllers: [UserController],
   providers: [
     {

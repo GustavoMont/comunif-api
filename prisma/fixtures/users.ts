@@ -14,6 +14,7 @@ export default [
     password: bcrypt.hashSync('4dminSenha', 10),
     role: RoleEnum.admin,
     username: 'admin',
+    isActive: true,
   },
   {
     id: 2,
@@ -26,6 +27,7 @@ export default [
     avatar: null,
     bio: null,
     role: RoleEnum.user,
+    isActive: true,
   },
   {
     id: 3,
@@ -38,6 +40,7 @@ export default [
     avatar: null,
     bio: null,
     role: RoleEnum.user,
+    isActive: true,
   },
   {
     id: 4,
@@ -50,6 +53,7 @@ export default [
     avatar: null,
     bio: null,
     role: RoleEnum.user,
+    isActive: true,
   },
   {
     id: 5,
@@ -62,6 +66,7 @@ export default [
     avatar: null,
     bio: null,
     role: RoleEnum.user,
+    isActive: true,
   },
   {
     id: 6,
@@ -74,6 +79,7 @@ export default [
     avatar: null,
     bio: null,
     role: RoleEnum.user,
+    isActive: true,
   },
   {
     id: 7,
@@ -86,5 +92,19 @@ export default [
     avatar: null,
     bio: null,
     role: RoleEnum.user,
+    isActive: true,
+  },
+  {
+    id: 8,
+    name: 'Ativado',
+    lastName: 'Usuario',
+    email: 'ativado@ativado.com',
+    username: 'ativado',
+    password: bcrypt.hashSync('12345678S', 10),
+    birthday: new Date('2000-06-27T00:00:00.000Z'),
+    avatar: null,
+    bio: null,
+    role: RoleEnum.user,
+    isActive: true,
   },
 ] as User[];

@@ -6,6 +6,8 @@ import { MinAge } from 'src/decorators/min-age.decorator';
 
 export class UserCreate extends PasswordDto implements User {
   @Exclude()
+  isActive: boolean;
+  @Exclude()
   id: number;
   @IsNotEmpty({ message: 'Nome é um campo obrigatório' })
   name: string;

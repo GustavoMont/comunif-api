@@ -81,4 +81,28 @@ describe('MailService', () => {
       });
     });
   });
+  describe('Deactivate user', () => {
+    const reason = 'você foi banido bro';
+    it('should throw error', async () => {
+      jest.spyOn(mailer, 'sendMail').mockRejectedValueOnce('ocorreu um erro');
+      await expect(service.deactivateUser(user, reason)).rejects.toThrowError(
+        new HttpException(
+          'Erro ao enviar o e-mail! Por favor contate manualmente o usuário, explicando o ocorrido',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+      );
+    });
+    it('shoudl send e-mail to user', async () => {
+      await service.deactivateUser(user, reason);
+      expect(mailer.sendMail).toBeCalledWith({
+        to: user.email,
+        subject: 'Oops! Tivemos um problema',
+        template: './deactivate-user',
+        context: {
+          name: user.name,
+          reason,
+        },
+      });
+    });
+  });
 });
