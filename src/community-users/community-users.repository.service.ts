@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import { User } from 'src/models/User';
 import { Community } from 'src/models/Community';
 import { PaginationDto } from 'src/dtos/pagination.dto';
+import { CommunityUsersQueryDto } from './dto/community-users-query.dto';
 
 @Injectable()
 export class CommunityUsersRepository implements ICommunityUsersRepostory {
@@ -11,11 +12,12 @@ export class CommunityUsersRepository implements ICommunityUsersRepostory {
   async findCommunityMembers(
     communityId: number,
     { skip = 0, take = 20 }: PaginationDto,
+    where?: CommunityUsersQueryDto,
   ): Promise<User[]> {
     const communityHasUsers = await this.db.communityHasUsers.findMany({
       skip,
       take,
-      where: { communityId },
+      where: { communityId, ...where },
       include: {
         user: true,
       },
@@ -28,10 +30,14 @@ export class CommunityUsersRepository implements ICommunityUsersRepostory {
     const members = communityHasUsers.map(({ user }) => user);
     return members as User[];
   }
-  async countCommunityMembers(communityId: number): Promise<number> {
+  async countCommunityMembers(
+    communityId: number,
+    where?: CommunityUsersQueryDto,
+  ): Promise<number> {
     return await this.db.communityHasUsers.count({
       where: {
         communityId,
+        ...where,
       },
     });
   }

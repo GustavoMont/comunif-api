@@ -59,6 +59,8 @@ export const getCommunityMembers = ({
     ({ communityId: community }) => community === communityId,
   );
   const usersIds = communityHasUsersFiltered.map(({ userId }) => userId);
-  const members = users.filter(({ id }) => usersIds.includes(id));
+  const members = users.filter(
+    ({ id, isActive }) => usersIds.includes(id) && isActive,
+  );
   return members;
 };

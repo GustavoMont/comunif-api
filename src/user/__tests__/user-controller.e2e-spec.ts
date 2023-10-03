@@ -315,7 +315,6 @@ describe('Users', () => {
         await request(app.getHttpServer())
           .patch(`/api/users/${deactivateUser.id}/activate`)
           .set('Authorization', `Bearer ${adminToken}`)
-
           .expect(204);
         return request(app.getHttpServer())
           .get(`/api/users/${activeUser.id}`)
@@ -333,5 +332,16 @@ describe('Users', () => {
       .set('Authorization', 'Bearer ' + token)
       .send(user)
       .expect(200);
+    await request(app.getHttpServer())
+      .patch(`/api/users/${deactivateUser.id}/deactivate`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        reason: 'Então você foi banido por blablablablablablablablabla',
+      })
+      .expect(204);
+    return request(app.getHttpServer())
+      .patch(`/api/users/${deactivateUser.id}/activate`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(204);
   });
 });

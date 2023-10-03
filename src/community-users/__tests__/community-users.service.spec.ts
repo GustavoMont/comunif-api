@@ -129,7 +129,7 @@ describe('CommunityUsersService', () => {
       );
     });
   });
-  describe('List community members', () => {
+  describe('List community active members', () => {
     it('should throw community not found', async () => {
       jest
         .spyOn(communityService, 'findById')
@@ -158,6 +158,17 @@ describe('CommunityUsersService', () => {
       expect(result).toStrictEqual(
         new ListResponse<UserResponse>(membersResponse, total, 1, 5),
       );
+      expect(repository.findCommunityMembers).toBeCalledWith(
+        1,
+        {
+          skip: 0,
+          take: 5,
+        },
+        { user: { isActive: true } },
+      );
+      expect(repository.countCommunityMembers).toBeCalledWith(1, {
+        user: { isActive: true },
+      });
     });
   });
   describe('check if user is in community', () => {

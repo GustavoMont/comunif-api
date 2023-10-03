@@ -85,7 +85,7 @@ describe('Community controller', () => {
             message: 'Comunidade não encontrada',
           });
       });
-      it('should list communities members', () => {
+      it('should list communities active members', () => {
         const expectedResponse = new ListResponse<UserResponse>(
           plainToInstance(UserResponse, communityMembers),
           communityMembers.length,

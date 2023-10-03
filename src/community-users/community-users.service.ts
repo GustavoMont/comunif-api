@@ -8,6 +8,7 @@ import { ListResponse } from 'src/dtos/list.dto';
 import { UserResponse } from 'src/user/dto/user-response.dto';
 import { Service } from 'src/utils/services';
 import { IUserService } from 'src/user/interfaces/IUserService';
+import { CommunityUsersQueryDto } from './dto/community-users-query.dto';
 
 @Injectable()
 export class CommunityUsersService
@@ -31,9 +32,11 @@ export class CommunityUsersService
   ): Promise<ListResponse<UserResponse>> {
     await this.communityService.findById(communityId);
     const skip = this.generateSkip(page, take);
+    const filter = new CommunityUsersQueryDto();
+    filter.user = { isActive: true };
     const [total, members] = await Promise.all([
-      this.repository.countCommunityMembers(communityId),
-      this.repository.findCommunityMembers(communityId, { skip, take }),
+      this.repository.countCommunityMembers(communityId, filter),
+      this.repository.findCommunityMembers(communityId, { skip, take }, filter),
     ]);
     const membersResponse = plainToInstance(UserResponse, members);
     return new ListResponse<UserResponse>(membersResponse, total, page, take);
