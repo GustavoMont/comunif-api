@@ -7,6 +7,7 @@ import * as moment from 'moment';
 import { Community } from 'src/models/Community';
 import { Message } from 'src/models/Message';
 import { RoleEnum, User } from 'src/models/User';
+import { UserStatistics } from 'src/models/UserStatistics';
 import { RequestUser } from 'src/types/RequestUser';
 import { v4 } from 'uuid';
 
@@ -86,4 +87,15 @@ export const messageGenerator: Generator<Message> = (message) => ({
   user: userGenerator(),
   userId: 1,
   ...message,
+});
+
+export const userStatisticsGenerator: Generator<UserStatistics> = (
+  userStatistics,
+) => ({
+  count: 10,
+  createdAt: moment().toDate(),
+  id: 1,
+  user: userGenerator(),
+  userId: 1,
+  ...userStatistics,
 });

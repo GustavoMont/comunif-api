@@ -23,6 +23,7 @@ model User {
   resetPasswordCode ResetPasswordCode?
   refreshToken      UserTokens?
   isActive          Boolean             @default(true)
+  userStatistics    UserStatistics[]
 }
 
 model ResetPasswordCode {
@@ -82,4 +83,12 @@ model UserTokens {
   user      User     @relation(fields: [userId], references: [id])
   userId    Int      @unique
   expiresIn DateTime
+}
+
+model UserStatistics {
+  id        Int      @id @default(autoincrement())
+  count     Int
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
 }
