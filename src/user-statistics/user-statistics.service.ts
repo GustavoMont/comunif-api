@@ -31,9 +31,9 @@ export class UserStatisticsService
   }
 
   async findAll(
-    filters: StatisticsQueryDto = this.generateDefaultFilters(),
     page = 1,
     take = 25,
+    filters: StatisticsQueryDto = this.generateDefaultFilters(),
   ): Promise<ListResponse<UserStatisticsDto>> {
     const skip = this.generateSkip(page, take);
     const [userStatistics, total] = await Promise.all([

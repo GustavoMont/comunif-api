@@ -93,7 +93,7 @@ describe('UserStatisticsService', () => {
         userStatistics,
       );
 
-      const result = await service.findAll(filters);
+      const result = await service.findAll(1, 25, filters);
       expect(result).toStrictEqual(
         new ListResponse(statisticsResponse, total, 1, 25),
       );

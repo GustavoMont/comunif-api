@@ -6,9 +6,9 @@ import { UserStatisticsDto } from '../dto/user-statistics.dto';
 export interface IUserStatisticsService {
   userCount(): Promise<UserCountDto>;
   findAll(
-    filters: StatisticsQueryDto,
     page: number,
     take: number,
+    filters?: StatisticsQueryDto,
   ): Promise<ListResponse<UserStatisticsDto>>;
 }
 

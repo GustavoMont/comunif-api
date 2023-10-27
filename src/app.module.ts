@@ -11,7 +11,6 @@ import { SecurityCodeModule } from './security-code/security-code.module';
 import { CommunityUsersModule } from './community-users/community-users.module';
 import { ConfigModule } from '@nestjs/config';
 import { UserStatisticsModule } from './user-statistics/user-statistics.module';
-import { UserStatisticService } from './user-statistic/user-statistic.service';
 
 @Module({
   imports: [
@@ -27,8 +26,8 @@ import { UserStatisticService } from './user-statistic/user-statistic.service';
     CommunityUsersModule,
     ConfigModule.forRoot(),
     UserStatisticsModule,
+    UserStatisticsModule,
   ],
   controllers: [PublicController],
-  providers: [UserStatisticService],
 })
 export class AppModule {}
