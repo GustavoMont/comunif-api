@@ -1,9 +1,15 @@
 import {
   ChannelType,
+  Community,
   CommunityChannel,
   CommunityHasUsers,
   User,
 } from '@prisma/client';
+import { plainToInstance } from 'class-transformer';
+import channelTypes from '../../prisma/fixtures/channel-types';
+import communitiesChannels from '../../prisma/fixtures/community-channels';
+import communityHasUsers from '../../prisma/fixtures/community-has-users';
+import { CommunityResponse } from 'src/community/dto/community-response.dto';
 
 interface includeCommunityChannelsParams {
   communitiesChannels: CommunityChannel[];
@@ -42,6 +48,25 @@ export const includeCommunityChannels = ({
       channelType,
     };
   }) as any;
+};
+
+export const communityPlainToInstance = (
+  community: Community,
+  user: User,
+): CommunityResponse => {
+  const isMember = communityHasUsers.some(
+    ({ communityId, userId }) =>
+      communityId === community.id && userId === user.id,
+  );
+  return plainToInstance(CommunityResponse, {
+    ...community,
+    communityChannels: includeCommunityChannels({
+      channelTypes,
+      communitiesChannels,
+      currentCommunityId: community.id,
+    }),
+    isMember,
+  });
 };
 
 interface GetCommunityMembersParams {

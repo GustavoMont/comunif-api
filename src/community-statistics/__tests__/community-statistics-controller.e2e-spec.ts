@@ -30,6 +30,7 @@ describe('User statistics', () => {
     app.useGlobalPipes(
       new ValidationPipe({
         transform: true,
+        whitelist: true,
       }),
     );
     await app.init();
