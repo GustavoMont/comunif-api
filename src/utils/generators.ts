@@ -5,6 +5,7 @@ import {
 } from '@prisma/client';
 import * as moment from 'moment';
 import { Community } from 'src/models/Community';
+import { CommunityStatistics } from 'src/models/CommunityStatistics';
 import { Message } from 'src/models/Message';
 import { RoleEnum, User } from 'src/models/User';
 import { UserStatistics } from 'src/models/UserStatistics';
@@ -98,4 +99,15 @@ export const userStatisticsGenerator: Generator<UserStatistics> = (
   user: userGenerator(),
   userId: 1,
   ...userStatistics,
+});
+
+export const communityStatisticsGenerator: Generator<CommunityStatistics> = (
+  communityStatistics,
+) => ({
+  count: 10,
+  createdAt: moment().toDate(),
+  id: 1,
+  user: userGenerator(),
+  userId: 1,
+  ...communityStatistics,
 });

@@ -6,7 +6,7 @@ import { UserCreate } from '../dto/user-create.dto';
 import { RequestUser } from 'src/types/RequestUser';
 import { DeactivateUser } from '../dto/deactivate-user.dto';
 import { UserQueryDto } from '../dto/user-query.dto';
-import { UserCountDto } from '../dto/user-count.dto';
+import { CountDto } from 'src/dtos/count.dto';
 
 export interface IUserService {
   findById(id: number): Promise<UserResponse>;
@@ -28,7 +28,7 @@ export interface IUserService {
     user: RequestUser,
   ): Promise<void>;
   activate(userId: number, user?: RequestUser): Promise<void>;
-  count(query?: UserQueryDto): Promise<UserCountDto>;
+  count(query?: UserQueryDto): Promise<CountDto>;
 }
 
 export const IUserService = Symbol('IUserService');

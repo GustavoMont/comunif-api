@@ -12,6 +12,7 @@ import { ImageService } from 'src/utils/image.service';
 import { Service } from 'src/utils/services';
 import { ICommunityRepository } from './interfaces/ICommunityRepository';
 import { IUserService } from 'src/user/interfaces/IUserService';
+import { CountDto } from 'src/dtos/count.dto';
 @Injectable()
 export class CommunityService extends Service implements ICommunityService {
   constructor(
@@ -21,6 +22,10 @@ export class CommunityService extends Service implements ICommunityService {
     private readonly imageService: ImageService,
   ) {
     super();
+  }
+  async count(filters: CommunityQueryDto = {}): Promise<CountDto> {
+    const total = await this.repository.count(filters);
+    return plainToInstance(CountDto, { total });
   }
   async findByChannelId(
     communityChannelId: number,

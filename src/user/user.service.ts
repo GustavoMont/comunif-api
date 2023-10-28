@@ -21,7 +21,8 @@ import { RequestUser } from 'src/types/RequestUser';
 import { DeactivateUser } from './dto/deactivate-user.dto';
 import { IMailService } from 'src/mail/interfaces/IMailService';
 import { UserQueryDto } from './dto/user-query.dto';
-import { UserCountDto } from './dto/user-count.dto';
+import { CountDto } from 'src/dtos/count.dto';
+
 @Injectable()
 export class UserService extends Service implements IUserService {
   constructor(
@@ -30,11 +31,9 @@ export class UserService extends Service implements IUserService {
   ) {
     super();
   }
-  async count(
-    filters: UserQueryDto = { isActive: true },
-  ): Promise<UserCountDto> {
+  async count(filters: UserQueryDto = { isActive: true }): Promise<CountDto> {
     const total = await this.repository.count(filters);
-    return plainToInstance(UserCountDto, { total });
+    return plainToInstance(CountDto, { total });
   }
   async activate(userId: number, currentUser?: RequestUser): Promise<void> {
     if (!currentUser || !this.isAdmin(currentUser.roles[0])) {

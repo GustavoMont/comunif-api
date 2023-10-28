@@ -1,10 +1,10 @@
 import { StatisticsQueryDto } from 'src/dtos/statistics-query.dto';
-import { UserCountDto } from '../../user/dto/user-count.dto';
 import { ListResponse } from 'src/dtos/list.dto';
 import { UserStatisticsDto } from '../dto/user-statistics.dto';
+import { CountDto } from 'src/dtos/count.dto';
 
 export interface IUserStatisticsService {
-  userCount(): Promise<UserCountDto>;
+  userCount(): Promise<CountDto>;
   findAll(
     page: number,
     take: number,

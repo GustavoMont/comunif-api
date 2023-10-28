@@ -1,18 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { IUserStatisticsService } from './interfaces/IUserStatisticsService';
-import { UserCountDto } from '../user/dto/user-count.dto';
 import { IUserService } from 'src/user/interfaces/IUserService';
 import { ListResponse } from 'src/dtos/list.dto';
 import { StatisticsQueryDto } from 'src/dtos/statistics-query.dto';
 import { UserStatisticsDto } from './dto/user-statistics.dto';
 import { IUserStatisticsRepository } from './interfaces/IUserStatisticsRepository';
-import * as moment from 'moment';
-import { Service } from 'src/utils/services';
 import { plainToInstance } from 'class-transformer';
+import { BaseStatisticService } from 'src/utils/BaseStatisticService';
+import { CountDto } from 'src/dtos/count.dto';
 
 @Injectable()
 export class UserStatisticsService
-  extends Service
+  extends BaseStatisticService
   implements IUserStatisticsService
 {
   constructor(
@@ -22,14 +21,6 @@ export class UserStatisticsService
   ) {
     super();
   }
-  generateDefaultFilters(): StatisticsQueryDto {
-    const format = 'YYYY-MM-DD';
-    return {
-      from: new Date(moment().subtract(2, 'months').format(format)),
-      to: new Date(moment().format(format)),
-    };
-  }
-
   async findAll(
     page = 1,
     take = 25,
@@ -46,7 +37,7 @@ export class UserStatisticsService
     );
     return new ListResponse(statisticsResponse, total, page, take);
   }
-  async userCount(): Promise<UserCountDto> {
+  async userCount(): Promise<CountDto> {
     return await this.userService.count({ isActive: true });
   }
 }

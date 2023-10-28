@@ -11,6 +11,7 @@ import { SecurityCodeModule } from './security-code/security-code.module';
 import { CommunityUsersModule } from './community-users/community-users.module';
 import { ConfigModule } from '@nestjs/config';
 import { UserStatisticsModule } from './user-statistics/user-statistics.module';
+import { CommunityStatisticsModule } from './community-statistics/community-statistics.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { UserStatisticsModule } from './user-statistics/user-statistics.module';
     ConfigModule.forRoot(),
     UserStatisticsModule,
     UserStatisticsModule,
+    CommunityStatisticsModule,
   ],
   controllers: [PublicController],
 })

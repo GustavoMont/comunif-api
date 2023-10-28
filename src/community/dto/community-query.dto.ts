@@ -7,12 +7,12 @@ export class CommunityQueryDto {
   @Transform(({ value }) =>
     value !== 'true' && value !== 'false' ? undefined : value === 'true',
   )
-  isActive: boolean;
+  isActive?: boolean;
   @IsOptional()
   @Transform(({ value: name }) => ({ contains: name }))
-  name: {
+  name?: {
     contains: string;
   };
   @Transform(({ value }) => (value as string).toLowerCase())
-  subject: string;
+  subject?: string;
 }

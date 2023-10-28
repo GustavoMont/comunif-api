@@ -16,6 +16,7 @@ import { RoleEnum } from 'src/models/User';
 import { CommunityQueryDto } from '../dto/community-query.dto';
 import { ImageService } from 'src/utils/image.service';
 import { IUserService } from 'src/user/interfaces/IUserService';
+import { CountDto } from 'src/dtos/count.dto';
 
 describe('Community Service', () => {
   let repository: ICommunityRepository;
@@ -297,6 +298,27 @@ describe('Community Service', () => {
       expect(result).toStrictEqual(
         plainToInstance(CommunityResponse, community),
       );
+    });
+  });
+  describe('count', () => {
+    const total = 10;
+    it('should count all communities', async () => {
+      jest.spyOn(repository, 'count').mockResolvedValue(total);
+      const result = await communityService.count();
+      expect(result).toStrictEqual(plainToInstance(CountDto, { total }));
+    });
+    it('should count communities filtered', async () => {
+      jest.spyOn(repository, 'count').mockResolvedValue(total);
+      const expectedFilters: CommunityQueryDto = {
+        isActive: true,
+        name: {
+          contains: 'olá',
+        },
+        subject: 'subjecto',
+      };
+      const result = await communityService.count(expectedFilters);
+      expect(result).toStrictEqual(plainToInstance(CountDto, { total }));
+      expect(repository.count).toBeCalledWith(expectedFilters);
     });
   });
 });

@@ -8,22 +8,23 @@ datasource db {
 }
 
 model User {
-  id                Int                 @id @default(autoincrement())
-  name              String
-  lastName          String
-  email             String              @unique
-  username          String              @unique
-  password          String
-  birthday          DateTime
-  bio               String?
-  avatar            String?
-  communities       CommunityHasUsers[]
-  messages          Message[]
-  role              String              @default(dbgenerated("user"))
-  resetPasswordCode ResetPasswordCode?
-  refreshToken      UserTokens?
-  isActive          Boolean             @default(true)
-  userStatistics    UserStatistics[]
+  id                  Int                   @id @default(autoincrement())
+  name                String
+  lastName            String
+  email               String                @unique
+  username            String                @unique
+  password            String
+  birthday            DateTime
+  bio                 String?
+  avatar              String?
+  communities         CommunityHasUsers[]
+  messages            Message[]
+  role                String                @default(dbgenerated("user"))
+  resetPasswordCode   ResetPasswordCode?
+  refreshToken        UserTokens?
+  isActive            Boolean               @default(true)
+  userStatistics      UserStatistics[]
+  communityStatistics CommunityStatistics[]
 }
 
 model ResetPasswordCode {
@@ -86,6 +87,14 @@ model UserTokens {
 }
 
 model UserStatistics {
+  id        Int      @id @default(autoincrement())
+  count     Int
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model CommunityStatistics {
   id        Int      @id @default(autoincrement())
   count     Int
   userId    Int?

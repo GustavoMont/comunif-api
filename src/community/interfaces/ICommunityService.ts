@@ -4,6 +4,7 @@ import { ListResponse } from 'src/dtos/list.dto';
 import { RequestUser } from 'src/types/RequestUser';
 import { CommunityQueryDto } from '../dto/community-query.dto';
 import { CreateCommunity } from '../dto/community-create.dto';
+import { CountDto } from 'src/dtos/count.dto';
 
 export interface ICommunityService {
   findById(id: number, user?: RequestUser): Promise<CommunityResponse>;
@@ -18,6 +19,7 @@ export interface ICommunityService {
   create(user: RequestUser, body: CreateCommunity): Promise<CommunityResponse>;
   delete(user: RequestUser, id: number): Promise<void>;
   findByChannelId(communityChannelId: number): Promise<CommunityResponse>;
+  count(filters?: CommunityQueryDto): Promise<CountDto>;
 }
 
 export const ICommunityService = Symbol('ICommunityService');

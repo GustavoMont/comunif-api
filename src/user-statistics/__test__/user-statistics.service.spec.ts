@@ -2,13 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UserStatisticsService } from '../user-statistics.service';
 import { IUserService } from 'src/user/interfaces/IUserService';
 import { plainToInstance } from 'class-transformer';
-import { UserCountDto } from 'src/user/dto/user-count.dto';
 import { IUserStatisticsRepository } from '../interfaces/IUserStatisticsRepository';
 import { arrayGenerator, userStatisticsGenerator } from 'src/utils/generators';
 import { UserStatisticsDto } from '../dto/user-statistics.dto';
 import { StatisticsQueryDto } from 'src/dtos/statistics-query.dto';
 import * as moment from 'moment';
 import { ListResponse } from 'src/dtos/list.dto';
+import { CountDto } from 'src/dtos/count.dto';
 
 describe('UserStatisticsService', () => {
   let service: UserStatisticsService;
@@ -48,7 +48,7 @@ describe('UserStatisticsService', () => {
   describe('userCount', () => {
     const total = 5;
     it('should return users count', async () => {
-      const response = plainToInstance(UserCountDto, { total });
+      const response = plainToInstance(CountDto, { total });
       jest.spyOn(userService, 'count').mockResolvedValue(response);
       const result = await service.userCount();
       expect(result).toStrictEqual(response);

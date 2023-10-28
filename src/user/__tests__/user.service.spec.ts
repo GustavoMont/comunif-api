@@ -18,7 +18,7 @@ import { UserCreate } from '../dto/user-create.dto';
 import { RoleEnum } from 'src/models/User';
 import { IMailService } from 'src/mail/interfaces/IMailService';
 import { UserQueryDto } from '../dto/user-query.dto';
-import { UserCountDto } from '../dto/user-count.dto';
+import { CountDto } from 'src/dtos/count.dto';
 
 jest.mock('bcrypt', () => ({
   hash: jest.fn(),
@@ -430,13 +430,13 @@ describe('Teste USer Service', () => {
     it('should active user count by default ', async () => {
       jest.spyOn(userRepository, 'count').mockResolvedValue(total);
       const result = await userService.count();
-      expect(result).toStrictEqual(plainToInstance(UserCountDto, { total }));
+      expect(result).toStrictEqual(plainToInstance(CountDto, { total }));
       expect(userRepository.count).toBeCalledWith({ isActive: true });
     });
     it('should active user count by default', async () => {
       jest.spyOn(userRepository, 'count').mockResolvedValue(total);
       const result = await userService.count({ isActive: false });
-      expect(result).toStrictEqual(plainToInstance(UserCountDto, { total }));
+      expect(result).toStrictEqual(plainToInstance(CountDto, { total }));
       expect(userRepository.count).toBeCalledWith({ isActive: false });
     });
   });
