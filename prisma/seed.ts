@@ -6,6 +6,7 @@ import communitiesChannels from './fixtures/community-channels';
 import resetPasswordsCode from './fixtures/reset-password-codes';
 import communityHasUsers from './fixtures/community-has-users';
 import userStatistics from './fixtures/user-statistics';
+import communityStatistics from './fixtures/community-statistics';
 
 const db = new PrismaClient();
 
@@ -43,6 +44,11 @@ const main = async () => {
     }
     for (const data of userStatistics) {
       await db.userStatistics.create({
+        data,
+      });
+    }
+    for (const data of communityStatistics) {
+      await db.communityStatistics.create({
         data,
       });
     }
