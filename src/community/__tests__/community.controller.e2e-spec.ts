@@ -257,11 +257,9 @@ describe('Community controller', () => {
         .set('Authorization', 'Bearer ' + adminToken)
         .send(changes)
         .expect(200)
-        .expect((res) => {
-          return (
-            res.body.name === changes.name &&
-            res.body.isActive === changes.isActive
-          );
+        .then((res) => {
+          expect(res.body.name).toEqual(changes.name);
+          expect(res.body.isActive).toEqual(changes.isActive);
         });
     });
   });

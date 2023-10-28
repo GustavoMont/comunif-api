@@ -274,12 +274,10 @@ describe('Users', () => {
           .get(`/api/users/${activeUser.id}`)
           .set('Authorization', `Bearer ${adminToken}`)
           .expect(200)
-          .expect(({ body }) => {
-            return !body.isActive;
-          });
+          .then(({ body }) => expect(body.isActive).toBeFalsy());
       });
     });
-    describe('deactivate user', () => {
+    describe('activate user', () => {
       it('should throw unauthorized', async () => {
         return request(app.getHttpServer())
           .patch(`/api/users/${deactivateUser.id}/activate`)
@@ -317,31 +315,31 @@ describe('Users', () => {
           .set('Authorization', `Bearer ${adminToken}`)
           .expect(204);
         return request(app.getHttpServer())
-          .get(`/api/users/${activeUser.id}`)
+          .get(`/api/users/${deactivateUser.id}`)
           .set('Authorization', `Bearer ${adminToken}`)
           .expect(200)
-          .expect(({ body }) => {
-            return body.isActive;
+          .then(({ body }) => {
+            expect(body.isActive).toBeTruthy();
           });
       });
     });
-  });
-  afterAll(async () => {
-    await request(app.getHttpServer())
-      .patch(`/api/users/${user.id}`)
-      .set('Authorization', 'Bearer ' + token)
-      .send(user)
-      .expect(200);
-    await request(app.getHttpServer())
-      .patch(`/api/users/${deactivateUser.id}/deactivate`)
-      .set('Authorization', `Bearer ${adminToken}`)
-      .send({
-        reason: 'Então você foi banido por blablablablablablablablabla',
-      })
-      .expect(204);
-    return request(app.getHttpServer())
-      .patch(`/api/users/${deactivateUser.id}/activate`)
-      .set('Authorization', `Bearer ${adminToken}`)
-      .expect(204);
+    afterAll(async () => {
+      await request(app.getHttpServer())
+        .patch(`/api/users/${user.id}`)
+        .set('Authorization', 'Bearer ' + token)
+        .send(user)
+        .expect(200);
+      await request(app.getHttpServer())
+        .patch(`/api/users/${deactivateUser.id}/deactivate`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          reason: 'Então você foi banido por blablablablablablablablabla',
+        })
+        .expect(204);
+      return request(app.getHttpServer())
+        .patch(`/api/users/${activeUser.id}/activate`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(204);
+    });
   });
 });
