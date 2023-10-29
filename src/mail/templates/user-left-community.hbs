@@ -1,0 +1,36 @@
+<style>
+  .title{ font-size: 24px; color: #36f35b; } h3{ color: #e4275c; font-size:
+  18px; } blockquote{ padding: 16px; background-color: rgb(183, 251, 183); } p{
+  color: #121212 }
+
+</style>
+
+<h1 class='title'>Olá, {{adminName}}!</h1>
+
+<h3>Infelizmente, não temos boas notícias 😔</h3>
+
+<p>
+  O usuário:
+  {{username}}
+  acabou de deixar a comunidade
+  {{communityName}}
+
+</p>
+
+{{#if reason}}
+  <blockquote>
+    {{reason}}
+  </blockquote>
+
+  <p>Analise a situação, veja se isso realmente está ocorrendo e tome os
+    procedimentos padrão</p>
+
+{{else}}
+
+  <p>{{username}}
+    não quis informar o motivo. Mas analise a situação da comunidade e verifique
+    se não ocorreu algum problema</p>
+
+{{/if}}
+
+<p>Desde já, agradecemos seu apoio! 👋</p>

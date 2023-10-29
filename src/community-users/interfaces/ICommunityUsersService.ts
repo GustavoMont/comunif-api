@@ -1,5 +1,7 @@
 import { CommunityResponse } from 'src/community/dto/community-response.dto';
 import { ListResponse } from 'src/dtos/list.dto';
+import { CreateUserEvasionReportDto } from 'src/evasion-report/dto/create-user-evasion-report.dto';
+import { RequestUser } from 'src/types/RequestUser';
 import { UserResponse } from 'src/user/dto/user-response.dto';
 
 export interface ICommunityUsersService {
@@ -10,6 +12,10 @@ export interface ICommunityUsersService {
     take: number,
   ): Promise<ListResponse<UserResponse>>;
   isUserInCommunity(userId: number, communityId: number): Promise<boolean>;
+  leaveCommunity(
+    body: CreateUserEvasionReportDto,
+    user: RequestUser,
+  ): Promise<void>;
 }
 
 export const ICommunityUsersService = Symbol('ICommunityUsersService');

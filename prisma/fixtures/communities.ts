@@ -8,6 +8,7 @@ const communities: Community[] = [
     banner: `${env.domain}/public/banner/default-Topinar-banner.webp`,
     isActive: true,
     subject: 'Ser top',
+    adminId: 1,
   },
   {
     id: 2,
@@ -15,6 +16,7 @@ const communities: Community[] = [
     banner: `${env.domain}/public/banner/default-Editores-banner.webp`,
     isActive: true,
     subject: 'Edição de imagens',
+    adminId: 1,
   },
   {
     id: 3,
@@ -22,6 +24,7 @@ const communities: Community[] = [
     banner: null,
     isActive: true,
     subject: 'NextJs',
+    adminId: 1,
   },
   {
     id: 4,
@@ -29,6 +32,7 @@ const communities: Community[] = [
     banner: null,
     isActive: false,
     subject: 'Não enche brother',
+    adminId: 1,
   },
 ];
 

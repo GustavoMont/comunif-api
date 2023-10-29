@@ -11,6 +11,11 @@ const communityHasUsers: CommunityHasUsers[] = [
     id: 2,
     userId: 9,
   },
+  {
+    communityId: 2,
+    id: 3,
+    userId: 10,
+  },
 ];
 
 export default communityHasUsers;

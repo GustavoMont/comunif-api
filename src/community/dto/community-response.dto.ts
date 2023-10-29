@@ -3,6 +3,7 @@ import { Transform, Expose } from 'class-transformer';
 import { Community } from 'src/models/Community';
 
 export class CommunityResponse implements Community {
+  adminId: number;
   @Transform(({ value }) => value || null, { toClassOnly: true })
   @Expose()
   banner: string | null;

@@ -9,6 +9,9 @@ import { UserResponse } from 'src/user/dto/user-response.dto';
 import { Service } from 'src/utils/services';
 import { IUserService } from 'src/user/interfaces/IUserService';
 import { CommunityUsersQueryDto } from './dto/community-users-query.dto';
+import { CreateUserEvasionReportDto } from 'src/evasion-report/dto/create-user-evasion-report.dto';
+import { RequestUser } from 'src/types/RequestUser';
+import { IEvasionReportService } from 'src/evasion-report/interfaces/IEvasionReportService';
 
 @Injectable()
 export class CommunityUsersService
@@ -22,8 +25,28 @@ export class CommunityUsersService
     private readonly communityService: ICommunityService,
     @Inject(IUserService)
     private readonly userService: IUserService,
+    @Inject(IEvasionReportService)
+    private readonly evasionReportService: IEvasionReportService,
   ) {
     super();
+  }
+  async leaveCommunity(
+    body: CreateUserEvasionReportDto,
+    user: RequestUser,
+  ): Promise<void> {
+    const communityId = body.communityId;
+    await this.communityService.findById(communityId, user);
+    const communityHasUser = await this.repository.findUser(
+      communityId,
+      body.userId,
+    );
+    if (!communityHasUser) {
+      throw new HttpException(
+        'Usuário não faz parte dessa comunidade',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    await this.repository.delete(communityHasUser.id);
   }
   async findCommunityMembers(
     communityId: number,
@@ -65,7 +88,7 @@ export class CommunityUsersService
     userId: number,
     communityId: number,
   ): Promise<boolean> {
-    const user = await this.repository.findUser(communityId, userId);
-    return Boolean(user);
+    const isInCommunity = await this.repository.findUser(communityId, userId);
+    return Boolean(isInCommunity);
   }
 }

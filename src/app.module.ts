@@ -12,6 +12,7 @@ import { CommunityUsersModule } from './community-users/community-users.module';
 import { ConfigModule } from '@nestjs/config';
 import { UserStatisticsModule } from './user-statistics/user-statistics.module';
 import { CommunityStatisticsModule } from './community-statistics/community-statistics.module';
+import { EvasionReportModule } from './evasion-report/evasion-report.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { CommunityStatisticsModule } from './community-statistics/community-stat
     UserStatisticsModule,
     UserStatisticsModule,
     CommunityStatisticsModule,
+    EvasionReportModule,
   ],
   controllers: [PublicController],
 })

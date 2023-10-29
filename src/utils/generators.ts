@@ -1,11 +1,13 @@
 import {
   CommunityChannel,
+  CommunityHasUsers,
   ResetPasswordCode,
   UserTokens,
 } from '@prisma/client';
 import * as moment from 'moment';
 import { Community } from 'src/models/Community';
 import { CommunityStatistics } from 'src/models/CommunityStatistics';
+import { EvasionReport } from 'src/models/EvasionReport';
 import { Message } from 'src/models/Message';
 import { RoleEnum, User } from 'src/models/User';
 import { UserStatistics } from 'src/models/UserStatistics';
@@ -70,6 +72,7 @@ export const communityGenerator: Generator<Community> = (change) => ({
   ),
   banner: 'banner',
   isActive: true,
+  adminId: 1,
   ...change,
 });
 
@@ -110,4 +113,28 @@ export const communityStatisticsGenerator: Generator<CommunityStatistics> = (
   user: userGenerator(),
   userId: 1,
   ...communityStatistics,
+});
+
+export const evasionReportGenerator: Generator<EvasionReport> = (
+  evasionReport,
+) => ({
+  community: communityGenerator(),
+  communityId: 1,
+  id: 1,
+  reason: 'blablabla',
+  removedAt: moment().toDate(),
+  remover: userGenerator({ role: RoleEnum.admin }),
+  removerId: 1,
+  user: userGenerator({ id: 2 }),
+  userId: 2,
+  ...evasionReport,
+});
+
+export const communityHasUserGenerator: Generator<CommunityHasUsers> = (
+  chs,
+) => ({
+  communityId: 1,
+  id: 1,
+  userId: 1,
+  ...chs,
 });

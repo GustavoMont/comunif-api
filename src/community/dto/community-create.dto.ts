@@ -4,6 +4,7 @@ import { MinLength } from 'class-validator';
 import { Community } from 'src/models/Community';
 
 export class CreateCommunity implements Community {
+  adminId: number;
   banner: string | null;
   @Exclude()
   isActive: boolean;

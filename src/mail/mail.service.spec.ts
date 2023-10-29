@@ -1,8 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MailService } from './mail.service';
 import { MailerService } from '@nestjs-modules/mailer';
-import { userGenerator } from 'src/utils/generators';
+import { evasionReportGenerator, userGenerator } from 'src/utils/generators';
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { RoleEnum } from 'src/models/User';
+import { plainToInstance } from 'class-transformer';
+import { EvasionReportResponseDto } from 'src/evasion-report/dto/evasion-report-response.dto';
 
 describe('MailService', () => {
   let service: MailService;
@@ -101,6 +104,38 @@ describe('MailService', () => {
         context: {
           name: user.name,
           reason,
+        },
+      });
+    });
+  });
+  describe('User left community', () => {
+    const evasionReport = plainToInstance(
+      EvasionReportResponseDto,
+      evasionReportGenerator(),
+    );
+    const admin = userGenerator({ role: RoleEnum.admin });
+    it('should throw error', async () => {
+      jest.spyOn(mailer, 'sendMail').mockRejectedValueOnce('ocorreu um erro');
+      await expect(
+        service.userLeftCommunity(evasionReport, admin),
+      ).rejects.toThrowError(
+        new HttpException(
+          'Erro ao enviar o e-mail! Por favor contate manualmente o usuário.',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+      );
+    });
+    it('should send activate e-mail', async () => {
+      await service.userLeftCommunity(evasionReport, admin);
+      expect(mailer.sendMail).toBeCalledWith({
+        to: user.email,
+        subject: 'Um usuário deixou uma comunidade!',
+        template: './user-left-community',
+        context: {
+          adminName: admin.name,
+          communityName: evasionReport.community.name,
+          username: evasionReport.user.username,
+          reason: evasionReport.reason,
         },
       });
     });

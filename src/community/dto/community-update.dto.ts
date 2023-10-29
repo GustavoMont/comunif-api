@@ -3,6 +3,7 @@ import { Exclude, Transform } from 'class-transformer';
 import { IsOptional, MinLength } from 'class-validator';
 
 export class CommunityUpdate implements Community {
+  adminId: number;
   @Exclude()
   id: number;
   @Exclude()

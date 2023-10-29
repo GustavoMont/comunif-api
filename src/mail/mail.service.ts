@@ -2,10 +2,38 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { IMailService } from './interfaces/IMailService';
 import { User } from 'src/models/User';
 import { MailerService } from '@nestjs-modules/mailer';
+import { EvasionReportResponseDto } from 'src/evasion-report/dto/evasion-report-response.dto';
 
 @Injectable()
 export class MailService implements IMailService {
   constructor(private readonly mailer: MailerService) {}
+  private readonly logger = new Logger('MAIL_SERVICE');
+
+  async userLeftCommunity(
+    { community, user, reason }: EvasionReportResponseDto,
+    { email: to, name: adminName }: User,
+  ): Promise<void> {
+    try {
+      await this.mailer.sendMail({
+        to,
+        subject: 'Um usuário deixou uma comunidade!',
+        template: './user-left-community',
+        context: {
+          adminName,
+          communityName: community.name,
+          username: user.username,
+          reason,
+        },
+      });
+    } catch (error) {
+      this.logger.error(error);
+
+      throw new HttpException(
+        'Erro ao enviar o e-mail! Por favor contate manualmente o usuário.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
   async activateUser({ email: to, name }: User): Promise<void> {
     try {
       await this.mailer.sendMail({
@@ -25,7 +53,6 @@ export class MailService implements IMailService {
       );
     }
   }
-  private readonly logger = new Logger('mail');
   async deactivateUser(
     { email: to, name }: User,
     reason: string,

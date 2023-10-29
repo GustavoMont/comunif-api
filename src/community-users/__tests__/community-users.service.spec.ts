@@ -6,6 +6,8 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import {
   arrayGenerator,
   communityGenerator,
+  communityHasUserGenerator,
+  requestUserGenerator,
   userGenerator,
 } from 'src/utils/generators';
 import { CommunityResponse } from 'src/community/dto/community-response.dto';
@@ -13,12 +15,19 @@ import { plainToInstance } from 'class-transformer';
 import { ListResponse } from 'src/dtos/list.dto';
 import { UserResponse } from 'src/user/dto/user-response.dto';
 import { IUserService } from 'src/user/interfaces/IUserService';
+import { CreateUserEvasionReportDto } from 'src/evasion-report/dto/create-user-evasion-report.dto';
+import { IEvasionReportService } from 'src/evasion-report/interfaces/IEvasionReportService';
+import { communityServiceMock } from 'src/community/__mocks__/community-service.mock';
+import { userServiceMock } from 'src/user/__mocks__/user-service.mock';
+import { evasionReportServiceMock } from 'src/evasion-report/__mocks__/evasion-report-service.mock';
+import { communityUsersRepositoryMock } from '../__mocks__/community-users-repository.mock';
 
 describe('CommunityUsersService', () => {
   let service: CommunityUsersService;
   let repository: ICommunityUsersRepostory;
   let userService: IUserService;
   let communityService: ICommunityService;
+  let evasionReportService: IEvasionReportService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -26,25 +35,19 @@ describe('CommunityUsersService', () => {
         CommunityUsersService,
         {
           provide: ICommunityUsersRepostory,
-          useValue: {
-            addUser: jest.fn(),
-            findUser: jest.fn(),
-            findCommunityMembers: jest.fn(),
-            countCommunityMembers: jest.fn(),
-          } as ICommunityUsersRepostory,
+          useValue: communityUsersRepositoryMock,
         },
         {
           provide: IUserService,
-          useValue: {
-            findById: jest.fn(),
-            findAll: jest.fn(),
-          },
+          useValue: userServiceMock,
         },
         {
           provide: ICommunityService,
-          useValue: {
-            findById: jest.fn(),
-          } as Partial<ICommunityService>,
+          useValue: communityServiceMock,
+        },
+        {
+          provide: IEvasionReportService,
+          useValue: evasionReportServiceMock,
         },
       ],
     }).compile();
@@ -53,6 +56,9 @@ describe('CommunityUsersService', () => {
     repository = module.get<ICommunityUsersRepostory>(ICommunityUsersRepostory);
     userService = module.get<IUserService>(IUserService);
     communityService = module.get<ICommunityService>(ICommunityService);
+    evasionReportService = module.get<IEvasionReportService>(
+      IEvasionReportService,
+    );
   });
 
   it('should be defined', () => {
@@ -100,7 +106,9 @@ describe('CommunityUsersService', () => {
         .mockResolvedValue(
           plainToInstance(CommunityResponse, communityGenerator()),
         );
-      jest.spyOn(repository, 'findUser').mockResolvedValue(userGenerator());
+      jest
+        .spyOn(repository, 'findUser')
+        .mockResolvedValue(communityHasUserGenerator());
 
       //Act & Assert
       await expect(service.addUser(1, 1)).rejects.toThrowError(
@@ -173,7 +181,9 @@ describe('CommunityUsersService', () => {
   });
   describe('check if user is in community', () => {
     it('should return true', async () => {
-      jest.spyOn(repository, 'findUser').mockResolvedValue(userGenerator());
+      jest
+        .spyOn(repository, 'findUser')
+        .mockResolvedValue(communityHasUserGenerator());
       const result = await service.isUserInCommunity(1, 1);
       expect(result).toBeTruthy();
     });
@@ -181,6 +191,49 @@ describe('CommunityUsersService', () => {
       jest.spyOn(repository, 'findUser').mockResolvedValue(null);
       const result = await service.isUserInCommunity(1, 1);
       expect(result).not.toBeTruthy();
+    });
+  });
+  describe('leave community', () => {
+    const communityHasUser = communityHasUserGenerator();
+    const createData: CreateUserEvasionReportDto = {
+      communityId: 1,
+      reason: 'balablablabla',
+      userId: 1,
+    };
+    const requestUser = requestUserGenerator();
+    const user = plainToInstance(UserResponse, userGenerator());
+    const community = plainToInstance(CommunityResponse, communityGenerator());
+    it('should throw community does not exist', async () => {
+      const expectedError = new HttpException(
+        'Comunidade não encontrada',
+        HttpStatus.NOT_FOUND,
+      );
+      jest.spyOn(communityService, 'findById').mockRejectedValue(expectedError);
+      await expect(
+        service.leaveCommunity(createData, requestUser),
+      ).rejects.toThrowError(expectedError);
+    });
+    it('should throw user is not part of community', async () => {
+      jest.spyOn(communityService, 'findById').mockResolvedValue(community);
+      jest.spyOn(userService, 'findById').mockResolvedValue(user);
+      jest.spyOn(repository, 'findUser').mockResolvedValue(null);
+      const expectedError = new HttpException(
+        'Usuário não faz parte dessa comunidade',
+        HttpStatus.BAD_REQUEST,
+      );
+      await expect(
+        service.leaveCommunity(createData, requestUser),
+      ).rejects.toThrowError(expectedError);
+    });
+    it('should let user leave community', async () => {
+      jest.spyOn(communityService, 'findById').mockResolvedValue(community);
+      jest.spyOn(repository, 'findUser').mockResolvedValue(communityHasUser);
+      jest.spyOn(repository, 'delete').mockResolvedValue();
+      jest
+        .spyOn(evasionReportService, 'createReportByUser')
+        .mockResolvedValue(null);
+      await service.leaveCommunity(createData, requestUser);
+      expect(repository.delete);
     });
   });
 });

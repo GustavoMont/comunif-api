@@ -61,7 +61,7 @@ export class CommunityService extends Service implements ICommunityService {
         HttpStatus.BAD_REQUEST,
       );
     }
-
+    body.adminId = user.id;
     const newCommunity = await this.repository.create(
       plainToInstance(Community, body),
     );

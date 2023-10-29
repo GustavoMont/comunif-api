@@ -7,15 +7,15 @@ import {
   ParseIntPipe,
   Post,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CommunityAddUser } from 'src/community/dto/community-add-user.dto';
 import { CommunityResponse } from 'src/community/dto/community-response.dto';
-import { RequestWithUser } from 'src/types/RequestWithUser';
 import { ICommunityUsersService } from './interfaces/ICommunityUsersService';
 import { ParseIntUndefinedPipe } from 'src/pipes/parse-int-undefined.pipe';
+import { User } from 'src/decorators/request-user.decorator';
+import { RequestUser } from 'src/types/RequestUser';
 
 @Controller('api/community-users')
 export class CommunityUsersController {
@@ -27,9 +27,9 @@ export class CommunityUsersController {
   @Post()
   async addUser(
     @Body() body: CommunityAddUser,
-    @Req() req: RequestWithUser,
+    @User() user: RequestUser,
   ): Promise<CommunityResponse> {
-    return await this.service.addUser(body.communityId, req.user.id);
+    return await this.service.addUser(body.communityId, user.id);
   }
   @UseGuards(JwtAuthGuard)
   @Get(':id/members')
