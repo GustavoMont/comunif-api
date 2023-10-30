@@ -10,6 +10,8 @@ import { EvasionReport } from 'src/models/EvasionReport';
 import { ICommunityService } from 'src/community/interfaces/ICommunityService';
 import { IUserService } from 'src/user/interfaces/IUserService';
 import { IMailService } from 'src/mail/interfaces/IMailService';
+import { ListResponse } from 'src/dtos/list.dto';
+import { EvasionReportFiltersDto } from './dto/evasion-report-filters.dto';
 
 @Injectable()
 export class EvasionReportService
@@ -27,6 +29,33 @@ export class EvasionReportService
     private readonly mailService: IMailService,
   ) {
     super();
+  }
+  async delete(id: number): Promise<void> {
+    await this.findById(id);
+    await this.repository.delete(id);
+  }
+  async findMany(
+    page = 1,
+    take = 25,
+    filters: EvasionReportFiltersDto = {},
+  ): Promise<ListResponse<EvasionReportResponseDto>> {
+    const skip = this.generateSkip(page, take);
+    const [evasionReports, total] = await Promise.all([
+      this.repository.findMany(skip, take, filters),
+      this.repository.count(filters),
+    ]);
+    const results = plainToInstance(EvasionReportResponseDto, evasionReports);
+    return new ListResponse(results, total, page, take);
+  }
+  async findById(id: number): Promise<EvasionReportResponseDto> {
+    const evasionReport = await this.repository.findById(id);
+    if (!evasionReport) {
+      throw new HttpException(
+        'Relatório de evasão não encontrado',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return plainToInstance(EvasionReportResponseDto, evasionReport);
   }
   async createReportByUser(
     data: CreateUserEvasionReportDto,
