@@ -7,6 +7,7 @@ import {
   arrayGenerator,
   communityGenerator,
   communityHasUserGenerator,
+  evasionReportGenerator,
   requestUserGenerator,
   userGenerator,
 } from 'src/utils/generators';
@@ -21,6 +22,7 @@ import { communityServiceMock } from 'src/community/__mocks__/community-service.
 import { userServiceMock } from 'src/user/__mocks__/user-service.mock';
 import { evasionReportServiceMock } from 'src/evasion-report/__mocks__/evasion-report-service.mock';
 import { communityUsersRepositoryMock } from '../__mocks__/community-users-repository.mock';
+import { EvasionReportResponseDto } from 'src/evasion-report/dto/evasion-report-response.dto';
 
 describe('CommunityUsersService', () => {
   let service: CommunityUsersService;
@@ -203,6 +205,39 @@ describe('CommunityUsersService', () => {
     const requestUser = requestUserGenerator();
     const user = plainToInstance(UserResponse, userGenerator());
     const community = plainToInstance(CommunityResponse, communityGenerator());
+    const evasionReport = plainToInstance(
+      EvasionReportResponseDto,
+      evasionReportGenerator(),
+    );
+    const evasionReportResponse = new ListResponse([evasionReport], 1, 1, 1);
+    beforeEach(() => {
+      jest
+        .spyOn(evasionReportService, 'findMany')
+        .mockResolvedValue(evasionReportResponse);
+    });
+    it('should throw report was not create exception', async () => {
+      const emptyResponse = new ListResponse<EvasionReportResponseDto>(
+        [],
+        0,
+        1,
+        25,
+      );
+      jest
+        .spyOn(evasionReportService, 'findMany')
+        .mockResolvedValueOnce(emptyResponse);
+      await expect(
+        service.leaveCommunity(createData, requestUser),
+      ).rejects.toThrowError(
+        new HttpException(
+          'Relatório de evasão não foi gerado',
+          HttpStatus.BAD_REQUEST,
+        ),
+      );
+      expect(evasionReportService.findMany).toBeCalledWith(1, 1, {
+        user: createData.userId,
+        community: createData.communityId,
+      });
+    });
     it('should throw community does not exist', async () => {
       const expectedError = new HttpException(
         'Comunidade não encontrada',
@@ -214,6 +249,7 @@ describe('CommunityUsersService', () => {
       ).rejects.toThrowError(expectedError);
     });
     it('should throw user is not part of community', async () => {
+      jest.spyOn(evasionReportService, 'delete').mockResolvedValue();
       jest.spyOn(communityService, 'findById').mockResolvedValue(community);
       jest.spyOn(userService, 'findById').mockResolvedValue(user);
       jest.spyOn(repository, 'findUser').mockResolvedValue(null);
@@ -224,6 +260,8 @@ describe('CommunityUsersService', () => {
       await expect(
         service.leaveCommunity(createData, requestUser),
       ).rejects.toThrowError(expectedError);
+      const [report] = evasionReportResponse.results;
+      expect(evasionReportService.delete).toBeCalledWith(report.id);
     });
     it('should let user leave community', async () => {
       jest.spyOn(communityService, 'findById').mockResolvedValue(community);

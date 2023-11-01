@@ -13,7 +13,7 @@ describe('Evasion Report', () => {
   let app: INestApplication;
   const BASE_URL = '/api/evasion-report';
   let token: string;
-  const user = users.find(({ username }) => username === 'sailson');
+  const user = users.find(({ id }) => id === 4);
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [EvasionReportModule, AuthModule],

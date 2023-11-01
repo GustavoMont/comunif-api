@@ -133,4 +133,17 @@ export default [
     role: RoleEnum.user,
     username: 'sailson',
   },
+  {
+    id: 11,
+    name: 'Sam',
+    avatar: null,
+    bio: null,
+    birthday: new Date('2000-06-27T00:00:00.000Z'),
+    email: 'samcomunidade@email.com',
+    isActive: true,
+    lastName: 'Kommunite',
+    password: bcrypt.hashSync('12345678S', 10),
+    role: RoleEnum.user,
+    username: 'sem_comunidade',
+  },
 ] as User[];

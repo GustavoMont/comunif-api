@@ -36,11 +36,23 @@ export class CommunityUsersService
   ): Promise<void> {
     const communityId = body.communityId;
     await this.communityService.findById(communityId, user);
+    const evasionReports = await this.evasionReportService.findMany(1, 1, {
+      community: body.communityId,
+      user: body.userId,
+    });
+    const [evasionReport] = evasionReports.results;
+    if (!evasionReport) {
+      throw new HttpException(
+        'Relatório de evasão não foi gerado',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     const communityHasUser = await this.repository.findUser(
       communityId,
       body.userId,
     );
     if (!communityHasUser) {
+      await this.evasionReportService.delete(evasionReport.id);
       throw new HttpException(
         'Usuário não faz parte dessa comunidade',
         HttpStatus.BAD_REQUEST,

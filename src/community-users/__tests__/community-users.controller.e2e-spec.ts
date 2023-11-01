@@ -19,6 +19,7 @@ import communityHasUsers from '../../../prisma/fixtures/community-has-users';
 import { UserResponse } from 'src/user/dto/user-response.dto';
 
 describe('Community controller', () => {
+  const BASE_URL = '/api/community-users';
   let app: INestApplication;
   let token: string;
   let user: User;
@@ -77,7 +78,7 @@ describe('Community controller', () => {
       });
       it('should throw community not found', () => {
         return request(app.getHttpServer())
-          .get('/api/community-users/100/members')
+          .get(`${BASE_URL}/100/members`)
           .set('Authorization', 'Bearer ' + token)
           .expect(404)
           .expect({
@@ -133,5 +134,15 @@ describe('Community controller', () => {
           .expect(instanceToPlain({ ...allComunities[0], isMember: true }));
       });
     });
+  });
+  describe('/DELETE', () => {
+    it.todo('should throw unauthorized');
+    it.todo('should throw community was not found');
+    it.todo('should throw report was not create exception');
+    describe('Is not a community member', () => {
+      it.todo('should throw user is not a community member');
+      it.todo('should have delete report');
+    });
+    it.todo('should let user leave community');
   });
 });
