@@ -1,7 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Inject,
   Param,
   ParseIntPipe,
@@ -39,5 +42,14 @@ export class CommunityUsersController {
     @Query('take', ParseIntUndefinedPipe) take: number,
   ) {
     return await this.service.findCommunityMembers(id, page, take);
+  }
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':communityId/leave')
+  async userLeavCommunity(
+    @Param('communityId') communityId: number,
+    @User() user: RequestUser,
+  ) {
+    await this.service.leaveCommunity(communityId, user);
   }
 }

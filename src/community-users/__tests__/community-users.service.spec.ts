@@ -16,7 +16,6 @@ import { plainToInstance } from 'class-transformer';
 import { ListResponse } from 'src/dtos/list.dto';
 import { UserResponse } from 'src/user/dto/user-response.dto';
 import { IUserService } from 'src/user/interfaces/IUserService';
-import { CreateUserEvasionReportDto } from 'src/evasion-report/dto/create-user-evasion-report.dto';
 import { IEvasionReportService } from 'src/evasion-report/interfaces/IEvasionReportService';
 import { communityServiceMock } from 'src/community/__mocks__/community-service.mock';
 import { userServiceMock } from 'src/user/__mocks__/user-service.mock';
@@ -197,11 +196,6 @@ describe('CommunityUsersService', () => {
   });
   describe('leave community', () => {
     const communityHasUser = communityHasUserGenerator();
-    const createData: CreateUserEvasionReportDto = {
-      communityId: 1,
-      reason: 'balablablabla',
-      userId: 1,
-    };
     const requestUser = requestUserGenerator();
     const user = plainToInstance(UserResponse, userGenerator());
     const community = plainToInstance(CommunityResponse, communityGenerator());
@@ -226,7 +220,7 @@ describe('CommunityUsersService', () => {
         .spyOn(evasionReportService, 'findMany')
         .mockResolvedValueOnce(emptyResponse);
       await expect(
-        service.leaveCommunity(createData, requestUser),
+        service.leaveCommunity(community.id, requestUser),
       ).rejects.toThrowError(
         new HttpException(
           'Relatório de evasão não foi gerado',
@@ -234,8 +228,8 @@ describe('CommunityUsersService', () => {
         ),
       );
       expect(evasionReportService.findMany).toBeCalledWith(1, 1, {
-        user: createData.userId,
-        community: createData.communityId,
+        user: requestUser.id,
+        community: community.id,
       });
     });
     it('should throw community does not exist', async () => {
@@ -244,9 +238,9 @@ describe('CommunityUsersService', () => {
         HttpStatus.NOT_FOUND,
       );
       jest.spyOn(communityService, 'findById').mockRejectedValue(expectedError);
-      await expect(
-        service.leaveCommunity(createData, requestUser),
-      ).rejects.toThrowError(expectedError);
+      await expect(service.leaveCommunity(1, requestUser)).rejects.toThrowError(
+        expectedError,
+      );
     });
     it('should throw user is not part of community', async () => {
       jest.spyOn(evasionReportService, 'delete').mockResolvedValue();
@@ -258,7 +252,7 @@ describe('CommunityUsersService', () => {
         HttpStatus.BAD_REQUEST,
       );
       await expect(
-        service.leaveCommunity(createData, requestUser),
+        service.leaveCommunity(community.id, requestUser),
       ).rejects.toThrowError(expectedError);
       const [report] = evasionReportResponse.results;
       expect(evasionReportService.delete).toBeCalledWith(report.id);
@@ -270,7 +264,7 @@ describe('CommunityUsersService', () => {
       jest
         .spyOn(evasionReportService, 'createReportByUser')
         .mockResolvedValue(null);
-      await service.leaveCommunity(createData, requestUser);
+      await service.leaveCommunity(community.id, requestUser);
       expect(repository.delete);
     });
   });

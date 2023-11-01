@@ -9,7 +9,6 @@ import { UserResponse } from 'src/user/dto/user-response.dto';
 import { Service } from 'src/utils/services';
 import { IUserService } from 'src/user/interfaces/IUserService';
 import { CommunityUsersQueryDto } from './dto/community-users-query.dto';
-import { CreateUserEvasionReportDto } from 'src/evasion-report/dto/create-user-evasion-report.dto';
 import { RequestUser } from 'src/types/RequestUser';
 import { IEvasionReportService } from 'src/evasion-report/interfaces/IEvasionReportService';
 
@@ -30,15 +29,11 @@ export class CommunityUsersService
   ) {
     super();
   }
-  async leaveCommunity(
-    body: CreateUserEvasionReportDto,
-    user: RequestUser,
-  ): Promise<void> {
-    const communityId = body.communityId;
+  async leaveCommunity(communityId: number, user: RequestUser): Promise<void> {
     await this.communityService.findById(communityId, user);
     const evasionReports = await this.evasionReportService.findMany(1, 1, {
-      community: body.communityId,
-      user: body.userId,
+      community: communityId,
+      user: user.id,
     });
     const [evasionReport] = evasionReports.results;
     if (!evasionReport) {
@@ -49,7 +44,7 @@ export class CommunityUsersService
     }
     const communityHasUser = await this.repository.findUser(
       communityId,
-      body.userId,
+      user.id,
     );
     if (!communityHasUser) {
       await this.evasionReportService.delete(evasionReport.id);

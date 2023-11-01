@@ -34,6 +34,14 @@ const communities: Community[] = [
     subject: 'Não enche brother',
     adminId: 1,
   },
+  {
+    id: 5,
+    name: 'Saidores',
+    banner: null,
+    isActive: true,
+    subject: 'Entramos e saímos',
+    adminId: 1,
+  },
 ];
 
 export default communities;

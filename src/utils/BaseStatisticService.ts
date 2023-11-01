@@ -7,7 +7,7 @@ export class BaseStatisticService extends Service {
     const format = 'YYYY-MM-DD';
     return {
       from: new Date(moment().subtract(2, 'months').format(format)),
-      to: new Date(moment().format(format)),
+      to: new Date(moment().add(4, 'days').format(format)),
     };
   }
 }

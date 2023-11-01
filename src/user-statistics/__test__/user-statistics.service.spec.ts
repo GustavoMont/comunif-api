@@ -71,10 +71,8 @@ describe('UserStatisticsService', () => {
       expect(result).toStrictEqual(
         new ListResponse(statisticsResponse, total, 1, 25),
       );
-      const defaultFilter: StatisticsQueryDto = {
-        from: new Date(moment().subtract(2, 'months').format('YYYY-MM-DD')),
-        to: new Date(moment().format('YYYY-MM-DD')),
-      };
+      const defaultFilter: StatisticsQueryDto =
+        service.generateDefaultFilters();
       expect(repository.count).toBeCalledWith(defaultFilter);
       expect(repository.findAll).toBeCalledWith(
         { skip: 0, take },

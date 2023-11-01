@@ -22,7 +22,13 @@ describe('Community controller', () => {
   const BASE_URL = '/api/community-users';
   let app: INestApplication;
   let token: string;
+  let leaveUserToken: string;
+  let noCommunityUserToken: string;
   let user: User;
+  const leaveUser = users.find(({ username }) => username === 'sailson');
+  const noCommunityUser = users.find(
+    ({ username }) => username === 'sem_comunidade',
+  );
   const community = communities.find(({ id }) => id === 1);
   const communityMembers = getCommunityMembers({
     communityHasUsers,
@@ -57,11 +63,21 @@ describe('Community controller', () => {
     if (!user) {
       throw new Error('No user');
     }
-    const loginRes = await request(app.getHttpServer())
+    let loginRes = await request(app.getHttpServer())
       .post('/api/auth/login')
       .send({ username: user.username, password: '12345678S' })
       .expect(201);
     token = loginRes.body.access;
+    loginRes = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ username: leaveUser.username, password: '12345678S' })
+      .expect(201);
+    leaveUserToken = loginRes.body.access;
+    loginRes = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ username: noCommunityUser.username, password: '12345678S' })
+      .expect(201);
+    noCommunityUserToken = loginRes.body.access;
   });
   describe('/GET', () => {
     describe('list community memeber', () => {
@@ -136,13 +152,59 @@ describe('Community controller', () => {
     });
   });
   describe('/DELETE', () => {
-    it.todo('should throw unauthorized');
-    it.todo('should throw community was not found');
-    it.todo('should throw report was not create exception');
-    describe('Is not a community member', () => {
-      it.todo('should throw user is not a community member');
-      it.todo('should have delete report');
+    describe('user leave community', () => {
+      const url = `${BASE_URL}/5/leave`;
+      it('should throw unauthorized', async () => {
+        return request(app.getHttpServer()).delete(url).expect(401);
+      });
+      it('should throw community was not found', async () => {
+        return request(app.getHttpServer())
+          .delete(`${BASE_URL}/${communities.at(-1).id + 200}/leave`)
+          .set('Authorization', `Bearer ${leaveUserToken}`)
+          .expect(404)
+          .expect({
+            statusCode: 404,
+            message: 'Comunidade não encontrada',
+          });
+      });
+      it('should throw report was not create exception', async () => {
+        return request(app.getHttpServer())
+          .delete(url)
+          .set('Authorization', `Bearer ${token}`)
+          .expect(400)
+          .expect({
+            statusCode: 400,
+            message: 'Relatório de evasão não foi gerado',
+          });
+      });
+      describe('Is not a community member', () => {
+        it('should throw user is not a community member', () => {
+          return request(app.getHttpServer())
+            .delete(url)
+            .set('Authorization', `Bearer ${noCommunityUserToken}`)
+            .expect(400)
+            .expect({
+              statusCode: 400,
+              message: 'Usuário não faz parte dessa comunidade',
+            });
+        });
+        it('should have delete report', async () => {
+          return request(app.getHttpServer())
+            .delete(url)
+            .set('Authorization', `Bearer ${noCommunityUserToken}`)
+            .expect(400)
+            .expect({
+              statusCode: 400,
+              message: 'Relatório de evasão não foi gerado',
+            });
+        });
+      });
+      it('should let user leave community', async () => {
+        return request(app.getHttpServer())
+          .delete(url)
+          .set('Authorization', `Bearer ${leaveUserToken}`)
+          .expect(204);
+      });
     });
-    it.todo('should let user leave community');
   });
 });

@@ -17,7 +17,7 @@ const communityStatistics: CommunityStatistics[] = [
   },
   {
     count: communities.length,
-    createdAt: moment().startOf('month').toDate(),
+    createdAt: moment().toDate(),
     id: 3,
     userId: null,
   },

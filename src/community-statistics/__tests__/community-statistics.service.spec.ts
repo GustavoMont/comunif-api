@@ -60,10 +60,8 @@ describe('CommunityStatisticsService', () => {
         CommunityStatisticsDto,
         communityStatistics,
       );
-      const defaultFilter: StatisticsQueryDto = {
-        from: new Date(moment().subtract(2, 'months').format('YYYY-MM-DD')),
-        to: new Date(moment().format('YYYY-MM-DD')),
-      };
+      const defaultFilter: StatisticsQueryDto =
+        service.generateDefaultFilters();
       const result = await service.findAll(1, 25);
       expect(result).toStrictEqual(
         new ListResponse(statisticsResponse, total, 1, 25),
