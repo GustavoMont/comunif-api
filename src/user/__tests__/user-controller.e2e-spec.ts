@@ -12,6 +12,7 @@ import { RoleEnum } from 'src/models/User';
 import { IMailService } from 'src/mail/interfaces/IMailService';
 
 describe('Users', () => {
+  const BASE_URL = '/api/users';
   let token: string;
   let adminToken: string;
   let app: INestApplication;
@@ -87,6 +88,7 @@ describe('Users', () => {
   });
   describe('/POST', () => {
     describe('Create user', () => {
+      let userId: number;
       const adminPayload: UserCreate = plainToInstance(UserCreate, {
         birthday: new Date('1999-01-01'),
         confirmPassword: '12345678S',
@@ -97,9 +99,17 @@ describe('Users', () => {
         role: RoleEnum.admin,
         username: 'administro',
       } as UserCreate);
+      beforeAll(async () => {
+        return await request(app.getHttpServer())
+          .patch(`${BASE_URL}/${userId}/deactivate`)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({
+            reason: 'Usuário deve ser visível só no test',
+          });
+      });
       it('should throw unauthorized exception', async () => {
         return request(app.getHttpServer())
-          .post('/api/users')
+          .post(BASE_URL)
           .send({})
           .expect(401)
           .expect({
@@ -109,7 +119,7 @@ describe('Users', () => {
       });
       it('should throw bad request exception', async () => {
         return request(app.getHttpServer())
-          .post('/api/users')
+          .post(BASE_URL)
           .set('Authorization', `Bearer ${adminToken}`)
           .expect(400)
           .expect({
@@ -127,7 +137,7 @@ describe('Users', () => {
       });
       it('should throw passwords does not match', async () => {
         return request(app.getHttpServer())
-          .post('/api/users')
+          .post(BASE_URL)
           .set('Authorization', `Bearer ${adminToken}`)
           .send({
             ...adminPayload,
@@ -138,7 +148,7 @@ describe('Users', () => {
       });
       it('should throw e-mail already exists', async () => {
         return request(app.getHttpServer())
-          .post('/api/users')
+          .post(BASE_URL)
           .set('Authorization', `Bearer ${adminToken}`)
           .send({
             ...adminPayload,
@@ -152,7 +162,7 @@ describe('Users', () => {
       });
       it('should throw e-mail username already exists', async () => {
         return request(app.getHttpServer())
-          .post('/api/users')
+          .post(BASE_URL)
           .set('Authorization', `Bearer ${adminToken}`)
           .send({
             ...adminPayload,
@@ -166,7 +176,7 @@ describe('Users', () => {
       });
       it('should throw forbidden exception', async () => {
         return request(app.getHttpServer())
-          .post('/api/users')
+          .post(BASE_URL)
           .set('Authorization', `Bearer ${token}`)
           .send(adminPayload)
           .expect(403)
@@ -178,16 +188,25 @@ describe('Users', () => {
       });
       it('should create another admin', async () => {
         return request(app.getHttpServer())
-          .post('/api/users')
+          .post(BASE_URL)
           .set('Authorization', `Bearer ${adminToken}`)
           .send(adminPayload)
-          .expect(201);
+          .expect(201)
+          .then(({ body }) => {
+            userId = body.id;
+          });
       });
     });
   });
-
   describe('/PATCH', () => {
     describe('update user', () => {
+      afterAll(async () => {
+        return await request(app.getHttpServer())
+          .patch(`/api/users/${user.id}`)
+          .set('Authorization', 'Bearer ' + token)
+          .send(user)
+          .expect(200);
+      });
       it('should throw unauthorized', async () => {
         return request(app.getHttpServer())
           .patch('/api/users/1')
@@ -230,6 +249,12 @@ describe('Users', () => {
       });
     });
     describe('deactivate user', () => {
+      afterAll(async () => {
+        return await request(app.getHttpServer())
+          .patch(`/api/users/${activeUser.id}/activate`)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .expect(204);
+      });
       it('should throw unauthorized', async () => {
         return request(app.getHttpServer())
           .patch(`/api/users/${activeUser.id}/deactivate`)
@@ -278,6 +303,15 @@ describe('Users', () => {
       });
     });
     describe('activate user', () => {
+      afterAll(async () => {
+        return await request(app.getHttpServer())
+          .patch(`/api/users/${deactivateUser.id}/deactivate`)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({
+            reason: 'Então você foi banido por blablablablablablablablabla',
+          })
+          .expect(204);
+      });
       it('should throw unauthorized', async () => {
         return request(app.getHttpServer())
           .patch(`/api/users/${deactivateUser.id}/activate`)
@@ -322,24 +356,6 @@ describe('Users', () => {
             expect(body.isActive).toBeTruthy();
           });
       });
-    });
-    afterAll(async () => {
-      await request(app.getHttpServer())
-        .patch(`/api/users/${user.id}`)
-        .set('Authorization', 'Bearer ' + token)
-        .send(user)
-        .expect(200);
-      await request(app.getHttpServer())
-        .patch(`/api/users/${deactivateUser.id}/deactivate`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          reason: 'Então você foi banido por blablablablablablablablabla',
-        })
-        .expect(204);
-      return request(app.getHttpServer())
-        .patch(`/api/users/${activeUser.id}/activate`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .expect(204);
     });
   });
 });

@@ -180,7 +180,17 @@ describe('Community controller', () => {
       });
       describe('Is not a community member', () => {
         const url = `${BASE_URL}/2/leave`;
-        it('should throw user is not a community member', () => {
+        beforeAll(async () => {
+          return await request(app.getHttpServer())
+            .post('/api/evasion-reports')
+            .set('Authorization', `Bearer ${noCommunityUserToken}`)
+            .send({
+              communityId: 2,
+              userId: noCommunityUser.id,
+            })
+            .expect(201);
+        });
+        it('should throw user is not a community member', async () => {
           return request(app.getHttpServer())
             .delete(url)
             .set('Authorization', `Bearer ${noCommunityUserToken}`)

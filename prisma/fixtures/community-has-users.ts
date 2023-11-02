@@ -22,6 +22,11 @@ const communityHasUsers: CommunityHasUsers[] = [
     id: 4,
     userId: users.find(({ username }) => username === 'sailson').id,
   },
+  {
+    communityId: 2,
+    id: 5,
+    userId: 4,
+  },
 ];
 
 export default communityHasUsers;
