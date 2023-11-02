@@ -21,6 +21,7 @@ import { UserResponse } from 'src/user/dto/user-response.dto';
 import { userServiceMock } from 'src/user/__mocks__/user-service.mock';
 import { evasionReportRepositoryMock } from '../__mocks__/evasion-report-repository.mock';
 import { ListResponse } from 'src/dtos/list.dto';
+import { CreateAdminEvasionReportDto } from '../dto/create-admin-evasion-report.dto';
 
 describe('EvasionReportService', () => {
   let service: EvasionReportService;
@@ -191,6 +192,52 @@ describe('EvasionReportService', () => {
       await service.delete(1);
       expect(repository.findById).toBeCalledWith(1);
       expect(repository.delete).toBeCalledWith(1);
+    });
+  });
+  describe('createReportByAdmin', () => {
+    const admin = requestUserGenerator({ roles: [RoleEnum.admin] });
+    const removedUser = plainToInstance(UserResponse, userGenerator());
+    const createdData: CreateAdminEvasionReportDto = {
+      communityId: 1,
+      reason: 'Ele pipocou, ele é um bananão',
+      removerId: admin.id,
+      userId: removedUser.id,
+    };
+    const community = plainToInstance(CommunityResponse, communityGenerator());
+    beforeEach(() => {
+      jest.spyOn(communityService, 'findById').mockResolvedValue(community);
+      jest.spyOn(userService, 'findById').mockResolvedValue(removedUser);
+    });
+    it('should throw community was not found', async () => {
+      const expectedError = new HttpException(
+        'Comunidade não encontrada',
+        HttpStatus.NOT_FOUND,
+      );
+      jest.spyOn(communityService, 'findById').mockRejectedValue(expectedError);
+      await expect(
+        service.createReportByAdmin(createdData, admin),
+      ).rejects.toThrowError(expectedError);
+      expect(communityService.findById).toBeCalledWith(createdData.communityId);
+    });
+    it('should throw user was not found', async () => {
+      const expectedError = new HttpException(
+        'Usuário não encontrado',
+        HttpStatus.NOT_FOUND,
+      );
+      jest.spyOn(userService, 'findById').mockRejectedValueOnce(expectedError);
+      await expect(
+        service.createReportByAdmin(createdData, admin),
+      ).rejects.toThrowError(expectedError);
+      expect(userService.findById).toBeCalledWith(createdData.userId);
+    });
+    it('should create report', async () => {
+      const evasionReport = evasionReportGenerator();
+      jest.spyOn(repository, 'create').mockResolvedValue(evasionReport);
+      const result = await service.createReportByAdmin(createdData, admin);
+      expect(result).toStrictEqual(
+        plainToInstance(EvasionReportResponseDto, evasionReport),
+      );
+      expect(repository.create).toBeCalledWith(createdData);
     });
   });
 });

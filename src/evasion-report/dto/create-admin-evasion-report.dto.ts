@@ -7,12 +7,15 @@ type CreateEvasionType = Pick<
 >;
 
 export class CreateAdminEvasionReportDto implements CreateEvasionType {
-  @IsNumber()
+  @IsNumber({}, { message: 'Necessário informar quem está removendo' })
   removerId: number;
-  @IsNumber()
+  @IsNumber({}, { message: 'Necessário informar a comunidade' })
   communityId: number;
   @MinLength(10, { message: 'Deve ter no mínimo 10 caracteres' })
   reason: string;
-  @IsNumber()
+  @IsNumber(
+    {},
+    { message: 'Necessário informar o usuário que está sendo removido' },
+  )
   userId: number;
 }

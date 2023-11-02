@@ -11,6 +11,7 @@ import { EvasionReportResponseDto } from '../dto/evasion-report-response.dto';
 import evasionReports from '../../../prisma/fixtures/evasion-reports';
 import { ListResponse } from 'src/dtos/list.dto';
 import { applyEvasionReportsIncludes } from 'src/utils/tests-e2e';
+import { CreateAdminEvasionReportDto } from '../dto/create-admin-evasion-report.dto';
 
 describe('Evasion Report', () => {
   let app: INestApplication;
@@ -159,6 +160,81 @@ describe('Evasion Report', () => {
             expect(body.user).toBeDefined();
             expect(body.removerId).toBe(null);
             expect(body.remover).toBe(null);
+          });
+      });
+    });
+    describe('create report by admin', () => {
+      const url = `${BASE_URL}/ban`;
+      const createData: CreateAdminEvasionReportDto = {
+        communityId: 2,
+        reason: 'Você pipocou, você é um bananão',
+        removerId: admin.id,
+        userId: user.id,
+      };
+      it('should throw unauthorized exception', () => {
+        return request(app.getHttpServer()).post(url).expect(401);
+      });
+      it('should throw forbidden exception', () => {
+        return request(app.getHttpServer())
+          .post(url)
+          .set('Authorization', `Bearer ${token}`)
+          .expect(403);
+      });
+      it('should throw bad request', () => {
+        return request(app.getHttpServer())
+          .post(url)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .expect(400)
+          .expect({
+            statusCode: 400,
+            message: [
+              'Necessário informar quem está removendo',
+              'Necessário informar a comunidade',
+              'Deve ter no mínimo 10 caracteres',
+              'Necessário informar o usuário que está sendo removido',
+            ],
+            error: 'Bad Request',
+          });
+      });
+      it('should throw community was not found', () => {
+        return request(app.getHttpServer())
+          .post(url)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({
+            ...createData,
+            communityId: communities.at(-1).id + 200,
+          })
+          .expect(404)
+          .expect({
+            statusCode: 404,
+            message: 'Comunidade não encontrada',
+          });
+      });
+      it('should throw user was not found', () => {
+        return request(app.getHttpServer())
+          .post(url)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({
+            ...createData,
+            userId: users.at(-1).id + 200,
+          })
+          .expect(404)
+          .expect({
+            statusCode: 404,
+            message: 'Usuário não encontrado',
+          });
+      });
+      it('should create report', () => {
+        return request(app.getHttpServer())
+          .post(url)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send(createData)
+          .expect(201)
+          .then(({ body }) => {
+            expect(body.reason).toEqual(createData.reason);
+            expect(body.userId).toEqual(createData.userId);
+            expect(body.removerId).toEqual(createData.removerId);
+            expect(body.communityId).toEqual(createData.communityId);
           });
       });
     });

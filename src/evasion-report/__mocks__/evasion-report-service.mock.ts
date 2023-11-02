@@ -5,4 +5,5 @@ export const evasionReportServiceMock: IEvasionReportService = {
   findById: jest.fn(),
   findMany: jest.fn(),
   delete: jest.fn(),
+  createReportByAdmin: jest.fn(),
 };

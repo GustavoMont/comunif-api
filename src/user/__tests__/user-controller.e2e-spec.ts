@@ -99,8 +99,8 @@ describe('Users', () => {
         role: RoleEnum.admin,
         username: 'administro',
       } as UserCreate);
-      beforeAll(async () => {
-        return await request(app.getHttpServer())
+      beforeAll(() => {
+        return request(app.getHttpServer())
           .patch(`${BASE_URL}/${userId}/deactivate`)
           .set('Authorization', `Bearer ${adminToken}`)
           .send({

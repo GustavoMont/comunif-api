@@ -16,6 +16,7 @@ import { Roles } from 'src/decorators/roles.decorator';
 import { RoleEnum } from 'src/models/User';
 import { RolesGuard } from 'src/auth/guards/role.guard';
 import { EvasionReportFiltersDto } from './dto/evasion-report-filters.dto';
+import { CreateAdminEvasionReportDto } from './dto/create-admin-evasion-report.dto';
 
 @Controller('/api/evasion-reports')
 export class EvasionReportController {
@@ -31,6 +32,15 @@ export class EvasionReportController {
     @User() user: RequestUser,
   ) {
     return await this.service.createReportByUser(body, user);
+  }
+  @Roles(RoleEnum.admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Post('/ban')
+  async banFromCommunity(
+    @Body() data: CreateAdminEvasionReportDto,
+    @User() user: RequestUser,
+  ) {
+    return await this.service.createReportByAdmin(data, user);
   }
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(RoleEnum.admin)

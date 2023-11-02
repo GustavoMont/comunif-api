@@ -11,6 +11,7 @@ import { ICommunityService } from 'src/community/interfaces/ICommunityService';
 import { IUserService } from 'src/user/interfaces/IUserService';
 import { ListResponse } from 'src/dtos/list.dto';
 import { EvasionReportFiltersDto } from './dto/evasion-report-filters.dto';
+import { CreateAdminEvasionReportDto } from './dto/create-admin-evasion-report.dto';
 
 @Injectable()
 export class EvasionReportService
@@ -26,6 +27,18 @@ export class EvasionReportService
     private readonly userService: IUserService,
   ) {
     super();
+  }
+  async createReportByAdmin(
+    data: CreateAdminEvasionReportDto,
+    user: RequestUser,
+  ): Promise<EvasionReportResponseDto> {
+    this.isAdmin(user.roles[0]);
+    await this.communityService.findById(data.communityId);
+    await this.userService.findById(data.userId);
+    const report = await this.repository.create(
+      plainToInstance(EvasionReport, data),
+    );
+    return plainToInstance(EvasionReportResponseDto, report);
   }
   async delete(id: number): Promise<void> {
     await this.findById(id);

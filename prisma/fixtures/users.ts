@@ -146,4 +146,17 @@ export default [
     role: RoleEnum.user,
     username: 'sem_comunidade',
   },
+  {
+    id: 12,
+    name: 'Ban',
+    avatar: null,
+    bio: null,
+    birthday: new Date('2000-06-27T00:00:00.000Z'),
+    email: 'ban@email.com',
+    isActive: true,
+    lastName: 'Kommunite',
+    password: bcrypt.hashSync('12345678S', 10),
+    role: RoleEnum.user,
+    username: 'banido',
+  },
 ] as User[];
