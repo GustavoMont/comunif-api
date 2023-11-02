@@ -6,7 +6,6 @@ import { EvasionReportService } from './evasion-report.service';
 import { IEvasionReportService } from './interfaces/IEvasionReportService';
 import { CommunityModule } from 'src/community/community.module';
 import { UserModule } from 'src/user/user.module';
-import { MailModule } from 'src/mail/mail.module';
 import { EvasionReportController } from './evasion-report.controller';
 
 @Module({
@@ -21,7 +20,7 @@ import { EvasionReportController } from './evasion-report.controller';
       useClass: EvasionReportService,
     },
   ],
-  imports: [CommunityModule, UserModule, MailModule],
+  imports: [CommunityModule, UserModule],
   exports: [IEvasionReportService],
   controllers: [EvasionReportController],
 })

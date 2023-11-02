@@ -12,8 +12,6 @@ import {
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { EvasionReportResponseDto } from '../dto/evasion-report-response.dto';
-import { IMailService } from 'src/mail/interfaces/IMailService';
-import { mailServiceMock } from 'src/mail/__mocks__/mail-service.mock';
 import { ICommunityService } from 'src/community/interfaces/ICommunityService';
 import { communityServiceMock } from 'src/community/__mocks__/community-service.mock';
 import { CommunityResponse } from 'src/community/dto/community-response.dto';
@@ -29,7 +27,6 @@ describe('EvasionReportService', () => {
   let repository: IEvasionReportRepository;
   let userService: IUserService;
   let communityService: ICommunityService;
-  let mailService: IMailService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -47,10 +44,6 @@ describe('EvasionReportService', () => {
           provide: IUserService,
           useValue: userServiceMock,
         },
-        {
-          provide: IMailService,
-          useValue: mailServiceMock,
-        },
       ],
     }).compile();
 
@@ -58,7 +51,6 @@ describe('EvasionReportService', () => {
     repository = module.get<IEvasionReportRepository>(IEvasionReportRepository);
     communityService = module.get<ICommunityService>(ICommunityService);
     userService = module.get<IUserService>(IUserService);
-    mailService = module.get<IMailService>(IMailService);
   });
 
   it('should be defined', () => {
@@ -111,7 +103,6 @@ describe('EvasionReportService', () => {
       const communityResponsible = userGenerator({ role: RoleEnum.admin });
       const userResponse = plainToInstance(UserResponse, communityResponsible);
       jest.spyOn(userService, 'findById').mockResolvedValue(userResponse);
-      jest.spyOn(mailService, 'userLeftCommunity').mockResolvedValue();
       const result = await service.createReportByUser(createData, requestUser);
       const expectedResponse = plainToInstance(
         EvasionReportResponseDto,
@@ -119,11 +110,6 @@ describe('EvasionReportService', () => {
       );
       expect(result).toStrictEqual(expectedResponse);
       expect(repository.create).toBeCalledWith(createData);
-      expect(userService.findById).toBeCalledWith(userResponse.id);
-      expect(mailService.userLeftCommunity).toBeCalledWith(
-        expectedResponse,
-        userResponse,
-      );
     });
   });
   describe('findById', () => {

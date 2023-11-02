@@ -9,7 +9,6 @@ import { plainToInstance } from 'class-transformer';
 import { EvasionReport } from 'src/models/EvasionReport';
 import { ICommunityService } from 'src/community/interfaces/ICommunityService';
 import { IUserService } from 'src/user/interfaces/IUserService';
-import { IMailService } from 'src/mail/interfaces/IMailService';
 import { ListResponse } from 'src/dtos/list.dto';
 import { EvasionReportFiltersDto } from './dto/evasion-report-filters.dto';
 
@@ -25,8 +24,6 @@ export class EvasionReportService
     private readonly communityService: ICommunityService,
     @Inject(IUserService)
     private readonly userService: IUserService,
-    @Inject(IMailService)
-    private readonly mailService: IMailService,
   ) {
     super();
   }
@@ -67,23 +64,14 @@ export class EvasionReportService
         HttpStatus.FORBIDDEN,
       );
     }
-    const community = await this.communityService.findById(
-      data.communityId,
-      user,
-    );
+    await this.communityService.findById(data.communityId, user);
     const createData = plainToInstance(EvasionReport, data);
     const evasionReport = await this.repository.create(createData);
-    const communityResponsible = await this.userService.findById(
-      community.adminId,
-    );
     const reportResponse = plainToInstance(
       EvasionReportResponseDto,
       evasionReport,
     );
-    await this.mailService.userLeftCommunity(
-      reportResponse,
-      communityResponsible,
-    );
+
     return reportResponse;
   }
 }

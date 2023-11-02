@@ -4,8 +4,6 @@ import { EvasionReportModule } from '../evasion-report.module';
 import { AuthModule } from 'src/auth/auth.module';
 import * as request from 'supertest';
 import users from '../../../prisma/fixtures/users';
-import { mailServiceMock } from 'src/mail/__mocks__/mail-service.mock';
-import { IMailService } from 'src/mail/interfaces/IMailService';
 import communities from '../../../prisma/fixtures/communities';
 import { CreateUserEvasionReportDto } from '../dto/create-user-evasion-report.dto';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
@@ -24,10 +22,7 @@ describe('Evasion Report', () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [EvasionReportModule, AuthModule],
-    })
-      .overrideProvider(IMailService)
-      .useValue(mailServiceMock)
-      .compile();
+    }).compile();
 
     app = moduleRef.createNestApplication();
     app.useGlobalPipes(

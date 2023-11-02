@@ -22,6 +22,9 @@ import { userServiceMock } from 'src/user/__mocks__/user-service.mock';
 import { evasionReportServiceMock } from 'src/evasion-report/__mocks__/evasion-report-service.mock';
 import { communityUsersRepositoryMock } from '../__mocks__/community-users-repository.mock';
 import { EvasionReportResponseDto } from 'src/evasion-report/dto/evasion-report-response.dto';
+import { IMailService } from 'src/mail/interfaces/IMailService';
+import { mailServiceMock } from 'src/mail/__mocks__/mail-service.mock';
+import { RoleEnum } from 'src/models/User';
 
 describe('CommunityUsersService', () => {
   let service: CommunityUsersService;
@@ -29,6 +32,7 @@ describe('CommunityUsersService', () => {
   let userService: IUserService;
   let communityService: ICommunityService;
   let evasionReportService: IEvasionReportService;
+  let mailService: IMailService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -50,6 +54,10 @@ describe('CommunityUsersService', () => {
           provide: IEvasionReportService,
           useValue: evasionReportServiceMock,
         },
+        {
+          provide: IMailService,
+          useValue: mailServiceMock,
+        },
       ],
     }).compile();
 
@@ -60,6 +68,7 @@ describe('CommunityUsersService', () => {
     evasionReportService = module.get<IEvasionReportService>(
       IEvasionReportService,
     );
+    mailService = module.get<IMailService>(IMailService);
   });
 
   it('should be defined', () => {
@@ -258,13 +267,22 @@ describe('CommunityUsersService', () => {
       expect(evasionReportService.delete).toBeCalledWith(report.id);
     });
     it('should let user leave community', async () => {
+      const responsible = plainToInstance(
+        UserResponse,
+        userGenerator({ role: RoleEnum.admin }),
+      );
       jest.spyOn(communityService, 'findById').mockResolvedValue(community);
-      jest.spyOn(repository, 'findUser').mockResolvedValue(communityHasUser);
-      jest.spyOn(repository, 'delete').mockResolvedValue();
       jest
-        .spyOn(evasionReportService, 'createReportByUser')
-        .mockResolvedValue(null);
+        .spyOn(repository, 'findUser')
+        .mockResolvedValueOnce(communityHasUser);
+      jest.spyOn(userService, 'findById').mockResolvedValueOnce(responsible);
+      jest.spyOn(repository, 'delete').mockResolvedValue();
       await service.leaveCommunity(community.id, requestUser);
+      expect(userService.findById).toBeCalledWith(community.adminId);
+      expect(mailService.userLeftCommunity).toBeCalledWith(
+        evasionReport,
+        responsible,
+      );
       expect(repository.delete);
     });
   });

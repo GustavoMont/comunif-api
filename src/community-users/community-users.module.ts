@@ -8,8 +8,9 @@ import { ICommunityUsersService } from './interfaces/ICommunityUsersService';
 import { PrismaClient } from '@prisma/client';
 import { CommunityUsersController } from './community-users.controller';
 import { EvasionReportModule } from 'src/evasion-report/evasion-report.module';
+import { MailModule } from 'src/mail/mail.module';
 @Module({
-  imports: [UserModule, CommunityModule, EvasionReportModule],
+  imports: [UserModule, CommunityModule, EvasionReportModule, MailModule],
   providers: [
     {
       provide: ICommunityUsersService,

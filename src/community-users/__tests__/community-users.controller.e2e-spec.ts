@@ -17,6 +17,8 @@ import { CommunityUsersModule } from '../community-users.module';
 import { ListResponse } from 'src/dtos/list.dto';
 import communityHasUsers from '../../../prisma/fixtures/community-has-users';
 import { UserResponse } from 'src/user/dto/user-response.dto';
+import { IMailService } from 'src/mail/interfaces/IMailService';
+import { mailServiceMock } from 'src/mail/__mocks__/mail-service.mock';
 
 describe('Community controller', () => {
   const BASE_URL = '/api/community-users';
@@ -49,7 +51,10 @@ describe('Community controller', () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [CommunityUsersModule, AuthModule],
-    }).compile();
+    })
+      .overrideProvider(IMailService)
+      .useValue(mailServiceMock)
+      .compile();
 
     app = moduleRef.createNestApplication();
     app.useGlobalPipes(

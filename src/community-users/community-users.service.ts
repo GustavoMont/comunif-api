@@ -11,6 +11,7 @@ import { IUserService } from 'src/user/interfaces/IUserService';
 import { CommunityUsersQueryDto } from './dto/community-users-query.dto';
 import { RequestUser } from 'src/types/RequestUser';
 import { IEvasionReportService } from 'src/evasion-report/interfaces/IEvasionReportService';
+import { IMailService } from 'src/mail/interfaces/IMailService';
 
 @Injectable()
 export class CommunityUsersService
@@ -26,11 +27,13 @@ export class CommunityUsersService
     private readonly userService: IUserService,
     @Inject(IEvasionReportService)
     private readonly evasionReportService: IEvasionReportService,
+    @Inject(IMailService)
+    private readonly mailService: IMailService,
   ) {
     super();
   }
   async leaveCommunity(communityId: number, user: RequestUser): Promise<void> {
-    await this.communityService.findById(communityId, user);
+    const community = await this.communityService.findById(communityId, user);
     const evasionReports = await this.evasionReportService.findMany(1, 1, {
       community: communityId,
       user: user.id,
@@ -53,6 +56,8 @@ export class CommunityUsersService
         HttpStatus.BAD_REQUEST,
       );
     }
+    const responsible = await this.userService.findById(community.adminId);
+    await this.mailService.userLeftCommunity(evasionReport, responsible);
     await this.repository.delete(communityHasUser.id);
   }
   async findCommunityMembers(
