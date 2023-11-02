@@ -55,6 +55,7 @@ describe('Community controller', () => {
     app.useGlobalPipes(
       new ValidationPipe({
         transform: true,
+        whitelist: true,
       }),
     );
     await app.init();
@@ -178,6 +179,7 @@ describe('Community controller', () => {
           });
       });
       describe('Is not a community member', () => {
+        const url = `${BASE_URL}/2/leave`;
         it('should throw user is not a community member', () => {
           return request(app.getHttpServer())
             .delete(url)

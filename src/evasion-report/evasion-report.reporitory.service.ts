@@ -32,7 +32,9 @@ export class EvasionReportRepository implements IEvasionReportRepository {
   }
   defaultInclude() {
     return {
-      community: { include: { communityChannels: true } },
+      community: {
+        include: { communityChannels: { include: { channelType: true } } },
+      },
       user: true,
       remover: true,
     };

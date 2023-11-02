@@ -10,6 +10,7 @@ async function bootstrap() {
   });
   app.useGlobalPipes(
     new CamelizePipe(),
+
     new ValidationPipe({
       transform: true,
       whitelist: true,
