@@ -11,7 +11,11 @@ export interface ICommunityUsersService {
     take: number,
   ): Promise<ListResponse<UserResponse>>;
   isUserInCommunity(userId: number, communityId: number): Promise<boolean>;
-  leaveCommunity(communityId: number, user: RequestUser): Promise<void>;
+  leaveCommunity(
+    communityId: number,
+    userId: number,
+    user: RequestUser,
+  ): Promise<void>;
 }
 
 export const ICommunityUsersService = Symbol('ICommunityUsersService');

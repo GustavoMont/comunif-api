@@ -6,6 +6,7 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { RoleEnum } from 'src/models/User';
 import { plainToInstance } from 'class-transformer';
 import { EvasionReportResponseDto } from 'src/evasion-report/dto/evasion-report-response.dto';
+import { UserResponse } from 'src/user/dto/user-response.dto';
 
 describe('MailService', () => {
   let service: MailService;
@@ -158,6 +159,76 @@ describe('MailService', () => {
         template: './activate-user',
         context: {
           name: user.name,
+        },
+      });
+    });
+  });
+  describe('Notifcate user banned', () => {
+    const evasionReport = plainToInstance(
+      EvasionReportResponseDto,
+      evasionReportGenerator(),
+    );
+    it('should throw error', async () => {
+      jest.spyOn(mailer, 'sendMail').mockRejectedValueOnce('ocorreu um erro');
+      await expect(
+        service.notificateBanUser(evasionReport),
+      ).rejects.toThrowError(
+        new HttpException(
+          'Erro ao enviar o e-mail! Por favor contate manualmente o usuário.',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+      );
+    });
+    it('should send activate e-mail', async () => {
+      const { community, reason, user } = evasionReport;
+      const communityName = community.name;
+      await service.notificateBanUser(evasionReport);
+      expect(mailer.sendMail).toBeCalledWith({
+        to: evasionReport.user.email,
+        subject: `Oops! Algo aconteceu na comunidade ${communityName}`,
+        template: './notificate-ban-user',
+        context: {
+          name: user.name,
+          communityName,
+          reason,
+        },
+      });
+    });
+  });
+  describe('Notificate admin of user banned', () => {
+    const evasionReport = plainToInstance(
+      EvasionReportResponseDto,
+      evasionReportGenerator(),
+    );
+    const responsable = plainToInstance(
+      UserResponse,
+      userGenerator({ role: RoleEnum.admin }),
+    );
+    it('should throw error', async () => {
+      jest.spyOn(mailer, 'sendMail').mockRejectedValueOnce('ocorreu um erro');
+      await expect(
+        service.notificateBanResponsible(evasionReport, responsable),
+      ).rejects.toThrowError(
+        new HttpException(
+          'Erro ao enviar o e-mail! Por favor contate manualmente o usuário.',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+      );
+    });
+    it('should send activate e-mail', async () => {
+      const { community, reason, user, remover } = evasionReport;
+      const communityName = community.name;
+      await service.notificateBanResponsible(evasionReport, responsable);
+      expect(mailer.sendMail).toBeCalledWith({
+        to: evasionReport.user.email,
+        subject: `Oops! Algo aconteceu na comunidade ${communityName}`,
+        template: './notificate-admin-ban',
+        context: {
+          username: user.username,
+          communityName,
+          adminName: responsable.name,
+          reason,
+          adminUsername: remover.username,
         },
       });
     });

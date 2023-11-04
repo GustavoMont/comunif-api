@@ -45,11 +45,12 @@ export class CommunityUsersController {
   }
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Delete(':communityId/leave')
+  @Delete(':communityId/members/:userId')
   async userLeavCommunity(
     @Param('communityId') communityId: number,
+    @Param('userId') userId: number,
     @User() user: RequestUser,
   ) {
-    await this.service.leaveCommunity(communityId, user);
+    await this.service.leaveCommunity(communityId, userId, user);
   }
 }

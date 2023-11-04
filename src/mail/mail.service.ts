@@ -3,10 +3,61 @@ import { IMailService } from './interfaces/IMailService';
 import { User } from 'src/models/User';
 import { MailerService } from '@nestjs-modules/mailer';
 import { EvasionReportResponseDto } from 'src/evasion-report/dto/evasion-report-response.dto';
+import { UserResponse } from 'src/user/dto/user-response.dto';
 
 @Injectable()
 export class MailService implements IMailService {
   constructor(private readonly mailer: MailerService) {}
+  async notificateBanUser(report: EvasionReportResponseDto): Promise<void> {
+    try {
+      const { user, community, reason } = report;
+      const communityName = community.name;
+      await this.mailer.sendMail({
+        to: user.email,
+        subject: `Oops! Algo aconteceu na comunidade ${communityName}`,
+        template: './notificate-ban-user',
+        context: {
+          name: user.name,
+          communityName,
+          reason,
+        },
+      });
+    } catch (error) {
+      this.logger.error(error);
+
+      throw new HttpException(
+        'Erro ao enviar o e-mail! Por favor contate manualmente o usuário.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  async notificateBanResponsible(
+    { community, reason, remover, user }: EvasionReportResponseDto,
+    responsable: UserResponse,
+  ): Promise<void> {
+    try {
+      const communityName = community.name;
+      await this.mailer.sendMail({
+        to: user.email,
+        subject: `Oops! Algo aconteceu na comunidade ${communityName}`,
+        template: './notificate-admin-ban',
+        context: {
+          username: user.username,
+          communityName,
+          adminName: responsable.name,
+          reason,
+          adminUsername: remover.username,
+        },
+      });
+    } catch (error) {
+      this.logger.error(error);
+
+      throw new HttpException(
+        'Erro ao enviar o e-mail! Por favor contate manualmente o usuário.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
   private readonly logger = new Logger('MAIL_SERVICE');
 
   async userLeftCommunity(

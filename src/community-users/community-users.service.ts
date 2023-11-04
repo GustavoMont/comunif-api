@@ -12,6 +12,7 @@ import { CommunityUsersQueryDto } from './dto/community-users-query.dto';
 import { RequestUser } from 'src/types/RequestUser';
 import { IEvasionReportService } from 'src/evasion-report/interfaces/IEvasionReportService';
 import { IMailService } from 'src/mail/interfaces/IMailService';
+import { EvasionReportResponseDto } from 'src/evasion-report/dto/evasion-report-response.dto';
 
 @Injectable()
 export class CommunityUsersService
@@ -32,11 +33,39 @@ export class CommunityUsersService
   ) {
     super();
   }
-  async leaveCommunity(communityId: number, user: RequestUser): Promise<void> {
+  async handleLeaveCommunityMail(
+    evasionReport: EvasionReportResponseDto,
+    responsable: UserResponse,
+    isAdmin = false,
+  ) {
+    if (isAdmin) {
+      await this.mailService.notificateBanUser(evasionReport);
+      if (responsable.id !== evasionReport.removerId) {
+        await this.mailService.notificateBanResponsible(
+          evasionReport,
+          responsable,
+        );
+      }
+      return;
+    }
+    await this.mailService.userLeftCommunity(evasionReport, responsable);
+  }
+  async leaveCommunity(
+    communityId: number,
+    userId: number,
+    user: RequestUser,
+  ): Promise<void> {
+    const isAdmin = this.isAdmin(user.roles[0]);
+    if (userId !== user.id && !isAdmin) {
+      throw new HttpException(
+        'Você não tem permissão para realizar essa ação',
+        HttpStatus.FORBIDDEN,
+      );
+    }
     const community = await this.communityService.findById(communityId, user);
     const evasionReports = await this.evasionReportService.findMany(1, 1, {
       community: communityId,
-      user: user.id,
+      user: userId,
     });
     const [evasionReport] = evasionReports.results;
     if (!evasionReport) {
@@ -47,7 +76,7 @@ export class CommunityUsersService
     }
     const communityHasUser = await this.repository.findUser(
       communityId,
-      user.id,
+      userId,
     );
     if (!communityHasUser) {
       await this.evasionReportService.delete(evasionReport.id);
@@ -57,8 +86,8 @@ export class CommunityUsersService
       );
     }
     const responsible = await this.userService.findById(community.adminId);
-    await this.mailService.userLeftCommunity(evasionReport, responsible);
     await this.repository.delete(communityHasUser.id);
+    await this.handleLeaveCommunityMail(evasionReport, responsible, isAdmin);
   }
   async findCommunityMembers(
     communityId: number,

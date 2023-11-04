@@ -6,4 +6,6 @@ export const mailServiceMock: IMailService = {
   deactivateUser: jest.fn(),
   activateUser: jest.fn(),
   userLeftCommunity: jest.fn(),
+  notificateBanResponsible: jest.fn(),
+  notificateBanUser: jest.fn(),
 };

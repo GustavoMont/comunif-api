@@ -19,6 +19,14 @@ const evasionReports: EvasionReport[] = [
     removerId: null,
     userId: 4,
   },
+  {
+    communityId: 5,
+    id: 3,
+    reason: 'Esse cara pipocou, ele é um bananão',
+    removedAt: moment().toDate(),
+    removerId: 1,
+    userId: users.find(({ username }) => username === 'banido').id,
+  },
 ];
 
 export default evasionReports;

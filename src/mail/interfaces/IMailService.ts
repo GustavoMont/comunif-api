@@ -1,5 +1,6 @@
 import { EvasionReportResponseDto } from 'src/evasion-report/dto/evasion-report-response.dto';
 import { User } from 'src/models/User';
+import { UserResponse } from 'src/user/dto/user-response.dto';
 
 export interface IMailService {
   resetPassword(user: User, code: string): Promise<void>;
@@ -9,6 +10,11 @@ export interface IMailService {
   userLeftCommunity(
     report: EvasionReportResponseDto,
     responsable: User,
+  ): Promise<void>;
+  notificateBanUser(report: EvasionReportResponseDto): Promise<void>;
+  notificateBanResponsible(
+    report: EvasionReportResponseDto,
+    responsable: UserResponse,
   ): Promise<void>;
 }
 
