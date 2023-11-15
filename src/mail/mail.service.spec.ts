@@ -1,16 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MailService } from './mail.service';
-import { MailerService } from '@nestjs-modules/mailer';
 import { evasionReportGenerator, userGenerator } from 'src/utils/generators';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { RoleEnum } from 'src/models/User';
 import { plainToInstance } from 'class-transformer';
 import { EvasionReportResponseDto } from 'src/evasion-report/dto/evasion-report-response.dto';
 import { UserResponse } from 'src/user/dto/user-response.dto';
+import { IMailerService } from './interfaces/IMailerService';
 
 describe('MailService', () => {
   let service: MailService;
-  let mailer: MailerService;
+  let mailer: IMailerService;
   const user = userGenerator({ name: 'reseter' });
 
   beforeEach(async () => {
@@ -18,7 +18,7 @@ describe('MailService', () => {
       providers: [
         MailService,
         {
-          provide: MailerService,
+          provide: IMailerService,
           useValue: {
             sendMail: jest.fn(),
           },
@@ -27,7 +27,7 @@ describe('MailService', () => {
     }).compile();
 
     service = module.get<MailService>(MailService);
-    mailer = module.get<MailerService>(MailerService);
+    mailer = module.get<IMailerService>(IMailerService);
   });
 
   it('should be defined', () => {
@@ -37,7 +37,7 @@ describe('MailService', () => {
     jest.spyOn(mailer, 'sendMail').mockReset();
   });
   beforeEach(() => {
-    jest.spyOn(mailer, 'sendMail').mockResolvedValue(true);
+    jest.spyOn(mailer, 'sendMail').mockResolvedValue();
   });
   describe('Reset password', () => {
     const code = '123456';

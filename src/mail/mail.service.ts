@@ -1,13 +1,21 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { IMailService } from './interfaces/IMailService';
 import { User } from 'src/models/User';
-import { MailerService } from '@nestjs-modules/mailer';
 import { EvasionReportResponseDto } from 'src/evasion-report/dto/evasion-report-response.dto';
 import { UserResponse } from 'src/user/dto/user-response.dto';
+import { IMailerService } from './interfaces/IMailerService';
 
 @Injectable()
 export class MailService implements IMailService {
-  constructor(private readonly mailer: MailerService) {}
+  constructor(
+    @Inject(IMailerService) private readonly mailer: IMailerService,
+  ) {}
   async notificateBanUser(report: EvasionReportResponseDto): Promise<void> {
     try {
       const { user, community, reason } = report;

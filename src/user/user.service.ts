@@ -63,6 +63,12 @@ export class UserService extends Service implements IUserService {
       );
     }
     const user = await this.findById(userId);
+    if (!user.isActive) {
+      throw new HttpException(
+        'Usuário já está inativo',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     await Promise.all([
       this.repository.update(user.id, {
         isActive: false,
