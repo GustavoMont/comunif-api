@@ -21,7 +21,8 @@
     "test:e2e": "prisma migrate reset -f ; jest --config ./test/jest-e2e.json --runInBand",
     "create-superuser": "ts-node prisma/create-superuser.ts",
     "db:reset": "prisma migrate reset",
-    "db:migrate": "prisma migrate dev"
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",

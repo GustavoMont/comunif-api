@@ -249,8 +249,8 @@ describe('Users', () => {
       });
     });
     describe('deactivate user', () => {
-      afterAll(async () => {
-        return await request(app.getHttpServer())
+      afterAll(() => {
+        return request(app.getHttpServer())
           .patch(`/api/users/${activeUser.id}/activate`)
           .set('Authorization', `Bearer ${adminToken}`)
           .expect(204);
@@ -303,8 +303,8 @@ describe('Users', () => {
       });
     });
     describe('activate user', () => {
-      afterAll(async () => {
-        return await request(app.getHttpServer())
+      afterAll(() => {
+        return request(app.getHttpServer())
           .patch(`/api/users/${deactivateUser.id}/deactivate`)
           .set('Authorization', `Bearer ${adminToken}`)
           .send({

@@ -3,6 +3,7 @@ import { RoleEnum, User } from 'src/models/User';
 import { PasswordDto } from './password.dto';
 import { IsEmail, IsNotEmpty } from 'class-validator';
 import { MinAge } from 'src/decorators/min-age.decorator';
+import * as moment from 'moment';
 
 export class UserCreate extends PasswordDto implements User {
   @Exclude()
@@ -17,6 +18,7 @@ export class UserCreate extends PasswordDto implements User {
   email: string;
   @IsNotEmpty({ message: 'username é um campo obrigatório' })
   username: string;
+  @Transform(({ value }) => moment(value).toDate())
   @MinAge({
     message: 'Idade mínima de 15 anos',
   })
