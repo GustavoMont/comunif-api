@@ -99,13 +99,15 @@ describe('Users', () => {
         role: RoleEnum.admin,
         username: 'administro',
       } as UserCreate);
-      beforeAll(() => {
-        return request(app.getHttpServer())
+      afterAll(async () => {
+        await request(app.getHttpServer())
           .patch(`${BASE_URL}/${userId}/deactivate`)
           .set('Authorization', `Bearer ${adminToken}`)
           .send({
-            reason: 'Usuário deve ser visível só no test',
-          });
+            reason:
+              'Usuário deve ser visível só no test, porque sim eu que mando',
+          })
+          .expect(204);
       });
       it('should throw unauthorized exception', async () => {
         return request(app.getHttpServer())
@@ -186,7 +188,7 @@ describe('Users', () => {
             error: 'Forbidden',
           });
       });
-      it('should create another admin', async () => {
+      it('should create another admin', () => {
         return request(app.getHttpServer())
           .post(BASE_URL)
           .set('Authorization', `Bearer ${adminToken}`)

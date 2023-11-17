@@ -18,7 +18,7 @@ const main = async () => {
       data,
     });
   }
-  if (process.env.ENVIROMENT === 'development') {
+  if (process.env.ENVIROMENT !== 'production') {
     for (const data of users) {
       delete data.id;
       await db.user.create({

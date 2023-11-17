@@ -40,3 +40,5 @@ lerna-debug.log*
 *.db-journal
 
 uploads
+
+/bin
