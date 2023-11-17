@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SecurityCodeService } from '../security-code.service';
-import { SecurityCodeRepository } from '../security-code-repository.service';
 import {
   resetPasswordCodeGenerator,
   userGenerator,
@@ -9,16 +8,17 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { afterEach } from 'node:test';
 import * as moment from 'moment';
 import { instanceToPlain } from 'class-transformer';
+import { ISecurityCodeRepository } from '../interfaces/ISecurityCodeRepository';
 describe('SecurityCodeService', () => {
   let service: SecurityCodeService;
-  let repository: SecurityCodeRepository;
+  let repository: ISecurityCodeRepository;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SecurityCodeService,
         {
-          provide: SecurityCodeRepository,
+          provide: ISecurityCodeRepository,
           useValue: {
             findByCode: jest.fn(),
             createCode: jest.fn(),
@@ -30,7 +30,7 @@ describe('SecurityCodeService', () => {
     }).compile();
 
     service = module.get<SecurityCodeService>(SecurityCodeService);
-    repository = module.get<SecurityCodeRepository>(SecurityCodeRepository);
+    repository = module.get<ISecurityCodeRepository>(ISecurityCodeRepository);
   });
 
   it('should be defined', () => {

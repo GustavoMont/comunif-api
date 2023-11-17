@@ -15,12 +15,13 @@ import { ListResponse } from 'src/dtos/list.dto';
 import { RoleEnum } from 'src/models/User';
 import { CommunityQueryDto } from '../dto/community-query.dto';
 import { ImageService } from 'src/utils/image.service';
-import { UserService } from 'src/user/user.service';
+import { IUserService } from 'src/user/interfaces/IUserService';
+import { CountDto } from 'src/dtos/count.dto';
 
 describe('Community Service', () => {
   let repository: ICommunityRepository;
   let imageService: ImageService;
-  let userService: UserService;
+  let userService: IUserService;
   let communityService: CommunityService;
   const admin = { id: 1, roles: [RoleEnum.admin], username: 'test' };
   const user = { id: 1, roles: [RoleEnum.user], username: 'test' };
@@ -45,7 +46,7 @@ describe('Community Service', () => {
           } as ICommunityRepository,
         },
         {
-          provide: UserService,
+          provide: IUserService,
           useValue: {
             findById: jest.fn(),
             findAll: jest.fn(),
@@ -59,7 +60,7 @@ describe('Community Service', () => {
         },
       ],
     }).compile();
-    userService = module.get<UserService>(UserService);
+    userService = module.get<IUserService>(IUserService);
     imageService = module.get<ImageService>(ImageService);
     communityService = module.get<CommunityService>(CommunityService);
     repository = module.get<ICommunityRepository>(ICommunityRepository);
@@ -158,7 +159,7 @@ describe('Community Service', () => {
       jest.spyOn(repository, 'count').mockResolvedValue(total);
       const result = await communityService.findAll(
         admin,
-        plainToInstance(CommunityQueryDto, { isActive: false, name: 'sim' }),
+        plainToInstance(CommunityQueryDto, { isActive: 'false', name: 'sim' }),
         3,
       );
       const communityWithIsMember = communities.map((community) => ({
@@ -297,6 +298,27 @@ describe('Community Service', () => {
       expect(result).toStrictEqual(
         plainToInstance(CommunityResponse, community),
       );
+    });
+  });
+  describe('count', () => {
+    const total = 10;
+    it('should count all communities', async () => {
+      jest.spyOn(repository, 'count').mockResolvedValue(total);
+      const result = await communityService.count();
+      expect(result).toStrictEqual(plainToInstance(CountDto, { total }));
+    });
+    it('should count communities filtered', async () => {
+      jest.spyOn(repository, 'count').mockResolvedValue(total);
+      const expectedFilters: CommunityQueryDto = {
+        isActive: true,
+        name: {
+          contains: 'olá',
+        },
+        subject: 'subjecto',
+      };
+      const result = await communityService.count(expectedFilters);
+      expect(result).toStrictEqual(plainToInstance(CountDto, { total }));
+      expect(repository.count).toBeCalledWith(expectedFilters);
     });
   });
 });

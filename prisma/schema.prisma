@@ -3,25 +3,31 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id                Int                 @id @default(autoincrement())
-  name              String
-  lastName          String
-  email             String              @unique
-  username          String              @unique
-  password          String
-  birthday          DateTime
-  bio               String?
-  avatar            String?
-  communities       CommunityHasUsers[]
-  messages          Message[]
-  role              String              @default(dbgenerated("user"))
-  resetPasswordCode ResetPasswordCode?
-  refreshToken      UserTokens?
+  id                  Int                   @id @default(autoincrement())
+  name                String
+  lastName            String
+  email               String                @unique
+  username            String                @unique
+  password            String
+  birthday            DateTime
+  bio                 String?
+  avatar              String?
+  communities         CommunityHasUsers[]
+  messages            Message[]
+  role                String                @default(dbgenerated("user"))
+  resetPasswordCode   ResetPasswordCode?
+  refreshToken        UserTokens?
+  isActive            Boolean               @default(true)
+  userStatistics      UserStatistics[]
+  communityStatistics CommunityStatistics[]
+  evasions            EvasionReport[]       @relation("evasions")
+  removes             EvasionReport[]       @relation("removes")
+  adminCommunities    Community[]
 }
 
 model ResetPasswordCode {
@@ -65,6 +71,9 @@ model Community {
   communityChannels CommunityChannel[]
   banner            String?
   isActive          Boolean             @default(false)
+  evasions          EvasionReport[]
+  adminId           Int?
+  admin             User?               @relation(fields: [adminId], references: [id])
 }
 
 model CommunityHasUsers {
@@ -81,4 +90,32 @@ model UserTokens {
   user      User     @relation(fields: [userId], references: [id])
   userId    Int      @unique
   expiresIn DateTime
+}
+
+model UserStatistics {
+  id        Int      @id @default(autoincrement())
+  count     Int
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model CommunityStatistics {
+  id        Int      @id @default(autoincrement())
+  count     Int
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model EvasionReport {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  communityId Int
+  community   Community @relation(fields: [communityId], references: [id])
+  user        User      @relation("evasions", fields: [userId], references: [id])
+  removerId   Int?
+  remover     User?     @relation("removes", fields: [removerId], references: [id])
+  removedAt   DateTime  @default(now())
+  reason      String?
 }

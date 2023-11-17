@@ -1,14 +1,17 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { ISecurityCodeService } from './interfaces/ISecurityCodeService';
 import { ResetPasswordCode } from '@prisma/client';
-import { SecurityCodeRepository } from './security-code-repository.service';
 import * as moment from 'moment';
 import { plainToInstance } from 'class-transformer';
 import { ResetPasswordResponse } from './dto/reset-password-response.dto';
+import { ISecurityCodeRepository } from './interfaces/ISecurityCodeRepository';
 
 @Injectable()
 export class SecurityCodeService implements ISecurityCodeService {
-  constructor(private readonly repository: SecurityCodeRepository) {}
+  constructor(
+    @Inject(ISecurityCodeRepository)
+    private readonly repository: ISecurityCodeRepository,
+  ) {}
   isCodeExpired(code: ResetPasswordCode): boolean {
     return moment(code.expiresAt).isBefore(moment());
   }

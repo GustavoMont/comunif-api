@@ -2,12 +2,12 @@ import {
   Body,
   Controller,
   HttpCode,
+  Inject,
   Patch,
   Post,
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
 import { SignupDto } from './dto/sign-up.dto';
 import { TokenDto } from './dto/token-dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
@@ -20,13 +20,14 @@ import { ConfirmResetPasswordCodeDto } from 'src/user/dto/confirm-reset-password
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { User } from 'src/decorators/request-user.decorator';
 import { RequestUser } from 'src/types/RequestUser';
-import { PasswordDto } from './dto/password.dto';
+import { PasswordDto } from '../user/dto/password.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { AccessToken } from 'src/decorators/authorization-headers.decorator';
+import { IAuthService } from './interfaces/IAuthService';
 
 @Controller('api/auth')
 export class AuthController {
-  constructor(private service: AuthService) {}
+  constructor(@Inject(IAuthService) private service: IAuthService) {}
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Req() req): Promise<TokenDto> {

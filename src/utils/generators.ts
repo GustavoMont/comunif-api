@@ -1,12 +1,16 @@
 import {
   CommunityChannel,
+  CommunityHasUsers,
   ResetPasswordCode,
   UserTokens,
 } from '@prisma/client';
 import * as moment from 'moment';
 import { Community } from 'src/models/Community';
+import { CommunityStatistics } from 'src/models/CommunityStatistics';
+import { EvasionReport } from 'src/models/EvasionReport';
 import { Message } from 'src/models/Message';
 import { RoleEnum, User } from 'src/models/User';
+import { UserStatistics } from 'src/models/UserStatistics';
 import { RequestUser } from 'src/types/RequestUser';
 import { v4 } from 'uuid';
 
@@ -40,6 +44,7 @@ export const userGenerator: Generator<User> = (change) => ({
   avatar: null,
   bio: null,
   role: RoleEnum.user,
+  isActive: true,
   ...change,
 });
 
@@ -67,6 +72,7 @@ export const communityGenerator: Generator<Community> = (change) => ({
   ),
   banner: 'banner',
   isActive: true,
+  adminId: 1,
   ...change,
 });
 
@@ -85,4 +91,50 @@ export const messageGenerator: Generator<Message> = (message) => ({
   user: userGenerator(),
   userId: 1,
   ...message,
+});
+
+export const userStatisticsGenerator: Generator<UserStatistics> = (
+  userStatistics,
+) => ({
+  count: 10,
+  createdAt: moment().toDate(),
+  id: 1,
+  user: userGenerator(),
+  userId: 1,
+  ...userStatistics,
+});
+
+export const communityStatisticsGenerator: Generator<CommunityStatistics> = (
+  communityStatistics,
+) => ({
+  count: 10,
+  createdAt: moment().toDate(),
+  id: 1,
+  user: userGenerator(),
+  userId: 1,
+  ...communityStatistics,
+});
+
+export const evasionReportGenerator: Generator<EvasionReport> = (
+  evasionReport,
+) => ({
+  community: communityGenerator(),
+  communityId: 1,
+  id: 1,
+  reason: 'blablabla',
+  removedAt: moment().toDate(),
+  remover: userGenerator({ role: RoleEnum.admin }),
+  removerId: 1,
+  user: userGenerator({ id: 2 }),
+  userId: 2,
+  ...evasionReport,
+});
+
+export const communityHasUserGenerator: Generator<CommunityHasUsers> = (
+  chs,
+) => ({
+  communityId: 1,
+  id: 1,
+  userId: 1,
+  ...chs,
 });

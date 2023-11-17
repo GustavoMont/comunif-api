@@ -1,8 +1,9 @@
 import { Community } from '@prisma/client';
 import { Exclude, Transform } from 'class-transformer';
-import { MinLength } from 'class-validator';
+import { IsOptional, MinLength } from 'class-validator';
 
 export class CommunityUpdate implements Community {
+  adminId: number;
   @Exclude()
   id: number;
   @Exclude()
@@ -15,5 +16,6 @@ export class CommunityUpdate implements Community {
   @Transform(({ value }) =>
     typeof value === 'string' ? value === 'true' : value,
   )
+  @IsOptional()
   isActive: boolean;
 }

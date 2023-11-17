@@ -1,6 +1,6 @@
 import { Length } from 'class-validator';
-import { PasswordDto } from 'src/auth/dto/password.dto';
 import { IsNaN } from 'src/decorators/is-nan.decorator';
+import { PasswordDto } from './password.dto';
 
 export class UpdatePasswordDto extends PasswordDto {
   @Length(6, 6, {

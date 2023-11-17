@@ -3,10 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from '../auth.service';
-import { TokenDto } from '../dto/token-dto';
 import { SignupDto } from '../dto/sign-up.dto';
-import { SecurityCodeService } from 'src/security-code/security-code.service';
-import { MailService } from 'src/mail/mail.service';
 import { plainToInstance } from 'class-transformer';
 import { UserResponse } from 'src/user/dto/user-response.dto';
 import {
@@ -15,12 +12,14 @@ import {
   userTokenGenerator,
 } from 'src/utils/generators';
 import { ResetPasswordResponseDto } from '../dto/reset-password.dto';
-import { UserRepository } from 'src/user/user-repository.service';
 import { RequestUser } from 'src/types/RequestUser';
 import { RoleEnum } from 'src/models/User';
 import * as uuid from 'uuid';
-import { AuthRepository } from '../auth.repository.service';
 import * as moment from 'moment';
+import { IUserService } from 'src/user/interfaces/IUserService';
+import { IAuthRepository } from '../interfaces/IAuthRepository';
+import { IMailService } from 'src/mail/interfaces/IMailService';
+import { ISecurityCodeService } from 'src/security-code/interfaces/ISecurityCodeService';
 jest.mock('bcrypt', () => ({
   hash: jest.fn(),
   compare: jest.fn(),
@@ -32,12 +31,11 @@ jest.mock('uuid', () => ({
 
 describe('AuthService', () => {
   let authService: AuthService;
-  let authRepository: AuthRepository;
-
-  let userRepository: UserRepository;
+  let authRepository: IAuthRepository;
+  let userService: IUserService;
   let jwtService: JwtService;
-  let securityCodeService: SecurityCodeService;
-  let mailService: MailService;
+  let securityCodeService: ISecurityCodeService;
+  let mailService: IMailService;
   const code = '000001';
 
   beforeEach(async () => {
@@ -45,12 +43,12 @@ describe('AuthService', () => {
       providers: [
         AuthService,
         {
-          provide: UserRepository,
+          provide: IUserService,
           useValue: {
-            findByUsername: jest.fn(),
-            findByEmail: jest.fn(),
+            validateUser: jest.fn(),
+            changePassword: jest.fn(),
             create: jest.fn(),
-            update: jest.fn(),
+            findByEmail: jest.fn(),
           },
         },
         {
@@ -61,21 +59,21 @@ describe('AuthService', () => {
           },
         },
         {
-          provide: SecurityCodeService,
+          provide: ISecurityCodeService,
           useValue: {
             createCode: jest.fn(),
             findByCode: jest.fn(),
           },
         },
         {
-          provide: MailService,
+          provide: IMailService,
           useValue: {
             resetPassword: jest.fn(),
             passwordUpdated: jest.fn(),
           },
         },
         {
-          provide: AuthRepository,
+          provide: IAuthRepository,
           useValue: {
             findByUserId: jest.fn(),
             update: jest.fn(),
@@ -86,67 +84,27 @@ describe('AuthService', () => {
     }).compile();
 
     authService = module.get<AuthService>(AuthService);
-    userRepository = module.get<UserRepository>(UserRepository);
+    userService = module.get<IUserService>(IUserService);
     jwtService = module.get<JwtService>(JwtService);
-    securityCodeService = module.get<SecurityCodeService>(SecurityCodeService);
-    mailService = module.get<MailService>(MailService);
-    authRepository = module.get<AuthRepository>(AuthRepository);
+    securityCodeService =
+      module.get<ISecurityCodeService>(ISecurityCodeService);
+    mailService = module.get<IMailService>(IMailService);
+    authRepository = module.get<IAuthRepository>(IAuthRepository);
   });
   afterAll(() => {
     jest.clearAllMocks();
   });
   describe('validateUser', () => {
-    it('should return user if validation is successful', async () => {
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      const mockUser: any = {
-        id: 1,
-        username: 'testuser',
-        email: 'test@example.com',
-        password: await bcrypt.hash('testpassword', 10),
-        birthday: new Date('1990-01-01'),
-      };
-      const spyFindByUsername = jest
-        .spyOn(userRepository, 'findByUsername')
-        .mockResolvedValue(mockUser);
-
-      const result = await authService.validateUser('testuser', 'testpassword');
-
-      expect(spyFindByUsername).toHaveBeenCalledWith('testuser');
-      expect(result).toEqual(mockUser);
+    it('should return null on error', async () => {
+      jest.spyOn(userService, 'validateUser').mockRejectedValue('error');
+      const result = await authService.validateUser('username', 'password');
+      expect(result).toBe(null);
     });
-
-    it('should return null if user is not found', async () => {
-      const spyFindByUsername = jest
-        .spyOn(userRepository, 'findByUsername')
-        .mockResolvedValue(null);
-
-      const result = await authService.validateUser('testuser', 'testpassword');
-
-      expect(spyFindByUsername).toHaveBeenCalledWith('testuser');
-      expect(result).toBeNull();
-    });
-
-    it('should return null if password is incorrect', async () => {
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
-
-      const mockUser: any = {
-        id: 1,
-        username: 'testuser',
-        email: 'test@example.com',
-        password: await bcrypt.hash('testpassword', 10),
-        birthday: new Date('1990-01-01'),
-      };
-      const spyFindByUsername = jest
-        .spyOn(userRepository, 'findByUsername')
-        .mockResolvedValue(mockUser);
-
-      const result = await authService.validateUser(
-        'testuser',
-        'wrongpassword',
-      );
-
-      expect(spyFindByUsername).toHaveBeenCalledWith('testuser');
-      expect(result).toBeNull();
+    it('should return user', async () => {
+      const user = plainToInstance(UserResponse, userGenerator());
+      jest.spyOn(userService, 'validateUser').mockResolvedValue(user);
+      const result = await authService.validateUser('username', 'password');
+      expect(result).toStrictEqual(user);
     });
   });
   describe('login', () => {
@@ -179,115 +137,39 @@ describe('AuthService', () => {
     });
   });
   describe('signup', () => {
-    it('should throw error when passwords do not match', async () => {
-      const requestBody: SignupDto = {
-        birthday: new Date(),
-        confirmPassword: '1234',
-        email: 'top10 emails',
-        lastName: 'last name',
-        name: 'name',
-        password: '4321',
-        username: 'username',
-      };
-      await expect(authService.signup(requestBody)).rejects.toThrowError(
-        new HttpException('Senhas não coincidem', HttpStatus.BAD_REQUEST),
-      );
-      expect(userRepository.create).not.toBeCalled();
+    const createUserPayload = plainToInstance(SignupDto, {
+      birthday: new Date(),
+      confirmPassword: 'senha',
+      email: 'email@email.com',
+      lastName: 'de Déxter',
+      name: 'Laboratório',
+      password: 'senha',
+      username: 'username',
     });
-    it('should throw error when email already registered', async () => {
-      const mockUser: any = {
-        id: 1,
-        username: 'testuser',
-        email: 'test@example.com',
-        password: await bcrypt.hash('testpassword', 10),
-        birthday: new Date('1990-01-01'),
-      };
-      const spyFindByEmail = jest
-        .spyOn(userRepository, 'findByEmail')
-        .mockResolvedValue(mockUser);
-
-      const requestBody: SignupDto = {
-        birthday: new Date(),
-        confirmPassword: '1234',
-        email: 'existente',
-        lastName: 'last name',
-        name: 'name',
-        password: '1234',
-        username: 'username',
-      };
-      await expect(authService.signup(requestBody)).rejects.toThrowError(
-        new HttpException('E-mail já cadastrado', HttpStatus.BAD_REQUEST),
+    it('should throw service error', async () => {
+      jest
+        .spyOn(userService, 'create')
+        .mockRejectedValue(new Error('ocorreu um erro'));
+      await expect(authService.signup(createUserPayload)).rejects.toThrowError(
+        new Error('ocorreu um erro'),
       );
-      expect(spyFindByEmail).toBeCalledWith('existente');
-      expect(userRepository.create).not.toBeCalled();
+      expect(jwtService.sign).not.toBeCalled();
     });
-    it('should throw error when username already registered', async () => {
-      const mockUser: any = {
-        id: 1,
-        username: 'testuser',
-        email: 'test@example.com',
-        password: await bcrypt.hash('testpassword', 10),
-        birthday: new Date('1990-01-01'),
-      };
-      const spyFindByUsername = jest
-        .spyOn(userRepository, 'findByUsername')
-        .mockResolvedValue(mockUser);
-
-      const requestBody: SignupDto = {
-        birthday: new Date(),
-        confirmPassword: '1234',
-        email: 'existente',
-        lastName: 'last name',
-        name: 'name',
-        password: '1234',
-        username: 'existente',
-      };
-      jest.spyOn(authRepository, 'findByUserId').mockResolvedValue(null);
-      await expect(authService.signup(requestBody)).rejects.toThrowError(
-        new HttpException('Username já está em uso', HttpStatus.BAD_REQUEST),
-      );
-      expect(spyFindByUsername).toBeCalledWith('existente');
-      expect(userRepository.create).not.toBeCalled();
-    });
-    it('should return access and refresh token for register user', async () => {
-      const requestBody: SignupDto = {
-        birthday: new Date(),
-        confirmPassword: '1234',
-        email: 'existente',
-        lastName: 'last name',
-        name: 'name',
-        password: '1234',
-        username: 'existente',
-      };
-      const mockUser: any = {
-        id: 1,
-        username: 'testuser',
-        email: 'test@example.com',
-        password: await bcrypt.hash('testpassword', 10),
-        birthday: new Date('1990-01-01'),
-        role: 'user',
-      };
-      const access = 'token';
+    it('should create user and return token', async () => {
+      const user = plainToInstance(UserResponse, userGenerator());
+      jest.spyOn(userService, 'create').mockResolvedValue(user);
+      const access = 'mock-token';
       const refreshToken = 'uuid';
-      jest.spyOn(userRepository, 'findByUsername').mockResolvedValue(null);
-      jest.spyOn(userRepository, 'findByEmail').mockResolvedValue(null);
-      jest.spyOn(userRepository, 'create').mockResolvedValue(mockUser);
-      const userToken = userTokenGenerator({ token: 'token' });
+      jest.spyOn(jwtService, 'sign').mockReturnValue(access);
+      const userToken = userTokenGenerator({ token: refreshToken });
       jest.spyOn(authRepository, 'create').mockResolvedValue(userToken);
       jest.spyOn(uuid, 'v4').mockReturnValue(refreshToken);
-
-      const sign = jest.spyOn(jwtService, 'sign').mockReturnValue(access);
-
-      const result: TokenDto = await authService.signup(requestBody);
-      expect(result).toStrictEqual({
+      const result = await authService.signup(createUserPayload);
+      const expectedResponse = {
         access,
-        refreshToken: userToken.token,
-      });
-      expect(sign).toBeCalledWith({
-        username: mockUser.username,
-        sub: mockUser.id,
-        roles: ['user'],
-      });
+        refreshToken,
+      };
+      expect(result).toStrictEqual(expectedResponse);
     });
   });
   describe('refresh token', () => {
@@ -358,14 +240,14 @@ describe('AuthService', () => {
     const hashedEmail = 'email-hasheado';
     beforeEach(() => {
       (bcrypt.hash as jest.Mock).mockResolvedValue(hashedEmail);
-      jest.spyOn(userRepository, 'findByEmail').mockResolvedValue(user);
+      jest.spyOn(userService, 'findByEmail').mockResolvedValue(user);
       jest
         .spyOn(securityCodeService, 'createCode')
         .mockResolvedValue(resetCode);
     });
     it('should throw user not found', async () => {
       jest
-        .spyOn(userRepository, 'findByEmail')
+        .spyOn(userService, 'findByEmail')
         .mockRejectedValue(
           new HttpException('Usuário não encontrado.', HttpStatus.NOT_FOUND),
         );
@@ -433,27 +315,26 @@ describe('AuthService', () => {
       roles: [RoleEnum.user],
       username: 'username',
     };
-    it('should throw passwords do not match', async () => {
+    it('should throw user srevice error', async () => {
+      jest
+        .spyOn(userService, 'changePassword')
+        .mockRejectedValue(new Error('Exception'));
       await expect(
         authService.changePassword(requestUser, {
           password: 'password',
           confirmPassword: 'confirmPassword',
         }),
-      ).rejects.toThrowError(
-        new HttpException('Senhas não coincidem', HttpStatus.BAD_REQUEST),
-      );
+      ).rejects.toThrowError(new Error('Exception'));
     });
     it('should change password and send email', async () => {
-      const user = userGenerator();
+      const user = plainToInstance(UserResponse, userGenerator());
       jest.spyOn(mailService, 'passwordUpdated').mockResolvedValue();
-      jest.spyOn(userRepository, 'update').mockResolvedValue(user);
+      jest.spyOn(userService, 'changePassword').mockResolvedValue(user);
 
       await authService.changePassword(requestUser, {
         password: 'password',
         confirmPassword: 'password',
       });
-
-      expect(userRepository.update).toBeCalled();
       expect(mailService.passwordUpdated).toBeCalledWith(user);
     });
   });

@@ -41,6 +41,66 @@ const communitiesChannels: CommunityChannel[] = [
     channelTypeId: 4,
     communityId: 2,
   },
+  {
+    id: 9,
+    channelTypeId: 1,
+    communityId: 3,
+  },
+  {
+    id: 10,
+    channelTypeId: 2,
+    communityId: 3,
+  },
+  {
+    id: 11,
+    channelTypeId: 3,
+    communityId: 3,
+  },
+  {
+    id: 12,
+    channelTypeId: 4,
+    communityId: 3,
+  },
+  {
+    id: 13,
+    channelTypeId: 1,
+    communityId: 4,
+  },
+  {
+    id: 14,
+    channelTypeId: 2,
+    communityId: 4,
+  },
+  {
+    id: 15,
+    channelTypeId: 3,
+    communityId: 4,
+  },
+  {
+    id: 16,
+    channelTypeId: 4,
+    communityId: 4,
+  },
+  {
+    id: 17,
+    channelTypeId: 1,
+    communityId: 5,
+  },
+  {
+    id: 18,
+    channelTypeId: 2,
+    communityId: 5,
+  },
+  {
+    id: 19,
+    channelTypeId: 3,
+    communityId: 5,
+  },
+  {
+    id: 20,
+    channelTypeId: 4,
+    communityId: 5,
+  },
 ];
 
 export default communitiesChannels;

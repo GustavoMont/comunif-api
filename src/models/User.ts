@@ -13,7 +13,8 @@ export class User implements UserType {
   username: string;
   password: string;
   birthday: Date;
-  bio: string;
-  avatar: string;
+  bio: string | null;
+  avatar: string | null;
   role: RoleEnum;
+  isActive: boolean;
 }

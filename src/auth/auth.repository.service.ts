@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CreateUpdateToken,
-  IAuthRepository,
-} from './interfaces/IAuthRepository';
+import { IAuthRepository } from './interfaces/IAuthRepository';
 import { PrismaClient, UserTokens } from '@prisma/client';
+import { CreateUpdateToken } from './dto/create-update-token.dto';
 
 @Injectable()
 export class AuthRepository implements IAuthRepository {

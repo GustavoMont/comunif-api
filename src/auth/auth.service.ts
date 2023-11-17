@@ -1,38 +1,38 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { TokenDto } from './dto/token-dto';
 import { SignupDto } from './dto/sign-up.dto';
 import { IAuthService } from './interfaces/IAuthService';
-import { MailService } from 'src/mail/mail.service';
-import { SecurityCodeService } from 'src/security-code/security-code.service';
 import { plainToInstance } from 'class-transformer';
 import { User } from 'src/models/User';
-
 import { ConfirmResetPasswordCodeDto } from 'src/user/dto/confirm-reset-password-code.dto';
 import { ConfirmCodeResponse } from './dto/confirm-code-response.dto';
 import {
   ResetPasswordDto,
   ResetPasswordResponseDto,
 } from './dto/reset-password.dto';
-import { UserRepository } from 'src/user/user-repository.service';
-import { PasswordDto } from './dto/password.dto';
+import { PasswordDto } from '../user/dto/password.dto';
 import { RequestUser } from 'src/types/RequestUser';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { TokenPayload } from './dto/token-payload';
-import { AuthRepository } from './auth.repository.service';
 import * as moment from 'moment';
 import { v4 } from 'uuid';
 import { refreshTokenConstants } from './constants/jwt-constants';
+import { IUserService } from 'src/user/interfaces/IUserService';
+import { IAuthRepository } from './interfaces/IAuthRepository';
+import { IMailService } from 'src/mail/interfaces/IMailService';
+import { ISecurityCodeService } from 'src/security-code/interfaces/ISecurityCodeService';
 
 @Injectable()
 export class AuthService implements IAuthService {
   constructor(
-    private userRepository: UserRepository,
+    @Inject(IUserService) private userService: IUserService,
     private jwtService: JwtService,
-    private readonly mailService: MailService,
-    private readonly securityCodeService: SecurityCodeService,
-    private readonly authRepository: AuthRepository,
+    @Inject(IMailService) private readonly mailService: IMailService,
+    @Inject(ISecurityCodeService)
+    private readonly securityCodeService: ISecurityCodeService,
+    @Inject(IAuthRepository) private readonly authRepository: IAuthRepository,
   ) {}
   isPasswordEqual(password: string, confirmPassword: string): boolean {
     if (password !== confirmPassword) {
@@ -42,25 +42,18 @@ export class AuthService implements IAuthService {
   }
   async changePassword(
     { id: userId }: RequestUser,
-    { confirmPassword, password }: PasswordDto,
+    body: PasswordDto,
   ): Promise<void> {
-    this.isPasswordEqual(password, confirmPassword);
-    const user = await this.userRepository.update(userId, {
-      password: await bcrypt.hash(password, 10),
-    });
+    const user = await this.userService.changePassword(userId, body);
     await this.mailService.passwordUpdated(user as User);
   }
 
-  async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.userRepository.findByUsername(username);
-    if (user) {
-      const isPasswordCorrect = await bcrypt.compare(pass, user.password);
-      if (isPasswordCorrect) {
-        user.password = undefined;
-        return user;
-      }
+  async validateUser(username: string, pass: string) {
+    try {
+      return await this.userService.validateUser(username, pass);
+    } catch (error) {
+      return null;
     }
-    return null;
   }
   protected generatePayload(user: User) {
     return {
@@ -114,11 +107,11 @@ export class AuthService implements IAuthService {
     if (!accessToken) {
       throw new HttpException(errorMessage, HttpStatus.UNAUTHORIZED);
     }
-    const {
-      sub: userId,
-      roles,
-      username,
-    } = this.jwtService.decode(accessToken) as TokenPayload;
+    const tokenPayload = this.jwtService.decode(accessToken) as TokenPayload;
+    if (!tokenPayload) {
+      throw new HttpException(errorMessage, HttpStatus.UNAUTHORIZED);
+    }
+    const { roles, sub: userId, username } = tokenPayload;
     const userToken = await this.authRepository.findByUserId(userId);
     if (!userToken) {
       throw new HttpException(errorMessage, HttpStatus.UNAUTHORIZED);
@@ -140,45 +133,16 @@ export class AuthService implements IAuthService {
     };
   }
   async signup(body: SignupDto): Promise<TokenDto> {
-    this.isPasswordEqual(body.password, body.confirmPassword);
-    const emailExists = await this.userRepository.findByEmail(body.email);
-    if (!!emailExists) {
-      throw new HttpException('E-mail já cadastrado', HttpStatus.BAD_REQUEST);
-    }
-    const usernameExists = await this.userRepository.findByUsername(
-      body.username,
-    );
-    if (!!usernameExists) {
-      throw new HttpException(
-        'Username já está em uso',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { confirmPassword, ...userData } = body;
-    let user: User;
-    const createdUser = await this.userRepository.create(
-      Object.assign(
-        {
-          ...userData,
-          birthday: new Date(body.birthday),
-          password: await bcrypt.hash(userData.password, 10),
-        },
-        user,
-      ),
-    );
-    return await this.login(createdUser as User);
+    const user = await this.userService.create(body);
+    return this.login(user);
   }
   async resetPassword(
     body: ResetPasswordDto,
   ): Promise<ResetPasswordResponseDto> {
     const user = plainToInstance(
       User,
-      await this.userRepository.findByEmail(body.email),
+      await this.userService.findByEmail(body.email),
     );
-    if (!user) {
-      throw new HttpException('E-mail não encontrado', HttpStatus.NOT_FOUND);
-    }
     const resetCode = await this.securityCodeService.createCode(user.id);
     await this.mailService.resetPassword(user, resetCode.code);
     return new ResetPasswordResponseDto(await bcrypt.hash(user.email, 10));

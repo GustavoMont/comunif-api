@@ -1,24 +1,38 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CommunityUsersService } from '../community-users.service';
-import { UserService } from 'src/user/user.service';
 import { ICommunityService } from 'src/community/interfaces/ICommunityService';
 import { ICommunityUsersRepostory } from '../interfaces/ICommunityUserRepository';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import {
   arrayGenerator,
   communityGenerator,
+  communityHasUserGenerator,
+  evasionReportGenerator,
+  requestUserGenerator,
   userGenerator,
 } from 'src/utils/generators';
 import { CommunityResponse } from 'src/community/dto/community-response.dto';
 import { plainToInstance } from 'class-transformer';
 import { ListResponse } from 'src/dtos/list.dto';
 import { UserResponse } from 'src/user/dto/user-response.dto';
+import { IUserService } from 'src/user/interfaces/IUserService';
+import { IEvasionReportService } from 'src/evasion-report/interfaces/IEvasionReportService';
+import { communityServiceMock } from 'src/community/__mocks__/community-service.mock';
+import { userServiceMock } from 'src/user/__mocks__/user-service.mock';
+import { evasionReportServiceMock } from 'src/evasion-report/__mocks__/evasion-report-service.mock';
+import { communityUsersRepositoryMock } from '../__mocks__/community-users-repository.mock';
+import { EvasionReportResponseDto } from 'src/evasion-report/dto/evasion-report-response.dto';
+import { IMailService } from 'src/mail/interfaces/IMailService';
+import { mailServiceMock } from 'src/mail/__mocks__/mail-service.mock';
+import { RoleEnum } from 'src/models/User';
 
 describe('CommunityUsersService', () => {
   let service: CommunityUsersService;
   let repository: ICommunityUsersRepostory;
-  let userService: UserService;
+  let userService: IUserService;
   let communityService: ICommunityService;
+  let evasionReportService: IEvasionReportService;
+  let mailService: IMailService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -26,33 +40,35 @@ describe('CommunityUsersService', () => {
         CommunityUsersService,
         {
           provide: ICommunityUsersRepostory,
-          useValue: {
-            addUser: jest.fn(),
-            findUser: jest.fn(),
-            findCommunityMembers: jest.fn(),
-            countCommunityMembers: jest.fn(),
-          } as ICommunityUsersRepostory,
+          useValue: communityUsersRepositoryMock,
         },
         {
-          provide: UserService,
-          useValue: {
-            findById: jest.fn(),
-            findAll: jest.fn(),
-          },
+          provide: IUserService,
+          useValue: userServiceMock,
         },
         {
           provide: ICommunityService,
-          useValue: {
-            findById: jest.fn(),
-          } as Partial<ICommunityService>,
+          useValue: communityServiceMock,
+        },
+        {
+          provide: IEvasionReportService,
+          useValue: evasionReportServiceMock,
+        },
+        {
+          provide: IMailService,
+          useValue: mailServiceMock,
         },
       ],
     }).compile();
 
     service = module.get<CommunityUsersService>(CommunityUsersService);
     repository = module.get<ICommunityUsersRepostory>(ICommunityUsersRepostory);
-    userService = module.get<UserService>(UserService);
+    userService = module.get<IUserService>(IUserService);
     communityService = module.get<ICommunityService>(ICommunityService);
+    evasionReportService = module.get<IEvasionReportService>(
+      IEvasionReportService,
+    );
+    mailService = module.get<IMailService>(IMailService);
   });
 
   it('should be defined', () => {
@@ -100,7 +116,9 @@ describe('CommunityUsersService', () => {
         .mockResolvedValue(
           plainToInstance(CommunityResponse, communityGenerator()),
         );
-      jest.spyOn(repository, 'findUser').mockResolvedValue(userGenerator());
+      jest
+        .spyOn(repository, 'findUser')
+        .mockResolvedValue(communityHasUserGenerator());
 
       //Act & Assert
       await expect(service.addUser(1, 1)).rejects.toThrowError(
@@ -129,7 +147,7 @@ describe('CommunityUsersService', () => {
       );
     });
   });
-  describe('List community members', () => {
+  describe('List community active members', () => {
     it('should throw community not found', async () => {
       jest
         .spyOn(communityService, 'findById')
@@ -158,11 +176,24 @@ describe('CommunityUsersService', () => {
       expect(result).toStrictEqual(
         new ListResponse<UserResponse>(membersResponse, total, 1, 5),
       );
+      expect(repository.findCommunityMembers).toBeCalledWith(
+        1,
+        {
+          skip: 0,
+          take: 5,
+        },
+        { user: { isActive: true } },
+      );
+      expect(repository.countCommunityMembers).toBeCalledWith(1, {
+        user: { isActive: true },
+      });
     });
   });
   describe('check if user is in community', () => {
     it('should return true', async () => {
-      jest.spyOn(repository, 'findUser').mockResolvedValue(userGenerator());
+      jest
+        .spyOn(repository, 'findUser')
+        .mockResolvedValue(communityHasUserGenerator());
       const result = await service.isUserInCommunity(1, 1);
       expect(result).toBeTruthy();
     });
@@ -170,6 +201,176 @@ describe('CommunityUsersService', () => {
       jest.spyOn(repository, 'findUser').mockResolvedValue(null);
       const result = await service.isUserInCommunity(1, 1);
       expect(result).not.toBeTruthy();
+    });
+  });
+  describe('leave community', () => {
+    const communityHasUser = communityHasUserGenerator();
+    const requestUser = requestUserGenerator({ id: 3 });
+    const user = plainToInstance(UserResponse, userGenerator());
+    const community = plainToInstance(CommunityResponse, communityGenerator());
+    const responsible = plainToInstance(
+      UserResponse,
+      userGenerator({ role: RoleEnum.admin }),
+    );
+    const evasionReport = plainToInstance(
+      EvasionReportResponseDto,
+      evasionReportGenerator({ removerId: responsible.id }),
+    );
+    const evasionReportResponse = new ListResponse([evasionReport], 1, 1, 1);
+    beforeEach(() => {
+      jest
+        .spyOn(evasionReportService, 'findMany')
+        .mockResolvedValue(evasionReportResponse);
+    });
+    afterEach(jest.clearAllMocks);
+    describe('logged as user', () => {
+      it('should throw forbbiden exception', async () => {
+        const expectedError = new HttpException(
+          'Você não tem permissão para realizar essa ação',
+          HttpStatus.FORBIDDEN,
+        );
+        await expect(
+          service.leaveCommunity(1, 5, requestUser),
+        ).rejects.toThrowError(expectedError);
+      });
+      it('should throw report was not create exception', async () => {
+        const emptyResponse = new ListResponse<EvasionReportResponseDto>(
+          [],
+          0,
+          1,
+          25,
+        );
+        jest
+          .spyOn(evasionReportService, 'findMany')
+          .mockResolvedValueOnce(emptyResponse);
+        await expect(
+          service.leaveCommunity(community.id, requestUser.id, requestUser),
+        ).rejects.toThrowError(
+          new HttpException(
+            'Relatório de evasão não foi gerado',
+            HttpStatus.BAD_REQUEST,
+          ),
+        );
+        expect(evasionReportService.findMany).toBeCalledWith(1, 1, {
+          user: requestUser.id,
+          community: community.id,
+        });
+      });
+      it('should throw community does not exist', async () => {
+        const expectedError = new HttpException(
+          'Comunidade não encontrada',
+          HttpStatus.NOT_FOUND,
+        );
+        jest
+          .spyOn(communityService, 'findById')
+          .mockRejectedValue(expectedError);
+        await expect(
+          service.leaveCommunity(1, requestUser.id, requestUser),
+        ).rejects.toThrowError(expectedError);
+      });
+      it('should throw user is not part of community', async () => {
+        jest.spyOn(evasionReportService, 'delete').mockResolvedValue();
+        jest.spyOn(communityService, 'findById').mockResolvedValue(community);
+        jest.spyOn(userService, 'findById').mockResolvedValue(user);
+        jest.spyOn(repository, 'findUser').mockResolvedValue(null);
+        const expectedError = new HttpException(
+          'Usuário não faz parte dessa comunidade',
+          HttpStatus.BAD_REQUEST,
+        );
+        await expect(
+          service.leaveCommunity(community.id, requestUser.id, requestUser),
+        ).rejects.toThrowError(expectedError);
+        const [report] = evasionReportResponse.results;
+        expect(evasionReportService.delete).toBeCalledWith(report.id);
+      });
+      it('should let user leave community', async () => {
+        jest.spyOn(communityService, 'findById').mockResolvedValue(community);
+        jest
+          .spyOn(repository, 'findUser')
+          .mockResolvedValueOnce(communityHasUser);
+        jest.spyOn(userService, 'findById').mockResolvedValueOnce(responsible);
+        jest.spyOn(repository, 'delete').mockResolvedValue();
+        await service.leaveCommunity(community.id, requestUser.id, requestUser);
+        expect(userService.findById).toBeCalledWith(community.adminId);
+        expect(mailService.userLeftCommunity).toBeCalledWith(
+          evasionReport,
+          responsible,
+        );
+        expect(repository.delete);
+      });
+      it('should not notify user', async () => {
+        jest.spyOn(communityService, 'findById').mockResolvedValue(community);
+        jest
+          .spyOn(repository, 'findUser')
+          .mockResolvedValueOnce(communityHasUser);
+        jest.spyOn(userService, 'findById').mockResolvedValueOnce(responsible);
+        jest.spyOn(repository, 'delete').mockResolvedValue();
+        await service.leaveCommunity(community.id, requestUser.id, requestUser);
+        expect(userService.findById).toBeCalledWith(community.adminId);
+        expect(mailService.userLeftCommunity).toBeCalledWith(
+          evasionReport,
+          responsible,
+        );
+        expect(repository.delete);
+        expect(mailService.notificateBanUser).not.toBeCalled();
+      });
+    });
+    describe('logged as admin', () => {
+      const admin = requestUserGenerator({
+        id: 2,
+        roles: [RoleEnum.admin],
+      });
+      const userId = admin.id + 2;
+      it('should ban user', async () => {
+        jest.spyOn(communityService, 'findById').mockResolvedValue(community);
+        jest
+          .spyOn(repository, 'findUser')
+          .mockResolvedValueOnce(communityHasUser);
+        jest.spyOn(userService, 'findById').mockResolvedValueOnce(responsible);
+        jest.spyOn(repository, 'delete').mockResolvedValue();
+        await service.leaveCommunity(community.id, userId, admin);
+        expect(repository.delete).toBeCalledWith(communityHasUser.id);
+      });
+      it('should send e-mail to community admin and user', async () => {
+        const evasionReport = plainToInstance(
+          EvasionReportResponseDto,
+          evasionReportGenerator({ removerId: community.adminId + 2 }),
+        );
+        const evasionReportResponse = new ListResponse(
+          [evasionReport],
+          1,
+          1,
+          1,
+        );
+        jest
+          .spyOn(evasionReportService, 'findMany')
+          .mockResolvedValueOnce(evasionReportResponse);
+        jest
+          .spyOn(communityService, 'findById')
+          .mockResolvedValue({ ...community, adminId: admin.id + 4 });
+        jest
+          .spyOn(repository, 'findUser')
+          .mockResolvedValueOnce(communityHasUser);
+        jest.spyOn(userService, 'findById').mockResolvedValueOnce(responsible);
+        jest.spyOn(repository, 'delete').mockResolvedValue();
+        await service.leaveCommunity(community.id, userId, admin);
+        expect(mailService.notificateBanUser).toBeCalledWith(evasionReport);
+        expect(mailService.notificateBanResponsible).toBeCalledWith(
+          evasionReport,
+          responsible,
+        );
+      });
+      it('should not notify admin', async () => {
+        jest.spyOn(communityService, 'findById').mockResolvedValue(community);
+        jest
+          .spyOn(repository, 'findUser')
+          .mockResolvedValueOnce(communityHasUser);
+        jest.spyOn(userService, 'findById').mockResolvedValueOnce(responsible);
+        jest.spyOn(repository, 'delete').mockResolvedValue();
+        await service.leaveCommunity(community.id, userId, admin);
+        expect(mailService.notificateBanUser).toBeCalledWith(evasionReport);
+        expect(mailService.notificateBanResponsible).not.toBeCalled();
+      });
     });
   });
 });

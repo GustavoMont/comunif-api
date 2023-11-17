@@ -8,7 +8,7 @@ export class SharpPipe
   async transform(image?: Express.Multer.File): Promise<string> {
     if (image) {
       const { path } = image;
-      await sharp(path).resize(800).webp({ effort: 3 });
+      sharp(path).resize(800).webp({ effort: 3 });
 
       return path;
     }

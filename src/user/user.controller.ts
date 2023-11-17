@@ -2,10 +2,14 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  Inject,
   Param,
   ParseFilePipe,
   ParseIntPipe,
   Patch,
+  Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -16,14 +20,34 @@ import { OwnerGuard } from 'src/auth/guards/owner-auth.guard';
 import { UserResponse } from './dto/user-response.dto';
 import { UserUpdate } from './dto/user-update.dto';
 import { SharpPipe } from '../pipes/sharp-image.pipe';
-import { UserService } from './user.service';
 import { avatarUploadOptions, validators } from 'src/config/image-uploads';
 import { UserUpdatePipe } from './pipes/user-update.pipe';
 import { PathPipe } from 'src/pipes/image-path.pipe';
+import { ListResponse } from 'src/dtos/list.dto';
+import { IUserService } from './interfaces/IUserService';
+import { ParseIntUndefinedPipe } from 'src/pipes/parse-int-undefined.pipe';
+import { RolesGuard } from 'src/auth/guards/role.guard';
+import { RoleEnum } from 'src/models/User';
+import { Roles } from 'src/decorators/roles.decorator';
+import { UserCreate } from './dto/user-create.dto';
+import { RequestUser } from 'src/types/RequestUser';
+import { User } from 'src/decorators/request-user.decorator';
+import { DeactivateUser } from './dto/deactivate-user.dto';
+import { UserQueryDto } from './dto/user-query.dto';
 
 @Controller('/api/users')
 export class UserController {
-  constructor(private readonly service: UserService) {}
+  constructor(@Inject(IUserService) private readonly service: IUserService) {}
+
+  @Post()
+  @Roles(RoleEnum.admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async create(
+    @Body() body: UserCreate,
+    @User() user: RequestUser,
+  ): Promise<UserResponse> {
+    return await this.service.create(body, user);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
@@ -32,8 +56,12 @@ export class UserController {
   }
   @UseGuards(JwtAuthGuard)
   @Get()
-  async findAll(): Promise<UserResponse[]> {
-    return await this.service.findAll();
+  async findAll(
+    @Query('page', ParseIntUndefinedPipe) page: number,
+    @Query('take', ParseIntUndefinedPipe) take: number,
+    @Query() query: UserQueryDto,
+  ): Promise<ListResponse<UserResponse>> {
+    return await this.service.findAll(page, take, query);
   }
 
   @UseGuards(JwtAuthGuard, OwnerGuard)
@@ -61,5 +89,27 @@ export class UserController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<UserResponse> {
     return this.service.update(+id, update);
+  }
+  @Patch(':id/deactivate')
+  @HttpCode(204)
+  @Roles(RoleEnum.admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async deactivate(
+    @Param('id', ParseIntPipe) userId: number,
+    @Body() body: DeactivateUser,
+    @User() user: RequestUser,
+  ) {
+    await this.service.deactivate(userId, body, user);
+  }
+
+  @Patch(':id/activate')
+  @HttpCode(204)
+  @Roles(RoleEnum.admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async activate(
+    @Param('id', ParseIntPipe) userId: number,
+    @User() user: RequestUser,
+  ) {
+    await this.service.activate(userId, user);
   }
 }

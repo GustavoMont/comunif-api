@@ -9,19 +9,23 @@ import { CommunityQueryDto } from './dto/community-query.dto';
 import { CreateCommunity } from './dto/community-create.dto';
 import { Community } from 'src/models/Community';
 import { ImageService } from 'src/utils/image.service';
-import { UserService } from 'src/user/user.service';
 import { Service } from 'src/utils/services';
-import { env } from 'src/constants/env';
 import { ICommunityRepository } from './interfaces/ICommunityRepository';
+import { IUserService } from 'src/user/interfaces/IUserService';
+import { CountDto } from 'src/dtos/count.dto';
 @Injectable()
 export class CommunityService extends Service implements ICommunityService {
   constructor(
     @Inject(ICommunityRepository)
     private readonly repository: ICommunityRepository,
-    private readonly userService: UserService,
+    @Inject(IUserService) private readonly userService: IUserService,
     private readonly imageService: ImageService,
   ) {
     super();
+  }
+  async count(filters: CommunityQueryDto = {}): Promise<CountDto> {
+    const total = await this.repository.count(filters);
+    return plainToInstance(CountDto, { total });
   }
   async findByChannelId(
     communityChannelId: number,
@@ -57,7 +61,7 @@ export class CommunityService extends Service implements ICommunityService {
         HttpStatus.BAD_REQUEST,
       );
     }
-
+    body.adminId = user.id;
     const newCommunity = await this.repository.create(
       plainToInstance(Community, body),
     );
@@ -136,7 +140,7 @@ export class CommunityService extends Service implements ICommunityService {
 
     if (changes.banner && community.banner) {
       await this.imageService.deleteImage(community.banner);
-      changes.banner = `${env.domain}/${changes.banner}`;
+      changes.banner = `${process.env.DOMAIN}/${changes.banner}`;
     }
     const updatedCommunity = await this.repository.update(
       id,

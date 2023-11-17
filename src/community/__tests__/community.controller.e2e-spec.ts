@@ -12,7 +12,10 @@ import { User } from '@prisma/client';
 import communitiesChannels from '../../../prisma/fixtures/community-channels';
 import { ListResponse } from 'src/dtos/list.dto';
 import channelTypes from '../../../prisma/fixtures/channel-types';
-import { includeCommunityChannels } from '../../utils/tests-e2e';
+import {
+  communityPlainToInstance,
+  includeCommunityChannels,
+} from '../../utils/tests-e2e';
 
 describe('Community controller', () => {
   let app: INestApplication;
@@ -42,6 +45,7 @@ describe('Community controller', () => {
     app.useGlobalPipes(
       new ValidationPipe({
         transform: true,
+        whitelist: true,
       }),
     );
     await app.init();
@@ -102,11 +106,10 @@ describe('Community controller', () => {
           .set('Authorization', 'Bearer ' + adminToken)
           .send(bodyData)
           .expect(201)
-          .expect(({ body }) => {
+          .then(({ body }) => {
             communityId = body.id;
-            return (
-              body.name === bodyData.name && body.subject === bodyData.subject
-            );
+            expect(body.name).toBe(bodyData.name);
+            expect(body.subject).toBe(bodyData.subject);
           });
       });
       afterAll(async () => {
@@ -148,7 +151,7 @@ describe('Community controller', () => {
       });
       it('should return only active communities', async () => {
         const expectedResponse = new ListResponse<CommunityResponse>(
-          activeCommunities,
+          activeCommunities.map((c) => communityPlainToInstance(c, user)),
           activeCommunities.length,
           1,
           20,
@@ -256,11 +259,9 @@ describe('Community controller', () => {
         .set('Authorization', 'Bearer ' + adminToken)
         .send(changes)
         .expect(200)
-        .expect((res) => {
-          return (
-            res.body.name === changes.name &&
-            res.body.isActive === changes.isActive
-          );
+        .then((res) => {
+          expect(res.body.name).toEqual(changes.name);
+          expect(res.body.isActive).toEqual(changes.isActive);
         });
     });
   });
