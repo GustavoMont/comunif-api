@@ -44,6 +44,11 @@ export class CommunityService extends Service implements ICommunityService {
     await this.findById(id, user);
     await this.repository.delete(id);
   }
+
+  handleBannerImageUrl(banner: string): string {
+    return `${process.env.DOMAIN}/${banner}`;
+  }
+
   async create(
     user: RequestUser,
     body: CreateCommunity,
@@ -54,7 +59,6 @@ export class CommunityService extends Service implements ICommunityService {
         subject: body.subject,
       }),
     );
-
     if (hasCommunitySubject > 0) {
       throw new HttpException(
         'Já existe uma comunidade com esse assunto',
@@ -62,6 +66,9 @@ export class CommunityService extends Service implements ICommunityService {
       );
     }
     body.adminId = user.id;
+    if (body.banner) {
+      body.banner = this.handleBannerImageUrl(body.banner);
+    }
     const newCommunity = await this.repository.create(
       plainToInstance(Community, body),
     );
@@ -138,9 +145,11 @@ export class CommunityService extends Service implements ICommunityService {
   ): Promise<CommunityResponse> {
     const community = await this.findById(id);
 
-    if (changes.banner && community.banner) {
-      await this.imageService.deleteImage(community.banner);
-      changes.banner = `${process.env.DOMAIN}/${changes.banner}`;
+    if (changes.banner) {
+      changes.banner = this.handleBannerImageUrl(changes.banner);
+      if (community.banner) {
+        await this.imageService.deleteImage(community.banner);
+      }
     }
     const updatedCommunity = await this.repository.update(
       id,
