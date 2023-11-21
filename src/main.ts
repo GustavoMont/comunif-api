@@ -5,8 +5,10 @@ import { CamelizePipe } from './pipes/camelize.pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const CLIENT_WEB = process.env.CLIENT_WEB;
+  const origin = [CLIENT_WEB];
   app.enableCors({
-    origin: ['http://localhost:3001'],
+    origin,
   });
   app.useGlobalPipes(
     new CamelizePipe(),
