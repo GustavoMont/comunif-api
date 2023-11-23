@@ -24,7 +24,12 @@ export const avatarUploadOptions: MulterOptions = {
       }
     },
     filename(req: RequestWithUser, file, callback) {
-      callback(null, `${req.user.username}-avatar.${DEFAULT_EXTENSION}`);
+      const timestamp = new Date().getTime();
+
+      callback(
+        null,
+        `${timestamp}-${req.user.username}-avatar.${DEFAULT_EXTENSION}`,
+      );
     },
   }),
 };

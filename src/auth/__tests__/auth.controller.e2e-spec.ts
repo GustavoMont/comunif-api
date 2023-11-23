@@ -5,6 +5,8 @@ import * as request from 'supertest';
 import users from '../../../prisma/fixtures/users';
 import * as bcrypt from 'bcrypt';
 import { IMailService } from 'src/mail/interfaces/IMailService';
+import { ConfigModule } from '@nestjs/config';
+import testEnviromentConfig from 'src/config/test-enviroment.config';
 
 describe('Auth', () => {
   let app: INestApplication;
@@ -15,7 +17,13 @@ describe('Auth', () => {
   const passwordUser = users.find(({ username }) => username === 'password');
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [AuthModule],
+      imports: [
+        AuthModule,
+        ConfigModule.forRoot({
+          load: [testEnviromentConfig],
+          isGlobal: true,
+        }),
+      ],
     })
       .overrideProvider(IMailService)
       .useValue({

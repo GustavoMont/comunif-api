@@ -10,6 +10,8 @@ import { ListResponse } from 'src/dtos/list.dto';
 import { UserCreate } from '../dto/user-create.dto';
 import { RoleEnum } from 'src/models/User';
 import { IMailService } from 'src/mail/interfaces/IMailService';
+import { ConfigModule } from '@nestjs/config';
+import testEnviromentConfig from 'src/config/test-enviroment.config';
 
 describe('Users', () => {
   const BASE_URL = '/api/users';
@@ -24,7 +26,14 @@ describe('Users', () => {
   const admin = users.find(({ username }) => username === 'admin');
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [UserModule, AuthModule],
+      imports: [
+        UserModule,
+        AuthModule,
+        ConfigModule.forRoot({
+          load: [testEnviromentConfig],
+          isGlobal: true,
+        }),
+      ],
       providers: [],
     })
       .overrideProvider(IMailService)

@@ -7,9 +7,10 @@ import { CommunityRepository } from './community-repository.service';
 import { ImageService } from 'src/utils/image.service';
 import { ICommunityRepository } from './interfaces/ICommunityRepository';
 import { ICommunityService } from './interfaces/ICommunityService';
+import { FileModule } from 'src/file/file.module';
 
 @Module({
-  imports: [UserModule],
+  imports: [UserModule, FileModule],
   controllers: [CommunityController],
   providers: [
     {

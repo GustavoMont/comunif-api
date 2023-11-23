@@ -8,18 +8,18 @@ import { RequestUser } from 'src/types/RequestUser';
 import { CommunityQueryDto } from './dto/community-query.dto';
 import { CreateCommunity } from './dto/community-create.dto';
 import { Community } from 'src/models/Community';
-import { ImageService } from 'src/utils/image.service';
 import { Service } from 'src/utils/services';
 import { ICommunityRepository } from './interfaces/ICommunityRepository';
 import { IUserService } from 'src/user/interfaces/IUserService';
 import { CountDto } from 'src/dtos/count.dto';
+import { IFileService } from 'src/file/interfaces/IFileService';
 @Injectable()
 export class CommunityService extends Service implements ICommunityService {
   constructor(
     @Inject(ICommunityRepository)
     private readonly repository: ICommunityRepository,
     @Inject(IUserService) private readonly userService: IUserService,
-    private readonly imageService: ImageService,
+    @Inject(IFileService) private readonly fileService: IFileService,
   ) {
     super();
   }
@@ -45,10 +45,6 @@ export class CommunityService extends Service implements ICommunityService {
     await this.repository.delete(id);
   }
 
-  handleBannerImageUrl(banner: string): string {
-    return `${process.env.DOMAIN}/${banner}`;
-  }
-
   async create(
     user: RequestUser,
     body: CreateCommunity,
@@ -67,7 +63,9 @@ export class CommunityService extends Service implements ICommunityService {
     }
     body.adminId = user.id;
     if (body.banner) {
-      body.banner = this.handleBannerImageUrl(body.banner);
+      body.banner = await this.fileService.uploadFile(
+        body.banner.replace(/public\//g, ''),
+      );
     }
     const newCommunity = await this.repository.create(
       plainToInstance(Community, body),
@@ -146,9 +144,9 @@ export class CommunityService extends Service implements ICommunityService {
     const community = await this.findById(id);
 
     if (changes.banner) {
-      changes.banner = this.handleBannerImageUrl(changes.banner);
+      changes.banner = await this.fileService.uploadFile(changes.banner);
       if (community.banner) {
-        await this.imageService.deleteImage(community.banner);
+        await this.fileService.deleteFile(community.banner);
       }
     }
     const updatedCommunity = await this.repository.update(

@@ -12,6 +12,8 @@ import evasionReports from '../../../prisma/fixtures/evasion-reports';
 import { ListResponse } from 'src/dtos/list.dto';
 import { applyEvasionReportsIncludes } from 'src/utils/tests-e2e';
 import { CreateAdminEvasionReportDto } from '../dto/create-admin-evasion-report.dto';
+import { ConfigModule } from '@nestjs/config';
+import testEnviromentConfig from 'src/config/test-enviroment.config';
 
 describe('Evasion Report', () => {
   let app: INestApplication;
@@ -22,7 +24,14 @@ describe('Evasion Report', () => {
   const admin = users.find(({ username }) => username === 'admin');
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [EvasionReportModule, AuthModule],
+      imports: [
+        EvasionReportModule,
+        AuthModule,
+        ConfigModule.forRoot({
+          load: [testEnviromentConfig],
+          isGlobal: true,
+        }),
+      ],
     }).compile();
 
     app = moduleRef.createNestApplication();

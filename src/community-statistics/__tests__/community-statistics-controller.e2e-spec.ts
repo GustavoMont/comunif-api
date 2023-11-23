@@ -11,6 +11,8 @@ import { CommunityStatisticsDto } from '../dto/community-statistics.dto';
 import communityStatistics from '../../../prisma/fixtures/community-statistics';
 import { ListResponse } from 'src/dtos/list.dto';
 import * as moment from 'moment';
+import { ConfigModule } from '@nestjs/config';
+import testEnviromentConfig from 'src/config/test-enviroment.config';
 
 describe('User statistics', () => {
   let app: INestApplication;
@@ -22,7 +24,14 @@ describe('User statistics', () => {
   let userToken: string;
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [CommunityStatisticsModule, AuthModule],
+      imports: [
+        CommunityStatisticsModule,
+        AuthModule,
+        ConfigModule.forRoot({
+          load: [testEnviromentConfig],
+          isGlobal: true,
+        }),
+      ],
       providers: [],
     }).compile();
 
