@@ -16,6 +16,8 @@ import {
   communityPlainToInstance,
   includeCommunityChannels,
 } from '../../utils/tests-e2e';
+import { ConfigModule } from '@nestjs/config';
+import testEnviromentConfig from 'src/config/test-enviroment.config';
 
 describe('Community controller', () => {
   let app: INestApplication;
@@ -38,7 +40,14 @@ describe('Community controller', () => {
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [CommunityModule, AuthModule],
+      imports: [
+        CommunityModule,
+        AuthModule,
+        ConfigModule.forRoot({
+          load: [testEnviromentConfig],
+          isGlobal: true,
+        }),
+      ],
     }).compile();
 
     app = moduleRef.createNestApplication();

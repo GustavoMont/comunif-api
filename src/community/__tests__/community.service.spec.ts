@@ -14,13 +14,14 @@ import { CommunityUpdate } from '../dto/community-update.dto';
 import { ListResponse } from 'src/dtos/list.dto';
 import { RoleEnum } from 'src/models/User';
 import { CommunityQueryDto } from '../dto/community-query.dto';
-import { ImageService } from 'src/utils/image.service';
 import { IUserService } from 'src/user/interfaces/IUserService';
 import { CountDto } from 'src/dtos/count.dto';
+import { IFileService } from 'src/file/interfaces/IFileService';
+import { fileServiceMock } from 'src/file/__mocks__/file-service.mock';
 
 describe('Community Service', () => {
   let repository: ICommunityRepository;
-  let imageService: ImageService;
+  let fileService: IFileService;
   let userService: IUserService;
   let communityService: CommunityService;
   const admin = { id: 1, roles: [RoleEnum.admin], username: 'test' };
@@ -53,15 +54,13 @@ describe('Community Service', () => {
           },
         },
         {
-          provide: ImageService,
-          useValue: {
-            deleteImage: jest.fn(),
-          },
+          provide: IFileService,
+          useValue: fileServiceMock,
         },
       ],
     }).compile();
     userService = module.get<IUserService>(IUserService);
-    imageService = module.get<ImageService>(ImageService);
+    fileService = module.get<IFileService>(IFileService);
     communityService = module.get<CommunityService>(CommunityService);
     repository = module.get<ICommunityRepository>(ICommunityRepository);
   });
@@ -203,14 +202,14 @@ describe('Community Service', () => {
       };
       jest.spyOn(repository, 'findById').mockResolvedValue(community);
       jest.spyOn(repository, 'update').mockResolvedValue(updatedCommunity);
-      jest.spyOn(imageService, 'deleteImage').mockResolvedValue();
+      jest.spyOn(fileService, 'deleteFile').mockResolvedValue();
 
       const result = await communityService.update(id, changes);
       expect(result).toEqual(
         plainToInstance(CommunityResponse, updatedCommunity),
       );
       expect(repository.update).toBeCalledWith(id, changes);
-      expect(imageService.deleteImage).toBeCalled();
+      expect(fileService.deleteFile).toBeCalled();
     });
   });
   describe('create community', () => {
@@ -218,6 +217,9 @@ describe('Community Service', () => {
     beforeEach(() => {
       jest.spyOn(repository, 'create').mockResolvedValue(newCommunity);
       jest.spyOn(repository, 'count').mockResolvedValue(0);
+      jest
+        .spyOn(fileService, 'uploadFile')
+        .mockResolvedValue(newCommunity.banner);
     });
     it('should throw a forbidden', async () => {
       await expect(

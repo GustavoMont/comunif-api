@@ -19,6 +19,8 @@ import communityHasUsers from '../../../prisma/fixtures/community-has-users';
 import { UserResponse } from 'src/user/dto/user-response.dto';
 import { IMailService } from 'src/mail/interfaces/IMailService';
 import { mailServiceMock } from 'src/mail/__mocks__/mail-service.mock';
+import { ConfigModule } from '@nestjs/config';
+import testEnviromentConfig from 'src/config/test-enviroment.config';
 
 describe('Community controller', () => {
   const BASE_URL = '/api/community-users';
@@ -53,7 +55,14 @@ describe('Community controller', () => {
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [CommunityUsersModule, AuthModule],
+      imports: [
+        CommunityUsersModule,
+        AuthModule,
+        ConfigModule.forRoot({
+          load: [testEnviromentConfig],
+          isGlobal: true,
+        }),
+      ],
     })
       .overrideProvider(IMailService)
       .useValue(mailServiceMock)

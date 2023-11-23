@@ -19,6 +19,8 @@ import { RoleEnum } from 'src/models/User';
 import { IMailService } from 'src/mail/interfaces/IMailService';
 import { UserQueryDto } from '../dto/user-query.dto';
 import { CountDto } from 'src/dtos/count.dto';
+import { IFileService } from 'src/file/interfaces/IFileService';
+import { fileServiceMock } from 'src/file/__mocks__/file-service.mock';
 
 jest.mock('bcrypt', () => ({
   hash: jest.fn(),
@@ -65,6 +67,10 @@ describe('Teste USer Service', () => {
             deactivateUser: jest.fn(),
             activateUser: jest.fn(),
           },
+        },
+        {
+          provide: IFileService,
+          useValue: fileServiceMock,
         },
       ],
     }).compile();
@@ -149,6 +155,7 @@ describe('Teste USer Service', () => {
     });
     it('should update user', async () => {
       jest.spyOn(userRepository, 'findByUsername').mockResolvedValue(null);
+      jest.spyOn(userRepository, 'findById').mockResolvedValue(userGenerator());
       jest.spyOn(userRepository, 'update').mockResolvedValue(userGenerator());
       await expect(userService.update(1, {} as any)).resolves.toEqual(
         plainToInstance(UserResponse, userGenerator()),
@@ -158,6 +165,8 @@ describe('Teste USer Service', () => {
       jest
         .spyOn(userRepository, 'update')
         .mockResolvedValue(userGenerator({ id: 1 }));
+      jest.spyOn(userRepository, 'findById').mockResolvedValue(userGenerator());
+
       await expect(
         userService.update(1, { username: 'username' } as any),
       ).resolves.toEqual(plainToInstance(UserResponse, userGenerator()));

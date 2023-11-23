@@ -22,19 +22,23 @@ import { DeactivateUser } from './dto/deactivate-user.dto';
 import { IMailService } from 'src/mail/interfaces/IMailService';
 import { UserQueryDto } from './dto/user-query.dto';
 import { CountDto } from 'src/dtos/count.dto';
+import { IFileService } from 'src/file/interfaces/IFileService';
 
 @Injectable()
 export class UserService extends Service implements IUserService {
   constructor(
     @Inject(IUserRepository) private readonly repository: IUserRepository,
     @Inject(IMailService) private readonly mailService: IMailService,
+    @Inject(IFileService) private readonly fileService: IFileService,
   ) {
     super();
   }
+
   async count(filters: UserQueryDto = { isActive: true }): Promise<CountDto> {
     const total = await this.repository.count(filters);
     return plainToInstance(CountDto, { total });
   }
+
   async activate(userId: number, currentUser?: RequestUser): Promise<void> {
     if (!currentUser || !this.isAdmin(currentUser.roles[0])) {
       throw new ForbiddenException();
@@ -51,6 +55,7 @@ export class UserService extends Service implements IUserService {
       this.mailService.activateUser(user),
     ]);
   }
+
   async deactivate(
     userId: number,
     { reason }: DeactivateUser,
@@ -76,6 +81,7 @@ export class UserService extends Service implements IUserService {
       this.mailService.deactivateUser(user, reason),
     ]);
   }
+
   async validateUser(
     username: string,
     password: string,
@@ -192,6 +198,7 @@ export class UserService extends Service implements IUserService {
     const userResponse = plainToInstance(UserResponse, users);
     return new ListResponse(userResponse, total, page, take);
   }
+
   async update(id: number, changes: UserUpdate): Promise<UserResponse> {
     if (changes.username) {
       const usernameExists = await this.repository.findByUsername(
@@ -201,14 +208,15 @@ export class UserService extends Service implements IUserService {
         throw new HttpException('Username já em uso', HttpStatus.BAD_REQUEST);
       }
     }
-    delete changes.password;
+    const user = await this.findById(id);
     if (changes.avatar) {
-      changes.avatar = `${process.env.DOMAIN}/${changes.avatar}`;
+      if (user.avatar) {
+        await this.fileService.deleteFile(user.avatar);
+      }
+      changes.avatar = await this.fileService.uploadFile(changes.avatar);
     }
-    const user = await this.repository.update(id, changes);
-    if (!user) {
-      throw new HttpException('Usuário não encontrado', HttpStatus.NOT_FOUND);
-    }
-    return plainToInstance(UserResponse, user);
+    const updatedUser = await this.repository.update(id, changes);
+
+    return plainToInstance(UserResponse, updatedUser);
   }
 }

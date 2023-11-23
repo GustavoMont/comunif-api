@@ -39,6 +39,7 @@
     "camelize": "^1.0.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
+    "firebase": "^10.6.0",
     "handlebars": "^4.7.7",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",

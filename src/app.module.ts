@@ -3,7 +3,6 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { PublicController } from './public/public.controller';
 import { CommunityModule } from './community/community.module';
 import { MessageModule } from './message/message.module';
 import { MailModule } from './mail/mail.module';
@@ -13,9 +12,16 @@ import { ConfigModule } from '@nestjs/config';
 import { UserStatisticsModule } from './user-statistics/user-statistics.module';
 import { CommunityStatisticsModule } from './community-statistics/community-statistics.module';
 import { EvasionReportModule } from './evasion-report/evasion-report.module';
+import { FileModule } from './file/file.module';
+import { PublicModule } from './public/public.module';
+import enviroment from './config/enviroment';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      load: [enviroment],
+      isGlobal: true,
+    }),
     UserModule,
     AuthModule,
     MulterModule.register({
@@ -31,7 +37,8 @@ import { EvasionReportModule } from './evasion-report/evasion-report.module';
     UserStatisticsModule,
     CommunityStatisticsModule,
     EvasionReportModule,
+    FileModule,
+    PublicModule,
   ],
-  controllers: [PublicController],
 })
 export class AppModule {}

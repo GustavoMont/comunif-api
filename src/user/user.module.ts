@@ -6,9 +6,10 @@ import { PrismaClient } from '@prisma/client';
 import { IUserService } from './interfaces/IUserService';
 import { IUserRepository } from './interfaces/IUserRepository';
 import { MailModule } from 'src/mail/mail.module';
+import { FileModule } from 'src/file/file.module';
 
 @Module({
-  imports: [MailModule],
+  imports: [MailModule, FileModule],
   controllers: [UserController],
   providers: [
     {
