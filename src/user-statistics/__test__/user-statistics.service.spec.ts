@@ -3,12 +3,18 @@ import { UserStatisticsService } from '../user-statistics.service';
 import { IUserService } from 'src/user/interfaces/IUserService';
 import { plainToInstance } from 'class-transformer';
 import { IUserStatisticsRepository } from '../interfaces/IUserStatisticsRepository';
-import { arrayGenerator, userStatisticsGenerator } from 'src/utils/generators';
+import {
+  arrayGenerator,
+  requestUserGenerator,
+  userStatisticsGenerator,
+} from 'src/utils/generators';
 import { UserStatisticsDto } from '../dto/user-statistics.dto';
 import { StatisticsQueryDto } from 'src/dtos/statistics-query.dto';
 import * as moment from 'moment';
 import { ListResponse } from 'src/dtos/list.dto';
 import { CountDto } from 'src/dtos/count.dto';
+import { userStatisticsRepositoryMock } from '../__mocks__/user-statistics-repositoy.mock';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 describe('UserStatisticsService', () => {
   let service: UserStatisticsService;
@@ -27,10 +33,7 @@ describe('UserStatisticsService', () => {
         },
         {
           provide: IUserStatisticsRepository,
-          useValue: {
-            findAll: jest.fn(),
-            count: jest.fn(),
-          } as Partial<IUserStatisticsRepository>,
+          useValue: userStatisticsRepositoryMock,
         },
       ],
     }).compile();
@@ -97,6 +100,43 @@ describe('UserStatisticsService', () => {
       );
       expect(repository.count).toBeCalledWith(filters);
       expect(repository.findAll).toBeCalledWith({ skip: 0, take }, filters);
+    });
+  });
+  describe('create', () => {
+    const userStatistics = userStatisticsGenerator();
+    const count = 15;
+    const admin = requestUserGenerator();
+    beforeEach(() => {
+      jest.spyOn(repository, 'create').mockResolvedValue(userStatistics);
+      jest.spyOn(repository, 'count').mockResolvedValue(0);
+      jest.spyOn(userService, 'count').mockResolvedValue({ total: count });
+    });
+    it('should throw error when month already has statistics', async () => {
+      jest.spyOn(repository, 'count').mockResolvedValueOnce(1);
+      const expectedError = new HttpException(
+        'As estatísticas desse mês já foram geradas',
+        HttpStatus.BAD_REQUEST,
+      );
+      await expect(service.create()).rejects.toThrowError(expectedError);
+    });
+    it('should create with user', async () => {
+      const result = await service.create(admin);
+      expect(result).toStrictEqual(
+        plainToInstance(UserStatisticsDto, userStatistics),
+      );
+      expect(repository.create).toBeCalledWith({
+        userId: admin.id,
+        count,
+      });
+    });
+    it('should create without user', async () => {
+      const result = await service.create();
+      expect(result).toStrictEqual(
+        plainToInstance(UserStatisticsDto, userStatistics),
+      );
+      expect(repository.create).toBeCalledWith({
+        count,
+      });
     });
   });
 });

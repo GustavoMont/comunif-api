@@ -4,10 +4,17 @@ import { StatisticsQueryDto } from 'src/dtos/statistics-query.dto';
 import { UserStatistics } from 'src/models/UserStatistics';
 import { PrismaClient } from '@prisma/client';
 import { PaginationDto } from 'src/dtos/pagination.dto';
+import { CreateUserStatisticsDto } from './dto/create-user-statistics.dto';
 
 @Injectable()
 export class UserStatisticsRepository implements IUserStatisticsRepository {
   constructor(private readonly db: PrismaClient) {}
+  async create(data: CreateUserStatisticsDto): Promise<UserStatistics> {
+    return await this.db.userStatistics.create({
+      data,
+      include: { user: true },
+    });
+  }
   async findAll(
     { skip, take }: PaginationDto,
     { from, to }: StatisticsQueryDto = {},

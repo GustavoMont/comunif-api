@@ -15,9 +15,11 @@ import { EvasionReportModule } from './evasion-report/evasion-report.module';
 import { FileModule } from './file/file.module';
 import { PublicModule } from './public/public.module';
 import enviroment from './config/enviroment';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       load: [enviroment],
       isGlobal: true,
