@@ -15,9 +15,6 @@ import { plainToInstance } from 'class-transformer';
 import { BaseStatisticService } from 'src/utils/BaseStatisticService';
 import { CountDto } from 'src/dtos/count.dto';
 import { RequestUser } from 'src/types/RequestUser';
-import * as moment from 'moment';
-import { Cron } from '@nestjs/schedule';
-import { statisticsTasksConstants } from 'src/constants/scheduled-tasks.constants';
 
 @Injectable()
 export class UserStatisticsService
@@ -33,16 +30,14 @@ export class UserStatisticsService
     super();
   }
 
-  @Cron(statisticsTasksConstants.interval)
   async create(user?: RequestUser): Promise<UserStatisticsDto> {
-    const startOfMonth = moment().startOf('month').toDate();
-    const endOfMonth = moment().endOf('month').toDate();
+    const { firstDay, lastDay } = this.getMonthRange();
     const monthStatisticsCount = await this.repository.count({
-      from: startOfMonth,
-      to: endOfMonth,
+      from: firstDay,
+      to: lastDay,
     });
     if (monthStatisticsCount > 0) {
-      this.logger.error('Statistics already created');
+      this.logger.error('User statistics already created');
       throw new HttpException(
         'As estatísticas desse mês já foram geradas',
         HttpStatus.BAD_REQUEST,
@@ -54,7 +49,7 @@ export class UserStatisticsService
       count,
       userId: user?.id,
     });
-    this.logger.log('User statistics created');
+    this.logger.log('User statistics was created successfuly');
     return plainToInstance(UserStatisticsDto, userStatistics);
   }
   async findAll(

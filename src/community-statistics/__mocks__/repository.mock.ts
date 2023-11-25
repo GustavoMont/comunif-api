@@ -3,4 +3,5 @@ import { ICommunityStatisticsRepository } from '../interfaces/ICommunityStatisti
 export const repositoryMock: ICommunityStatisticsRepository = {
   count: jest.fn(),
   findAll: jest.fn(),
+  create: jest.fn(),
 };
