@@ -3,15 +3,29 @@ import { IMessageRepository } from './interfaces/IMessageRepository';
 import { Message } from 'src/models/Message';
 import { PrismaClient } from '@prisma/client';
 import { PaginationDto } from 'src/dtos/pagination.dto';
+import { MessageQueryDto } from './dtos/message-query.dto';
 
 @Injectable()
 export class MessageRepository implements IMessageRepository {
   constructor(private readonly db: PrismaClient) {}
-  async countChannelMessages(communityChannelId: number): Promise<number> {
+  async count({
+    communityChannelId,
+    from,
+    to,
+    userId,
+  }: MessageQueryDto = {}): Promise<number> {
     return await this.db.message.count({
-      where: { communityChannelId },
+      where: {
+        communityChannelId,
+        userId,
+        createdAt: {
+          gte: from,
+          lte: to,
+        },
+      },
     });
   }
+
   async findById(id: number): Promise<Message> {
     return await this.db.message.findUnique({
       where: { id },
@@ -20,12 +34,14 @@ export class MessageRepository implements IMessageRepository {
       },
     });
   }
+
   async create(data: Omit<Message, 'user'>): Promise<Message> {
     const { id } = await this.db.message.create({
       data,
     });
     return await this.findById(id);
   }
+
   async findByChannelId(
     communityChannelId: number,
     { skip, take }: PaginationDto,

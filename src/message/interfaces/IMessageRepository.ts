@@ -1,5 +1,6 @@
 import { PaginationDto } from 'src/dtos/pagination.dto';
 import { Message } from 'src/models/Message';
+import { MessageQueryDto } from '../dtos/message-query.dto';
 
 export interface IMessageRepository {
   create(data: Omit<Message, 'user'>): Promise<Message>;
@@ -8,7 +9,7 @@ export interface IMessageRepository {
     communityChannelId: number,
     pagination: PaginationDto,
   ): Promise<Message[]>;
-  countChannelMessages(communityChannelId: number): Promise<number>;
+  count(filters?: MessageQueryDto): Promise<number>;
 }
 
 export const IMessageRepository = Symbol('IMessageRepository');

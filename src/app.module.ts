@@ -17,6 +17,7 @@ import { PublicModule } from './public/public.module';
 import enviroment from './config/enviroment';
 import { ScheduleModule } from '@nestjs/schedule';
 import { StatisticsModule } from './statistics/statistics.module';
+import { MessageStatisticsModule } from './message-statistics/message-statistics.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { StatisticsModule } from './statistics/statistics.module';
     FileModule,
     PublicModule,
     StatisticsModule,
+    MessageStatisticsModule,
   ],
 })
 export class AppModule {}

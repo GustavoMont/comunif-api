@@ -15,6 +15,8 @@ import { ICommunityUsersService } from 'src/community-users/interfaces/ICommunit
 import { ICommunityService } from 'src/community/interfaces/ICommunityService';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { CommunityResponse } from 'src/community/dto/community-response.dto';
+import { messageRepositoryMock } from '../__mocks__/message-repository.mock';
+import { MessageQueryDto } from '../dtos/message-query.dto';
 
 describe('MessageService', () => {
   let service: MessageService;
@@ -27,12 +29,7 @@ describe('MessageService', () => {
         MessageService,
         {
           provide: IMessageRepository,
-          useValue: {
-            create: jest.fn(),
-            findById: jest.fn(),
-            findByChannelId: jest.fn(),
-            countChannelMessages: jest.fn(),
-          } as IMessageRepository,
+          useValue: messageRepositoryMock,
         },
         {
           provide: ICommunityUsersService,
@@ -76,9 +73,7 @@ describe('MessageService', () => {
   describe('findByChannelId', () => {
     const total = 100;
     beforeEach(() => {
-      jest
-        .spyOn(messageRepository, 'countChannelMessages')
-        .mockResolvedValue(total);
+      jest.spyOn(messageRepository, 'count').mockResolvedValue(total);
     });
     it('should throw forbidden', async () => {
       const community = plainToInstance(
@@ -113,6 +108,7 @@ describe('MessageService', () => {
         skip: 0,
         take: 50,
       });
+      expect(messageRepository.count).toBeCalledWith({ communityChannelId: 1 });
     });
     it('should list just 5 channel messages', async () => {
       const messages = arrayGenerator<Message>(5, messageGenerator);
@@ -128,6 +124,30 @@ describe('MessageService', () => {
         skip: 0,
         take: 5,
       });
+      expect(messageRepository.count).toBeCalledWith({ communityChannelId: 1 });
+    });
+  });
+  describe('count', () => {
+    const total = 50;
+    beforeEach(() => {
+      jest.spyOn(messageRepository, 'count').mockResolvedValue(total);
+    });
+    afterEach(jest.clearAllMocks);
+    it('should return quantity with filtered', async () => {
+      const filters: MessageQueryDto = {
+        communityChannelId: 1,
+        from: new Date(),
+        to: new Date(),
+        userId: 1,
+      };
+      const result = await service.countMessages(filters);
+      expect(result).toBe(total);
+      expect(messageRepository.count).toBeCalledWith(filters);
+    });
+    it('should be called without filters', async () => {
+      const result = await service.countMessages();
+      expect(result).toBe(total);
+      expect(messageRepository.count).toBeCalledWith({});
     });
   });
 });

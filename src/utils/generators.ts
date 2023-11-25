@@ -9,6 +9,7 @@ import { Community } from 'src/models/Community';
 import { CommunityStatistics } from 'src/models/CommunityStatistics';
 import { EvasionReport } from 'src/models/EvasionReport';
 import { Message } from 'src/models/Message';
+import { MessageStatistics } from 'src/models/MessageStatistics';
 import { RoleEnum, User } from 'src/models/User';
 import { UserStatistics } from 'src/models/UserStatistics';
 import { RequestUser } from 'src/types/RequestUser';
@@ -90,6 +91,7 @@ export const messageGenerator: Generator<Message> = (message) => ({
   id: 1,
   user: userGenerator(),
   userId: 1,
+  createdAt: new Date(),
   ...message,
 });
 
@@ -137,4 +139,15 @@ export const communityHasUserGenerator: Generator<CommunityHasUsers> = (
   id: 1,
   userId: 1,
   ...chs,
+});
+
+export const messageStatisticsGenerator: Generator<MessageStatistics> = (
+  ms,
+) => ({
+  count: 10,
+  createdAt: moment().toDate(),
+  id: 1,
+  user: userGenerator(),
+  userId: 1,
+  ...ms,
 });

@@ -25,6 +25,7 @@ model User {
   isActive            Boolean               @default(true)
   userStatistics      UserStatistics[]
   communityStatistics CommunityStatistics[]
+  messageStatistics   MessageStatistics[]
   evasions            EvasionReport[]       @relation("evasions")
   removes             EvasionReport[]       @relation("removes")
   adminCommunities    Community[]
@@ -45,6 +46,7 @@ model Message {
   userId             Int
   communityChannel   CommunityChannel @relation(fields: [communityChannelId], references: [id])
   communityChannelId Int
+  createdAt          DateTime         @default(now())
 }
 
 model ChannelType {
@@ -101,6 +103,14 @@ model UserStatistics {
 }
 
 model CommunityStatistics {
+  id        Int      @id @default(autoincrement())
+  count     Int
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model MessageStatistics {
   id        Int      @id @default(autoincrement())
   count     Int
   userId    Int?

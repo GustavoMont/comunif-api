@@ -4,35 +4,32 @@ import { Test } from '@nestjs/testing';
 import { AuthModule } from 'src/auth/auth.module';
 import users from '../../../prisma/fixtures/users';
 import { RoleEnum } from 'src/models/User';
-import communities from '../../../prisma/fixtures/communities';
-import { CommunityStatisticsModule } from '../community-statistics.module';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
-import { CommunityStatisticsDto } from '../dto/community-statistics.dto';
-import communityStatistics from '../../../prisma/fixtures/community-statistics';
 import { ListResponse } from 'src/dtos/list.dto';
 import * as moment from 'moment';
 import { ConfigModule } from '@nestjs/config';
 import testEnviromentConfig from 'src/config/test-enviroment.config';
+import { MessageStatisticsModule } from '../message-statistics.module';
+import { MessageStatisticsDto } from '../dto/message-statistics.dto';
+import messageStatistics from '../../../prisma/fixtures/message-statistics';
 
-describe('Community statistics', () => {
+describe('Message statistics', () => {
   let app: INestApplication;
   const admin = users.find(({ username }) => username === 'admin');
   const user = users.find(({ role }) => role === RoleEnum.user);
-  const activeCommunities = communities.filter(({ isActive }) => isActive);
-  const baseUrl = '/api/community-statistics';
+  const baseUrl = '/api/message-statistics';
   let adminToken: string;
   let userToken: string;
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [
-        CommunityStatisticsModule,
+        MessageStatisticsModule,
         AuthModule,
         ConfigModule.forRoot({
           load: [testEnviromentConfig],
           isGlobal: true,
         }),
       ],
-      providers: [],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -53,7 +50,7 @@ describe('Community statistics', () => {
     userToken = loginResponse.body.access;
   });
   describe('/GET', () => {
-    describe('communities count', () => {
+    describe('messages count', () => {
       it('should throw unauthorized', async () => {
         return request(app.getHttpServer()).get(`${baseUrl}/count`).expect(401);
       });
@@ -63,15 +60,15 @@ describe('Community statistics', () => {
           .set('Authorization', `Bearer ${userToken}`)
           .expect(403);
       });
-      it('should return active communities count', async () => {
+      it('should return month messages count', async () => {
         return request(app.getHttpServer())
           .get(`${baseUrl}/count`)
           .set('Authorization', `Bearer ${adminToken}`)
           .expect(200)
-          .expect({ total: activeCommunities.length });
+          .expect({ total: 0 });
       });
     });
-    describe('community statistics', () => {
+    describe('message statistics', () => {
       it('should throw unauthorized', async () => {
         return request(app.getHttpServer()).get(`${baseUrl}`).expect(401);
       });
@@ -82,13 +79,13 @@ describe('Community statistics', () => {
           .expect(403);
       });
       it('should return last two months statistics', async () => {
-        const communityStatisticResponse = plainToInstance(
-          CommunityStatisticsDto,
-          communityStatistics.map((cs) => ({ ...cs, user: null })),
+        const messageStatisticResponse = plainToInstance(
+          MessageStatisticsDto,
+          messageStatistics.map((cs) => ({ ...cs, user: null })),
         );
         const expectedResponse = new ListResponse(
-          communityStatisticResponse,
-          communityStatistics.length,
+          messageStatisticResponse,
+          messageStatistics.length,
           1,
           25,
         );
@@ -113,7 +110,7 @@ describe('Community statistics', () => {
     });
   });
   describe('/POST', () => {
-    describe('create community statistics', () => {
+    describe('create message statistics', () => {
       it('should throw unauthorized', () => {
         return request(app.getHttpServer()).post(baseUrl).expect(401);
       });
@@ -124,7 +121,7 @@ describe('Community statistics', () => {
           .expect(403);
       });
       it('should create statistics', () => {
-        const expectedCount = activeCommunities.length;
+        const expectedCount = 0;
         return request(app.getHttpServer())
           .post(baseUrl)
           .set('Authorization', `Bearer ${adminToken}`)

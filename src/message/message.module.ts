@@ -27,6 +27,7 @@ import { CommunityUsersModule } from 'src/community-users/community-users.module
       useClass: MessageRepository,
     },
   ],
+  exports: [IMessageService],
   controllers: [MessageController],
 })
 export class MessageModule {}
