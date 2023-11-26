@@ -10,4 +10,12 @@ export class BaseStatisticService extends Service {
       to: new Date(moment().add(4, 'days').format(format)),
     };
   }
+  getMonthRange(): { firstDay: Date; lastDay: Date } {
+    const firstDay = moment().startOf('month').toDate();
+    const lastDay = moment().endOf('month').toDate();
+    return {
+      firstDay,
+      lastDay,
+    };
+  }
 }

@@ -5,6 +5,7 @@ import { repositoryMock } from '../__mocks__/repository.mock';
 import {
   arrayGenerator,
   communityStatisticsGenerator,
+  requestUserGenerator,
 } from 'src/utils/generators';
 import { plainToInstance } from 'class-transformer';
 import { CommunityStatisticsDto } from '../dto/community-statistics.dto';
@@ -12,6 +13,7 @@ import { ListResponse } from 'src/dtos/list.dto';
 import { StatisticsQueryDto } from 'src/dtos/statistics-query.dto';
 import * as moment from 'moment';
 import { ICommunityService } from 'src/community/interfaces/ICommunityService';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 describe('CommunityStatisticsService', () => {
   let service: CommunityStatisticsService;
@@ -101,6 +103,43 @@ describe('CommunityStatisticsService', () => {
       const result = await service.communitiesCount();
       expect(result).toStrictEqual({ total });
       expect(communityService.count).toBeCalledWith({ isActive: true });
+    });
+  });
+  describe('create', () => {
+    const communityStatistics = communityStatisticsGenerator();
+    const count = 15;
+    const admin = requestUserGenerator();
+    beforeEach(() => {
+      jest.spyOn(repository, 'create').mockResolvedValue(communityStatistics);
+      jest.spyOn(repository, 'count').mockResolvedValue(0);
+      jest.spyOn(communityService, 'count').mockResolvedValue({ total: count });
+    });
+    it('should throw error when month already has statistics', async () => {
+      jest.spyOn(repository, 'count').mockResolvedValueOnce(1);
+      const expectedError = new HttpException(
+        'As estatísticas desse mês já foram geradas',
+        HttpStatus.BAD_REQUEST,
+      );
+      await expect(service.create()).rejects.toThrowError(expectedError);
+    });
+    it('should create with user', async () => {
+      const result = await service.create(admin);
+      expect(result).toStrictEqual(
+        plainToInstance(CommunityStatisticsDto, communityStatistics),
+      );
+      expect(repository.create).toBeCalledWith({
+        userId: admin.id,
+        count,
+      });
+    });
+    it('should create without user', async () => {
+      const result = await service.create();
+      expect(result).toStrictEqual(
+        plainToInstance(CommunityStatisticsDto, communityStatistics),
+      );
+      expect(repository.create).toBeCalledWith({
+        count,
+      });
     });
   });
 });

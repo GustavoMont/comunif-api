@@ -1,10 +1,19 @@
-import { Controller, Get, Inject, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Inject,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/role.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RoleEnum } from 'src/models/User';
 import { ICommunityStatisticsService } from './interfaces/ICommunityStatisticsService';
 import { StatisticsQueryDto } from 'src/dtos/statistics-query.dto';
+import { User } from 'src/decorators/request-user.decorator';
+import { RequestUser } from 'src/types/RequestUser';
 
 @Controller('/api/community-statistics')
 @Roles(RoleEnum.admin)
@@ -30,5 +39,9 @@ export class CommunityStatisticsController {
       take,
       isEmpty ? undefined : filters,
     );
+  }
+  @Post()
+  async create(@User() user: RequestUser) {
+    return await this.service.create(user);
   }
 }

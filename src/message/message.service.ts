@@ -11,6 +11,7 @@ import { RequestUser } from 'src/types/RequestUser';
 import { ICommunityService } from 'src/community/interfaces/ICommunityService';
 import { ICommunityUsersService } from 'src/community-users/interfaces/ICommunityUsersService';
 import { RoleEnum } from 'src/models/User';
+import { MessageQueryDto } from './dtos/message-query.dto';
 
 @Injectable()
 export class MessageService extends Service implements IMessageService {
@@ -22,6 +23,11 @@ export class MessageService extends Service implements IMessageService {
     private readonly communityUsersService: ICommunityUsersService,
   ) {
     super();
+  }
+
+  async countMessages(filters: MessageQueryDto = {}): Promise<number> {
+    const total = await this.repository.count(filters);
+    return total;
   }
 
   async create(payload: MessagePayload): Promise<MessageResponse> {
@@ -54,7 +60,7 @@ export class MessageService extends Service implements IMessageService {
     const skip = this.generateSkip(page, take);
     const [messages, count] = await Promise.all([
       this.repository.findByChannelId(communityChannelId, { skip, take }),
-      this.repository.countChannelMessages(communityChannelId),
+      this.repository.count({ communityChannelId }),
     ]);
     const messagesResponses = plainToInstance(MessageResponse, messages);
     return new ListResponse<MessageResponse>(

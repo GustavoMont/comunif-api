@@ -21,5 +21,6 @@ import { PrismaClient } from '@prisma/client';
   ],
   imports: [UserModule],
   controllers: [UserStatisticsController],
+  exports: [IUserStatisticsService],
 })
 export class UserStatisticsModule {}

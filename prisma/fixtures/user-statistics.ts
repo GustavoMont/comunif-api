@@ -14,12 +14,6 @@ const userStatistics: UserStatistics[] = [
     id: 2,
     userId: null,
   },
-  {
-    count: 8,
-    createdAt: moment().startOf('month').toDate(),
-    id: 3,
-    userId: null,
-  },
 ];
 
 export default userStatistics;

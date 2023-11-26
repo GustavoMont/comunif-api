@@ -1,6 +1,5 @@
 import { CommunityStatistics } from '@prisma/client';
 import * as moment from 'moment';
-import communities from './communities';
 
 const communityStatistics: CommunityStatistics[] = [
   {
@@ -13,12 +12,6 @@ const communityStatistics: CommunityStatistics[] = [
     count: 4,
     createdAt: moment().subtract(1, 'months').toDate(),
     id: 2,
-    userId: null,
-  },
-  {
-    count: communities.length,
-    createdAt: moment().toDate(),
-    id: 3,
     userId: null,
   },
 ];

@@ -111,4 +111,38 @@ describe('User statistics', () => {
       });
     });
   });
+  describe('/POST', () => {
+    describe('create user statistics', () => {
+      it('should throw unauthorized', () => {
+        return request(app.getHttpServer()).post(baseUrl).expect(401);
+      });
+      it('should throw forbidden', () => {
+        return request(app.getHttpServer())
+          .post(baseUrl)
+          .set('Authorization', `Bearer ${userToken}`)
+          .expect(403);
+      });
+      it('should create statistics', () => {
+        const expectedCount = activeUsers.length;
+        return request(app.getHttpServer())
+          .post(baseUrl)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .expect(201)
+          .expect(({ body }) => {
+            expect(body.count).toBe(expectedCount);
+            expect(body.userId).toBe(admin.id);
+          });
+      });
+      it('should throw bad request', () => {
+        return request(app.getHttpServer())
+          .post(baseUrl)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .expect(400)
+          .expect({
+            statusCode: 400,
+            message: 'As estatísticas desse mês já foram geradas',
+          });
+      });
+    });
+  });
 });

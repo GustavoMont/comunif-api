@@ -22,5 +22,6 @@ import { ICommunityStatisticsService } from './interfaces/ICommunityStatisticsSe
   ],
   controllers: [CommunityStatisticsController],
   imports: [CommunityModule],
+  exports: [ICommunityStatisticsService],
 })
 export class CommunityStatisticsModule {}

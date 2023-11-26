@@ -26,9 +26,7 @@ export class ImageService {
       const storage = getStorage(app);
       const imageRef = ref(storage, path);
       const file = await readFile(`uploads/${path}`);
-      uploadBytes(imageRef, file).then(() => {
-        console.log('Uploaded a blob or file!');
-      });
+      await uploadBytes(imageRef, file);
     } catch (err) {
       this.logger.error(err);
       throw err;
