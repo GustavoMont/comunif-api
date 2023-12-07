@@ -24,6 +24,7 @@ export class UserUpdate implements User {
   @Exclude()
   password: string;
   birthday: Date;
+  @IsOptional()
   bio: string;
   @Exclude()
   avatar: string;
