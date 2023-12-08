@@ -11,7 +11,7 @@ import { IMessageService } from './interfaces/IMessageService';
 import { JoinChannelDto } from './dtos/join-channel.dto';
 @WebSocketGateway({
   cors: {
-    origin: 'http://localhost:3001',
+    origin: process.env.CLIENT_WEB,
   },
 })
 export class MessageGateway implements IMessageGateway {
